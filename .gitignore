@@ -1,0 +1,7 @@
+**DS_Store
+.gitignore~
+/target
+/logs
+*.iml
+.java-version
+src/test/java/Throwaway*

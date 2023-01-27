@@ -1,0 +1,35 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:base",
+    "group:recommended"
+  ],
+  "rangeStrategy": "update-lockfile",
+  "prConcurrentLimit": 20,
+  "prHourlyLimit": 10,
+  "hostRules": [
+    {
+      "matchHost": "eu.gcr.io",
+      "authType": "Basic"
+    }
+  ],
+  "packageRules": [
+    {
+      "matchDatasources": [
+        "maven"
+      ],
+      "registryUrls": [
+        "https://nexus.illuin-tech.com/repository/maven-public/"
+      ]
+    },
+    {
+      "matchDatasources": [
+        "pypi"
+      ],
+      "registryUrls": [
+        "https://nexus.illuin-tech.com/repository/pypi_hosted/simple",
+        "https://pypi.org/pypi/"
+      ]
+    }
+  ]
+}

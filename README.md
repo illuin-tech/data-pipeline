@@ -1,6 +1,7 @@
 # Data Pipeline
 
-_Note: This library is considered as "in beta" and as such API changes may occur without prior warning. The library adheres to semver and flags "possibly unstable" APIs as such with an `@Experimental` documented annotation._
+_Note: This library is considered as "in beta" and as such API changes may occur without prior warning.
+The library adheres to semver and flags "possibly unstable" APIs as such with an `@Experimental` documented annotation._
 
 ## I. Installation
 

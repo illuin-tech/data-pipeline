@@ -1,6 +1,9 @@
 package tech.illuin.pipeline.input.indexer;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 /**
@@ -8,14 +11,14 @@ import java.util.stream.Stream;
  */
 public class IndexContainer
 {
-    private final Map<UUID, Entry<?>> index;
+    private final Map<String, Entry<?>> index;
 
     public IndexContainer()
     {
         this.index = new HashMap<>();
     }
 
-    public boolean contains(UUID uid)
+    public boolean contains(String uid)
     {
         return this.index.containsKey(uid);
     }
@@ -25,12 +28,12 @@ public class IndexContainer
         return this.index.containsKey(indexable.uid());
     }
 
-    public Optional<Object> get(UUID uid)
+    public Optional<Object> get(String uid)
     {
         return Optional.ofNullable(this.index.get(uid)).map(Entry::data);
     }
 
-    public <T> Optional<T> get(UUID uid, Class<T> type)
+    public <T> Optional<T> get(String uid, Class<T> type)
     {
         Entry<?> entry = this.index.get(uid);
         if (entry != null && !type.isAssignableFrom(entry.type()))

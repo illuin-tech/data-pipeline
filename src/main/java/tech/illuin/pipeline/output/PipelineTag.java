@@ -1,11 +1,11 @@
 package tech.illuin.pipeline.output;
 
-import java.util.UUID;
+import tech.illuin.pipeline.input.indexer.Indexable;
 
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
 public record PipelineTag(
-    UUID uid,
+    String uid,
     String pipeline
-) {}
+) implements Indexable {}

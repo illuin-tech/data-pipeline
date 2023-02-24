@@ -138,7 +138,7 @@ public final class PayloadPipelineBuilder<I, P> extends PipelineBuilder<I, P>
     }
 
     @Override
-    public <T extends Indexable> PayloadPipelineBuilder<I, P> registerSteps(List<? extends Step<? extends T, I, P>> steps)
+    public PayloadPipelineBuilder<I, P> registerSteps(List<? extends Step<?, I, P>> steps)
     {
         return (PayloadPipelineBuilder<I, P>) super.registerSteps(steps);
     }
@@ -150,7 +150,7 @@ public final class PayloadPipelineBuilder<I, P> extends PipelineBuilder<I, P>
     }
 
     @Override
-    public <T extends Indexable> PayloadPipelineBuilder<I, P> registerStepAssemblers(List<? extends StepAssembler<? extends T, I, P>> builders)
+    public PayloadPipelineBuilder<I, P> registerStepAssemblers(List<? extends StepAssembler<?, I, P>> builders)
     {
         return (PayloadPipelineBuilder<I, P>) super.registerStepAssemblers(builders);
     }

@@ -98,9 +98,9 @@ public abstract class PipelineBuilder<I, P>
         return this.registerStep((Step<T, I, P>) step);
     }
 
-    public <T extends Indexable> PipelineBuilder<I, P> registerSteps(List<? extends Step<? extends T, I, P>> steps)
+    public PipelineBuilder<I, P> registerSteps(List<? extends Step<?, I, P>> steps)
     {
-        for (Step<? extends T, I, P> step : steps)
+        for (Step<?, I, P> step : steps)
             this.registerStep(step);
         return this;
     }
@@ -112,9 +112,9 @@ public abstract class PipelineBuilder<I, P>
         return this;
     }
 
-    public <T extends Indexable> PipelineBuilder<I, P> registerStepAssemblers(List<? extends StepAssembler<? extends T, I, P>> builders)
+    public PipelineBuilder<I, P> registerStepAssemblers(List<? extends StepAssembler<?, I, P>> builders)
     {
-        for (StepAssembler<? extends T, I, P> builder : builders)
+        for (StepAssembler<?, I, P> builder : builders)
             this.registerStep(builder);
         return this;
     }

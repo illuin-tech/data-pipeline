@@ -14,4 +14,9 @@ public class StepException extends Exception
     {
         super(message, cause);
     }
+
+    public StepException(Throwable cause)
+    {
+        super(cause);
+    }
 }

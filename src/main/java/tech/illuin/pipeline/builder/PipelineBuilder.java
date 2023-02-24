@@ -98,10 +98,24 @@ public abstract class PipelineBuilder<I, P>
         return this.registerStep((Step<T, I, P>) step);
     }
 
+    public <T extends Indexable> PipelineBuilder<I, P> registerSteps(List<Step<T, I, P>> steps)
+    {
+        for (Step<T, I, P> step : steps)
+            this.registerStep(step);
+        return this;
+    }
+
     @SuppressWarnings("unchecked")
     public <T extends Indexable> PipelineBuilder<I, P> registerStep(StepAssembler<T, I, P> builder)
     {
         this.steps.add((StepDescriptor<Indexable, I, P>) builder.build(new StepBuilder<>()));
+        return this;
+    }
+
+    public <T extends Indexable> PipelineBuilder<I, P> registerStepAssemblers(List<StepAssembler<T, I, P>> builders)
+    {
+        for (StepAssembler<T, I, P> builder : builders)
+            this.registerStep(builder);
         return this;
     }
 

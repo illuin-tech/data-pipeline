@@ -75,7 +75,7 @@ public final class SimplePipelineBuilder<I> extends PipelineBuilder<I, VoidPaylo
     }
 
     @Override
-    public <T extends Indexable> SimplePipelineBuilder<I> registerSteps(List<Step<T, I, VoidPayload>> steps)
+    public <T extends Indexable> SimplePipelineBuilder<I> registerSteps(List<? extends Step<T, I, VoidPayload>> steps)
     {
         return (SimplePipelineBuilder<I>) super.registerSteps(steps);
     }
@@ -87,7 +87,7 @@ public final class SimplePipelineBuilder<I> extends PipelineBuilder<I, VoidPaylo
     }
 
     @Override
-    public <T extends Indexable> SimplePipelineBuilder<I> registerStepAssemblers(List<StepAssembler<T, I, VoidPayload>> builders)
+    public <T extends Indexable> SimplePipelineBuilder<I> registerStepAssemblers(List<? extends StepAssembler<T, I, VoidPayload>> builders)
     {
         return (SimplePipelineBuilder<I>) super.registerStepAssemblers(builders);
     }

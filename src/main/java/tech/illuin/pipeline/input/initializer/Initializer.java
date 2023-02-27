@@ -19,7 +19,7 @@ public interface Initializer<I, P>
         return context.parent().map(Output::payload).orElseThrow(() -> new IllegalArgumentException("The provided context does not reference a parent output"));
     }
 
-    static <I, P> P initializeFromParentOr(I input, Context<P> context, Supplier<P> or)
+    static <I, P> P initializeFromParentOr(Context<P> context, Supplier<P> or)
     {
         return context.parent().map(Output::payload).orElseGet(or);
     }

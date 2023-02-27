@@ -8,6 +8,7 @@ import tech.illuin.pipeline.step.result.ResultContainer;
 
 import java.time.Instant;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import static tech.illuin.pipeline.input.indexer.Indexable.PIPELINE_PREFIX;
@@ -22,6 +23,7 @@ public class Output<T> implements Comparable<Output<T>>
     private final Instant createdAt;
     private final IndexContainer index;
     private final ResultContainer results;
+    private Instant finishedAt;
     private T payload;
 
     public Output(String pipeline, String author)
@@ -47,6 +49,18 @@ public class Output<T> implements Comparable<Output<T>>
     public Instant createdAt()
     {
         return this.createdAt;
+    }
+
+    public synchronized Output<T> finish()
+    {
+        if (this.finishedAt == null)
+            this.finishedAt = Instant.now();
+        return this;
+    }
+
+    public Optional<Instant> finishedAt()
+    {
+        return Optional.ofNullable(this.createdAt);
     }
 
     public T payload()

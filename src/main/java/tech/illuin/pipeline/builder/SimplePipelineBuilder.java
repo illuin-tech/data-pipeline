@@ -1,8 +1,10 @@
 package tech.illuin.pipeline.builder;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import tech.illuin.pipeline.CompositePipeline;
 import tech.illuin.pipeline.Pipeline;
+import tech.illuin.pipeline.close.OnCloseHandler;
 import tech.illuin.pipeline.input.author_resolver.AuthorResolver;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.input.indexer.SingleIndexer;
@@ -11,28 +13,50 @@ import tech.illuin.pipeline.sink.Sink;
 import tech.illuin.pipeline.sink.SinkDescriptor;
 import tech.illuin.pipeline.step.Step;
 import tech.illuin.pipeline.step.builder.StepAssembler;
+import tech.illuin.pipeline.step.builder.StepBuilder;
 import tech.illuin.pipeline.step.builder.StepDescriptor;
 import tech.illuin.pipeline.step.execution.error.StepErrorHandler;
 import tech.illuin.pipeline.step.execution.evaluator.ResultEvaluator;
 import tech.illuin.pipeline.step.variant.InputStep;
 
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Supplier;
 
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public final class SimplePipelineBuilder<I> extends PipelineBuilder<I, VoidPayload>
+public final class SimplePipelineBuilder<I>
 {
-    @Override
+    private String id;
+    private AuthorResolver<I> authorResolver;
+    private final List<StepDescriptor<Indexable, I, VoidPayload>> steps;
+    private final List<SinkDescriptor<VoidPayload>> sinks;
+    private Supplier<ExecutorService> sinkExecutorProvider;
+    private int closeTimeout;
+    private final List<OnCloseHandler> onCloseHandlers;
+    private ResultEvaluator defaultEvaluator;
+    private StepErrorHandler defaultErrorHandler;
+    private MeterRegistry meterRegistry;
+
+    public SimplePipelineBuilder()
+    {
+        this.authorResolver = AuthorResolver::anonymous;
+        this.sinkExecutorProvider = () -> Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+        this.steps = new ArrayList<>();
+        this.sinks = new ArrayList<>();
+        this.onCloseHandlers = new ArrayList<>();
+        this.meterRegistry = null;
+    }
+
     public Pipeline<I, VoidPayload> build()
     {
         return new CompositePipeline<>(
             this.id(),
-            (in, ctx) -> Initializer.initializeFromParentOr(in, ctx, VoidPayload::new),
+            (in, ctx) -> Initializer.initializeFromParentOr(ctx, VoidPayload::new),
             this.authorResolver(),
             Collections.singletonList(SingleIndexer.auto()),
             this.steps(),
@@ -44,111 +68,168 @@ public final class SimplePipelineBuilder<I> extends PipelineBuilder<I, VoidPaylo
         );
     }
 
-    @Override
+    public String id()
+    {
+        return this.id;
+    }
+
     public SimplePipelineBuilder<I> setId(String id)
     {
-        return (SimplePipelineBuilder<I>) super.setId(id);
+        this.id = id;
+        return this;
     }
 
-    @Override
+    public AuthorResolver<I> authorResolver()
+    {
+        return this.authorResolver;
+    }
+
     public SimplePipelineBuilder<I> setAuthorResolver(AuthorResolver<I> authorResolver)
     {
-        return (SimplePipelineBuilder<I>) super.setAuthorResolver(authorResolver);
+        this.authorResolver = authorResolver;
+        return this;
     }
 
-    @Override
-    public SimplePipelineBuilder<I> setSteps(List<StepDescriptor<Indexable, I, VoidPayload>> steps)
+    public List<StepDescriptor<Indexable, I, VoidPayload>> steps()
     {
-        return (SimplePipelineBuilder<I>) super.setSteps(steps);
+        return this.steps;
     }
 
-    @Override
-    public <T extends Indexable> SimplePipelineBuilder<I> registerStep(Step<T, I, VoidPayload> step)
+    public SimplePipelineBuilder<I> registerSteps(List<? extends Step<?, I, ?>> steps)
     {
-        return (SimplePipelineBuilder<I>) super.registerStep(step);
+        for (Step<?, I, ?> step : steps)
+            this.registerStep(step);
+        return this;
     }
 
-    @Override
-    public <T extends Indexable> SimplePipelineBuilder<I> registerStep(InputStep<I> step)
+    public <ID extends Indexable, T> SimplePipelineBuilder<I> registerStep(Step<ID, I, T> step)
     {
-        return (SimplePipelineBuilder<I>) super.registerStep(step);
+        return this.registerStep((StepBuilder<ID, I, T> builder) -> builder
+            .step(step)
+            .withEvaluation(this.defaultEvaluator())
+            .withErrorHandler(this.defaultErrorHandler())
+        );
     }
 
-    @Override
-    public SimplePipelineBuilder<I> registerSteps(List<? extends Step<?, I, VoidPayload>> steps)
+    public SimplePipelineBuilder<I> registerStep(InputStep<I> step)
     {
-        return (SimplePipelineBuilder<I>) super.registerSteps(steps);
+        return this.registerStep((Step<Indexable, I, ?>) step);
     }
 
-    @Override
-    public <T extends Indexable> SimplePipelineBuilder<I> registerStep(StepAssembler<T, I, VoidPayload> builder)
+    @SuppressWarnings("unchecked")
+    public SimplePipelineBuilder<I> registerStep(StepAssembler<?, I, ?> builder)
     {
-        return (SimplePipelineBuilder<I>) super.registerStep(builder);
+        this.steps.add(((StepAssembler<Indexable, I, VoidPayload>) builder).build(new StepBuilder<>()));
+        return this;
     }
 
-    @Override
-    public SimplePipelineBuilder<I> registerStepAssemblers(List<? extends StepAssembler<?, I, VoidPayload>> builders)
+    public SimplePipelineBuilder<I> registerStepAssemblers(List<? extends StepAssembler<?, I, ?>> builders)
     {
-        return (SimplePipelineBuilder<I>) super.registerStepAssemblers(builders);
+        for (StepAssembler<?, I, ?> builder : builders)
+            this.registerStep(builder);
+        return this;
     }
 
-    @Override
-    public SimplePipelineBuilder<I> setSinks(List<SinkDescriptor<VoidPayload>> sinks)
+    public List<SinkDescriptor<VoidPayload>> sinks()
     {
-        return (SimplePipelineBuilder<I>) super.setSinks(sinks);
+        return this.sinks;
     }
 
-    @Override
-    public SimplePipelineBuilder<I> registerSink(Sink<VoidPayload> sink)
+    public SimplePipelineBuilder<I> registerSink(Sink<?> sink)
     {
-        return (SimplePipelineBuilder<I>) super.registerSink(sink);
+        return this.registerSink(sink, false);
     }
 
-    @Override
-    public SimplePipelineBuilder<I> registerSink(Collection<Sink<VoidPayload>> sinks)
+    @SuppressWarnings("unchecked")
+    public SimplePipelineBuilder<I> registerSink(Sink<?> sink, boolean async)
     {
-        return (SimplePipelineBuilder<I>) super.registerSink(sinks);
+        this.sinks.add(new SinkDescriptor<>((Sink<VoidPayload>) sink, async));
+        return this;
     }
 
-    @Override
-    public SimplePipelineBuilder<I> registerSink(Sink<VoidPayload> sink, boolean async)
+    public SimplePipelineBuilder<I> registerSinks(List<? extends Sink<?>> sinks)
     {
-        return (SimplePipelineBuilder<I>) super.registerSink(sink, async);
+        for (Sink<?> sink : sinks)
+            this.registerSink(sink, false);
+        return this;
     }
 
-    @Override
-    public SimplePipelineBuilder<I> registerSink(Collection<Sink<VoidPayload>> sinks, boolean async)
+    public SimplePipelineBuilder<I> registerSinks(List<Sink<?>> sinks, boolean async)
     {
-        return (SimplePipelineBuilder<I>) super.registerSink(sinks, async);
+        for (Sink<?> sink : sinks)
+            this.registerSink(sink, async);
+        return this;
     }
 
-    @Override
+    public Supplier<ExecutorService> sinkExecutorProvider()
+    {
+        return sinkExecutorProvider;
+    }
+
     public SimplePipelineBuilder<I> setSinkExecutorProvider(Supplier<ExecutorService> sinkExecutorProvider)
     {
-        return (SimplePipelineBuilder<I>) super.setSinkExecutorProvider(sinkExecutorProvider);
+        this.sinkExecutorProvider = sinkExecutorProvider;
+        return this;
     }
 
-    @Override
     public SimplePipelineBuilder<I> setSinkExecutor(ExecutorService sinkExecutor)
     {
-        return (SimplePipelineBuilder<I>) super.setSinkExecutor(sinkExecutor);
+        this.sinkExecutorProvider = () -> sinkExecutor;
+        return this;
     }
 
-    @Override
+    public List<OnCloseHandler> onCloseHandlers()
+    {
+        return this.onCloseHandlers;
+    }
+
+    public SimplePipelineBuilder<I> registerOnCloseHandler(OnCloseHandler handler)
+    {
+        this.onCloseHandlers.add(handler);
+        return this;
+    }
+
+    public int closeTimeout()
+    {
+        return this.closeTimeout;
+    }
+
     public SimplePipelineBuilder<I> setCloseTimeout(int closeTimeout)
     {
-        return (SimplePipelineBuilder<I>) super.setCloseTimeout(closeTimeout);
+        this.closeTimeout = closeTimeout;
+        return this;
     }
 
-    @Override
+    public ResultEvaluator defaultEvaluator()
+    {
+        return this.defaultEvaluator;
+    }
+
     public SimplePipelineBuilder<I> setDefaultEvaluator(ResultEvaluator defaultEvaluator)
     {
-        return (SimplePipelineBuilder<I>) super.setDefaultEvaluator(defaultEvaluator);
+        this.defaultEvaluator = defaultEvaluator;
+        return this;
     }
 
-    @Override
+    public StepErrorHandler defaultErrorHandler()
+    {
+        return this.defaultErrorHandler;
+    }
+
     public SimplePipelineBuilder<I> setDefaultErrorHandler(StepErrorHandler defaultErrorHandler)
     {
-        return (SimplePipelineBuilder<I>) super.setDefaultErrorHandler(defaultErrorHandler);
+        this.defaultErrorHandler = defaultErrorHandler;
+        return this;
+    }
+
+    public MeterRegistry meterRegistry()
+    {
+        return meterRegistry;
+    }
+
+    public SimplePipelineBuilder<I> setMeterRegistry(MeterRegistry meterRegistry)
+    {
+        this.meterRegistry = meterRegistry;
+        return this;
     }
 }

@@ -10,4 +10,12 @@ import java.util.Optional;
 public interface Context<P>
 {
     Optional<Output<P>> parent();
+
+    Context<P> set(String key, Object value);
+
+    boolean has(String key);
+
+    Optional<Object> get(String key);
+
+    <T> Optional<T> get(String key, Class<T> type);
 }

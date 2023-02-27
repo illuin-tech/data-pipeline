@@ -76,6 +76,11 @@ public class ResultContainer
         ;
     }
 
+    public <E extends Enum<E>> Optional<Result> latest(E type)
+    {
+        return this.latest(type.name());
+    }
+
     public Optional<Result> latest(String type)
     {
         return this.stream()
@@ -96,6 +101,11 @@ public class ResultContainer
             .max(Comparator.comparing(Result::createdAt))
             .map(type::cast)
         ;
+    }
+
+    public <E extends Enum<E>> Optional<Result> current(E type)
+    {
+        return this.current(type.name());
     }
 
     public Optional<Result> current(String type)

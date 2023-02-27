@@ -12,6 +12,7 @@ import tech.illuin.pipeline.step.Step;
 import tech.illuin.pipeline.step.result.Result;
 import tech.illuin.pipeline.step.variant.PipelineStep;
 
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -42,6 +43,18 @@ public interface Pipeline<I, P> extends AutoCloseable
      * @throws PipelineException
      */
     Output<P> run(I input, Context<P> context) throws PipelineException;
+
+    /**
+     * Runs the Pipeline with a {@link SimpleContext} that can be adjusted via the setup argument.
+     *
+     * @see #run(Object, Context)
+     */
+    default Output<P> run(I input, Consumer<Context<P>> setup) throws PipelineException
+    {
+        Context<P> context = new SimpleContext<>();
+        setup.accept(context);
+        return this.run(input, context);
+    }
 
     /**
      * Runs the Pipeline with a null input and an empty {@link SimpleContext}.

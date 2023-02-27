@@ -22,6 +22,11 @@ public interface ResultView
         return this.stream().filter(type::isInstance).map(type::cast);
     }
 
+    default <E extends Enum<E>> Stream<Result> stream(E type)
+    {
+        return this.stream(type.name());
+    }
+
     default Stream<Result> stream(String type)
     {
         return this.stream().filter(r -> Objects.equals(r.type(), type));
@@ -34,6 +39,11 @@ public interface ResultView
             .max(Comparator.comparing(Result::createdAt))
             .map(type::cast)
         ;
+    }
+
+    default <E extends Enum<E>> Optional<Result> latest(E type)
+    {
+        return this.latest(type.name());
     }
 
     default Optional<Result> latest(String type)
@@ -52,6 +62,11 @@ public interface ResultView
             .max(Comparator.comparing(Result::createdAt))
             .map(type::cast)
         ;
+    }
+
+    default <E extends Enum<E>> Optional<Result> current(E type)
+    {
+        return this.current(type.name());
     }
 
     default Optional<Result> current(String type)

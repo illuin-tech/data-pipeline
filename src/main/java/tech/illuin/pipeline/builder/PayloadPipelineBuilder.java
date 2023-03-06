@@ -57,6 +57,7 @@ public final class PayloadPipelineBuilder<I, P>
         this.meterRegistry = null;
         this.initializer = (in, ctx) -> null;
         this.indexers = new ArrayList<>();
+        this.closeTimeout = 15;
     }
 
     @SuppressWarnings("unchecked")

@@ -21,7 +21,7 @@ import static tech.illuin.pipeline.input.author_resolver.AuthorResolver.ANONYMOU
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
 @Experimental
-public class PipelineStep<I, P> implements Step<Indexable, I, VoidPayload>
+public final class PipelineStep<I, P> implements Step<Indexable, I, VoidPayload>
 {
     private final Pipeline<I, P> pipeline;
     private final Function<Output<P>, Result> resultMapper;

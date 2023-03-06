@@ -50,6 +50,7 @@ public final class SimplePipelineBuilder<I>
         this.sinks = new ArrayList<>();
         this.onCloseHandlers = new ArrayList<>();
         this.meterRegistry = null;
+        this.closeTimeout = 15;
     }
 
     public Pipeline<I, VoidPayload> build()

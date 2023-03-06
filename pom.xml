@@ -6,7 +6,7 @@
 
     <groupId>tech.illuin</groupId>
     <artifactId>data-pipeline</artifactId>
-    <version>0.3</version>
+    <version>0.4</version>
 
     <name>Data Pipeline</name>
     <description>Toolkit for structuring data transformation applications</description>

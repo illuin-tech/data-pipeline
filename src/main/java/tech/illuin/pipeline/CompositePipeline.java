@@ -1,7 +1,6 @@
 package tech.illuin.pipeline;
 
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tech.illuin.pipeline.close.OnCloseHandler;
@@ -10,11 +9,15 @@ import tech.illuin.pipeline.input.author_resolver.AuthorResolver;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.input.indexer.Indexer;
 import tech.illuin.pipeline.input.initializer.Initializer;
+import tech.illuin.pipeline.metering.PipelineInitializationMetrics;
+import tech.illuin.pipeline.metering.PipelineMetrics;
+import tech.illuin.pipeline.metering.PipelineSinkMetrics;
+import tech.illuin.pipeline.metering.PipelineStepMetrics;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.sink.SinkDescriptor;
 import tech.illuin.pipeline.sink.SinkException;
-import tech.illuin.pipeline.step.builder.StepDescriptor;
 import tech.illuin.pipeline.step.StepException;
+import tech.illuin.pipeline.step.builder.StepDescriptor;
 import tech.illuin.pipeline.step.execution.evaluator.StepStrategy;
 import tech.illuin.pipeline.step.result.Result;
 
@@ -24,8 +27,6 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
-
-import static tech.illuin.pipeline.metering.MeterRegistryKeys.*;
 
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
@@ -79,9 +80,10 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
     }
 
     @Override
+    @SuppressWarnings("IllegalCatch")
     public Output<P> run(I input, Context<P> context) throws PipelineException
     {
-        Timer timer = this.meterRegistry.timer(PIPELINE_RUN_KEY, "pipeline", this.id());
+        PipelineMetrics metrics = new PipelineMetrics(this.meterRegistry, this);
 
         long start = System.nanoTime();
         try {
@@ -92,96 +94,125 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
             this.runSinks(output, context);
 
             logger.trace("{}#{} finished", this.id(), output.tag().uid());
+            metrics.successCounter().increment();
 
             return output;
         }
         catch (StepException | SinkException e) {
+            metrics.failureCounter().increment();
             throw new PipelineException(e);
         }
+        catch (Exception e) {
+            metrics.failureCounter().increment();
+            throw e;
+        }
         finally {
-            timer.record(System.nanoTime() - start, TimeUnit.NANOSECONDS);
+            metrics.runTimer().record(System.nanoTime() - start, TimeUnit.NANOSECONDS);
         }
     }
 
+    @SuppressWarnings("IllegalCatch")
     private Output<P> runInitialization(I input, Context<P> context)
     {
         if (context == null)
             throw new IllegalArgumentException("Runtime context cannot be null");
 
-        Output<P> output = new Output<>(
-            this.id(),
-            this.authorResolver.resolve(input, context)
-        );
+        PipelineInitializationMetrics metrics = new PipelineInitializationMetrics(this.meterRegistry, this);
 
-        logger.trace("{}#{} initializing payload", this.id(), output.tag().uid());
-        output.setPayload(this.initializer.initialize(input, context));
+        long start = System.nanoTime();
+        try {
+            Output<P> output = new Output<>(
+                this.id(),
+                this.authorResolver.resolve(input, context)
+            );
 
-        for (Indexer<P> indexer : this.indexers)
-        {
-            logger.trace("{}#{} launching indexer {}", this.id(), output.tag().uid(), indexer.getClass().getName());
-            indexer.index(output.payload(), output.index());
+            logger.trace("{}#{} initializing payload", this.id(), output.tag().uid());
+            output.setPayload(this.initializer.initialize(input, context));
+
+            for (Indexer<P> indexer : this.indexers)
+            {
+                logger.trace("{}#{} launching indexer {}", this.id(), output.tag().uid(), indexer.getClass().getName());
+                indexer.index(output.payload(), output.index());
+            }
+
+            context.parent().ifPresent(parent -> output.results().register(parent.results()));
+
+            metrics.successCounter().increment();
+
+            return output;
         }
-
-        context.parent().ifPresent(parent -> output.results().register(parent.results()));
-
-        return output;
+        catch (Exception e) {
+            metrics.failureCounter().increment();
+            throw e;
+        }
+        finally {
+            metrics.runTimer().record(System.nanoTime() - start, TimeUnit.NANOSECONDS);
+        }
     }
 
     private void runSteps(I input, Output<P> output, Context<P> context) throws StepException
     {
-        Set<Indexable> discarded = new HashSet<>();
-        STEP_LOOP: for (StepDescriptor<Indexable, I, P> step : this.steps)
-        {
-            /* Arguments are a list of Indexable which satisfy the step's execution predicate */
-            List<Indexable> arguments = output.index().stream()
-                .filter(idx -> !discarded.contains(idx))
-                .filter(step::canExecute)
-                .toList()
-            ;
-
-            logger.trace("{}#{} retrieved {} arguments for step {}", this.id(), output.tag().uid(), arguments.size(), step.id());
-
-            /* For each argument we perform the step and register the produced Result */
-            for (Indexable indexed : arguments)
+        try {
+            Set<Indexable> discarded = new HashSet<>();
+            STEP_LOOP: for (StepDescriptor<Indexable, I, P> step : this.steps)
             {
-                Result result = this.runStep(step, indexed, input, output, context);
+                /* Arguments are a list of Indexable which satisfy the step's execution predicate */
+                List<Indexable> arguments = output.index().stream()
+                    .filter(idx -> !discarded.contains(idx))
+                    .filter(step::canExecute)
+                    .toList()
+                ;
 
-                if (result instanceof PipelineResult<?> pResult)
-                    pResult.output().results().current().forEach(r -> output.results().register(indexed.uid(), r));
-                else
-                    output.results().register(indexed.uid(), result);
+                logger.trace("{}#{} retrieved {} arguments for step {}", this.id(), output.tag().uid(), arguments.size(), step.id());
 
-                StepStrategy strategy = step.postEvaluation(result);
-                if (strategy == StepStrategy.ABORT)
+                /* For each argument we perform the step and register the produced Result */
+                for (Indexable indexed : arguments)
                 {
-                    logger.trace("{}#{} received {} signal after step {} over argument {}", this.id(), output.tag().uid(), strategy, step.id(), indexed.uid());
-                    break STEP_LOOP;
-                }
-                else if (strategy == StepStrategy.DISCARD_AND_CONTINUE)
-                {
-                    logger.trace("{}#{} received {} signal after step {} over argument {}", this.id(), output.tag().uid(), strategy, step.id(), indexed.uid());
-                    discarded.add(indexed);
+                    Result result = this.runStep(step, indexed, input, output, context);
+
+                    if (result instanceof PipelineResult<?> pResult)
+                        pResult.output().results().current().forEach(r -> output.results().register(indexed.uid(), r));
+                    else
+                        output.results().register(indexed.uid(), result);
+
+                    StepStrategy strategy = step.postEvaluation(result);
+                    if (strategy == StepStrategy.ABORT)
+                    {
+                        logger.trace("{}#{} received {} signal after step {} over argument {}", this.id(), output.tag().uid(), strategy, step.id(), indexed.uid());
+                        break STEP_LOOP;
+                    }
+                    else if (strategy == StepStrategy.DISCARD_AND_CONTINUE)
+                    {
+                        logger.trace("{}#{} received {} signal after step {} over argument {}", this.id(), output.tag().uid(), strategy, step.id(), indexed.uid());
+                        discarded.add(indexed);
+                    }
                 }
             }
+        }
+        finally {
+            output.finish();
         }
     }
 
     @SuppressWarnings("IllegalCatch")
     private Result runStep(StepDescriptor<Indexable, I, P> step, Indexable indexed, I input, Output<P> output, Context<P> context) throws StepException
     {
-        Timer timer = this.meterRegistry.timer(PIPELINE_STEP_RUN_KEY, "pipeline", this.id(), "step", step.id());
+        PipelineStepMetrics metrics = new PipelineStepMetrics(this.meterRegistry, this, step);
 
         long start = System.nanoTime();
         try {
             logger.trace("{}#{} running step {} over argument {}", this.id(), output.tag().uid(), step.id(), indexed.uid());
-            return step.execute(indexed, input, output.payload(), output.results().view(indexed), context);
+            Result result = step.execute(indexed, input, output.payload(), output.results().view(indexed), context);
+            metrics.successCounter().increment();
+            return result;
         }
         catch (Exception e) {
             logger.trace("{}#{} step {} threw an {}: {}", this.id(), output.tag().uid(), step.id(), e.getClass().getName(), e.getMessage());
+            metrics.failureCounter().increment();
             return step.handleException(e, context);
         }
         finally {
-            timer.record(System.nanoTime() - start, TimeUnit.NANOSECONDS);
+            metrics.runTimer().record(System.nanoTime() - start, TimeUnit.NANOSECONDS);
         }
     }
 
@@ -189,29 +220,35 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
     {
         for (SinkDescriptor<P> descriptor : this.sinks)
         {
-           Timer timer = this.meterRegistry.timer(PIPELINE_SINK_RUN_KEY, "pipeline", this.id(), "sink", descriptor.id());
+            PipelineSinkMetrics metrics = new PipelineSinkMetrics(this.meterRegistry, this, descriptor);
 
             if (descriptor.isAsync())
-                this.runSinkAsynchronously(descriptor, output, context, timer);
+                this.runSinkAsynchronously(descriptor, output, context, metrics);
             else
-                this.runSinkSynchronously(descriptor, output, context, timer);
+                this.runSinkSynchronously(descriptor, output, context, metrics);
         }
     }
 
-    private void runSinkSynchronously(SinkDescriptor<P> descriptor, Output<P> output, Context<P> context, Timer timer) throws SinkException
+    @SuppressWarnings("IllegalCatch")
+    private void runSinkSynchronously(SinkDescriptor<P> descriptor, Output<P> output, Context<P> context, PipelineSinkMetrics metrics) throws SinkException
     {
         long start = System.nanoTime();
         try {
             logger.trace("{}#{} launching sink {} (is-async: {})", this.id(), output.tag().uid(), descriptor.sink().getClass().getName(), false);
             descriptor.sink().execute(output, context);
+            metrics.successCounter().increment();
+        }
+        catch (Exception e) {
+            metrics.failureCounter().increment();
+            throw e;
         }
         finally {
-            timer.record(System.nanoTime() - start, TimeUnit.NANOSECONDS);
+            metrics.runTimer().record(System.nanoTime() - start, TimeUnit.NANOSECONDS);
         }
     }
 
     @SuppressWarnings("IllegalCatch")
-    private void runSinkAsynchronously(SinkDescriptor<P> descriptor, Output<P> output, Context<P> context, Timer timer)
+    private void runSinkAsynchronously(SinkDescriptor<P> descriptor, Output<P> output, Context<P> context, PipelineSinkMetrics metrics)
     {
         logger.trace("{}#{} queuing sink {} (is-async: {})", this.id(), output.tag().uid(), descriptor.sink().getClass().getName(), true);
         CompletableFuture.runAsync(() -> {
@@ -219,12 +256,14 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
             try {
                 logger.trace("{}#{} launching sink {} (is-async: {})", this.id(), output.tag().uid(), descriptor.sink().getClass().getName(), true);
                 descriptor.sink().execute(output, context);
+                metrics.successCounter().increment();
             }
             catch (RuntimeException | SinkException e) {
                 logger.error("{}#{} an error occurred while running an async sink: {}", this.id(), output.tag().uid(), e.getMessage());
+                metrics.failureCounter().increment();
             }
             finally {
-                timer.record(System.nanoTime() - start, TimeUnit.NANOSECONDS);
+                metrics.runTimer().record(System.nanoTime() - start, TimeUnit.NANOSECONDS);
             }
         }, this.sinkExecutor);
     }

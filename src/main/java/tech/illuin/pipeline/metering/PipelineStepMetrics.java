@@ -12,12 +12,14 @@ import tech.illuin.pipeline.step.builder.StepDescriptor;
 public class PipelineStepMetrics
 {
     private final Timer runTimer;
+    private final Counter totalCounter;
     private final Counter successCounter;
     private final Counter failureCounter;
 
     public PipelineStepMetrics(MeterRegistry meterRegistry, Pipeline<?, ?> pipeline, StepDescriptor<?, ?, ?> descriptor)
     {
         this.runTimer = meterRegistry.timer(MeterRegistryKeys.PIPELINE_STEP_RUN_KEY, "pipeline", pipeline.id(), "step", descriptor.id());
+        this.totalCounter = meterRegistry.counter(MeterRegistryKeys.PIPELINE_STEP_RUN_TOTAL_KEY, "pipeline", pipeline.id(), "step", descriptor.id());
         this.successCounter = meterRegistry.counter(MeterRegistryKeys.PIPELINE_STEP_RUN_SUCCESS_KEY, "pipeline", pipeline.id(), "step", descriptor.id());
         this.failureCounter = meterRegistry.counter(MeterRegistryKeys.PIPELINE_STEP_RUN_FAILURE_KEY, "pipeline", pipeline.id(), "step", descriptor.id());
     }
@@ -25,6 +27,11 @@ public class PipelineStepMetrics
     public Timer runTimer()
     {
         return this.runTimer;
+    }
+
+    public Counter totalCounter()
+    {
+        return this.totalCounter;
     }
 
     public Counter successCounter()

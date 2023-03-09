@@ -108,6 +108,7 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
         }
         finally {
             metrics.runTimer().record(System.nanoTime() - start, TimeUnit.NANOSECONDS);
+            metrics.totalCounter().increment();
         }
     }
 
@@ -147,6 +148,7 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
         }
         finally {
             metrics.runTimer().record(System.nanoTime() - start, TimeUnit.NANOSECONDS);
+            metrics.totalCounter().increment();
         }
     }
 
@@ -213,6 +215,7 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
         }
         finally {
             metrics.runTimer().record(System.nanoTime() - start, TimeUnit.NANOSECONDS);
+            metrics.totalCounter().increment();
         }
     }
 
@@ -244,6 +247,7 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
         }
         finally {
             metrics.runTimer().record(System.nanoTime() - start, TimeUnit.NANOSECONDS);
+            metrics.totalCounter().increment();
         }
     }
 
@@ -264,6 +268,7 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
             }
             finally {
                 metrics.runTimer().record(System.nanoTime() - start, TimeUnit.NANOSECONDS);
+                metrics.totalCounter().increment();
             }
         }, this.sinkExecutor);
     }

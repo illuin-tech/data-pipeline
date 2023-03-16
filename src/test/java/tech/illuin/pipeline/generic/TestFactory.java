@@ -93,6 +93,33 @@ public class TestFactory
         ;
     }
 
+    public static Pipeline<Void, A> createErrorHandledWithPinnedPipeline(ResultEvaluator evaluator)
+    {
+        return Pipeline.ofPayload("test-error-handled-with-pinned", TestFactory::initializer)
+           .registerIndexer(SingleIndexer.auto())
+           .registerIndexer(A::bs)
+           .registerStep(builder -> builder
+               .step(new TestStep<>("1", "ok"))
+               .withId("step-1")
+               .withCondition(A.class)
+           )
+           .registerStep(builder -> builder
+               .step(new TestStep<>("2", b -> { throw new RuntimeException("Some error"); }))
+               .withId("step-2")
+               .withErrorHandler((ex, ctx) -> new TestResult("error", "ko"))
+               .withEvaluation(evaluator)
+               .withCondition(A.class)
+           )
+           .registerStep(builder -> builder
+               .step(new TestStep<>("3", "ok"))
+               .withId("step-3")
+               .withCondition(A.class)
+               .setPinned(true)
+           )
+           .build()
+        ;
+    }
+
     public static Pipeline<Void, A> createErrorThrownPipeline()
     {
         return Pipeline.ofPayload("test-error-thrown", TestFactory::initializerOfEmpty)
@@ -141,6 +168,7 @@ public class TestFactory
             .registerStep(new TestAnnotatedSteps.ConditionActivation<>("2", "ok"))
             .registerStep(new TestAnnotatedSteps.ErrorHandler<>("3", b -> { throw new RuntimeException("Some error"); }))
             .registerStep(new TestAnnotatedSteps.ClassActivation<>("4", "ok"))
+            .registerStep(new TestAnnotatedSteps.Pinned<>("5", "ok"))
             .build()
         ;
     }

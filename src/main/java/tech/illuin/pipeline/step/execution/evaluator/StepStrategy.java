@@ -6,6 +6,7 @@ package tech.illuin.pipeline.step.execution.evaluator;
 public enum StepStrategy
 {
     CONTINUE,
+    STOP,
     DISCARD_AND_CONTINUE,
     ABORT,
 }

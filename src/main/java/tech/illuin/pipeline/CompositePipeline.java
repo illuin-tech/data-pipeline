@@ -158,14 +158,16 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
             Set<Indexable> discarded = new HashSet<>();
             STEP_LOOP: for (StepDescriptor<Indexable, I, P> step : this.steps)
             {
+                String name = getPrintableName(step);
+
                 /* Arguments are a list of Indexable which satisfy the step's execution predicate */
                 List<Indexable> arguments = output.index().stream()
-                    .filter(idx -> !discarded.contains(idx))
+                    .filter(idx -> !discarded.contains(idx) || step.isPinned())
                     .filter(step::canExecute)
                     .toList()
                 ;
 
-                logger.trace("{}#{} retrieved {} arguments for step {}", this.id(), output.tag().uid(), arguments.size(), step.id());
+                logger.trace("{}#{} retrieved {} arguments for step {}", this.id(), output.tag().uid(), arguments.size(), name);
 
                 /* For each argument we perform the step and register the produced Result */
                 for (Indexable indexed : arguments)
@@ -180,12 +182,19 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
                     StepStrategy strategy = step.postEvaluation(result);
                     if (strategy == StepStrategy.ABORT)
                     {
-                        logger.trace("{}#{} received {} signal after step {} over argument {}", this.id(), output.tag().uid(), strategy, step.id(), indexed.uid());
+                        logger.trace("{}#{} received {} signal after step {} over argument {}", this.id(), output.tag().uid(), strategy, name, indexed.uid());
                         break STEP_LOOP;
+                    }
+                    /* If we STOP, we add all indexed objects to the discard list ; we don't simply break the loop because there may still be pinned steps to run, abort only prevents non-pinned steps */
+                    if (strategy == StepStrategy.STOP)
+                    {
+                        logger.trace("{}#{} received {} signal after step {} over argument {}", this.id(), output.tag().uid(), strategy, name, indexed.uid());
+                        discarded.addAll(output.index().stream().toList());
+                        break;
                     }
                     else if (strategy == StepStrategy.DISCARD_AND_CONTINUE)
                     {
-                        logger.trace("{}#{} received {} signal after step {} over argument {}", this.id(), output.tag().uid(), strategy, step.id(), indexed.uid());
+                        logger.trace("{}#{} received {} signal after step {} over argument {}", this.id(), output.tag().uid(), strategy, name, indexed.uid());
                         discarded.add(indexed);
                     }
                 }
@@ -199,17 +208,18 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
     @SuppressWarnings("IllegalCatch")
     private Result runStep(StepDescriptor<Indexable, I, P> step, Indexable indexed, I input, Output<P> output, Context<P> context) throws StepException
     {
+        String name = getPrintableName(step);
         PipelineStepMetrics metrics = new PipelineStepMetrics(this.meterRegistry, this, step);
 
         long start = System.nanoTime();
         try {
-            logger.trace("{}#{} running step {} over argument {}", this.id(), output.tag().uid(), step.id(), indexed.uid());
+            logger.trace("{}#{} running step {} over argument {}", this.id(), output.tag().uid(), name, indexed.uid());
             Result result = step.execute(indexed, input, output.payload(), output.results().view(indexed), context);
             metrics.successCounter().increment();
             return result;
         }
         catch (Exception e) {
-            logger.trace("{}#{} step {} threw an {}: {}", this.id(), output.tag().uid(), step.id(), e.getClass().getName(), e.getMessage());
+            logger.trace("{}#{} step {} threw an {}: {}", this.id(), output.tag().uid(), name, e.getClass().getName(), e.getMessage());
             metrics.failureCounter().increment();
             return step.handleException(e, context);
         }
@@ -288,5 +298,10 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
         var status = success ? "done" : "timeout after " + this.closeTimeout + " seconds";
 
         logger.info("{} closed (executor termination status: {})", this.id(), status);
+    }
+
+    private static String getPrintableName(StepDescriptor<?, ?, ?> step)
+    {
+        return step.id() + (step.isPinned() ? " (pinned)" : "");
     }
 }

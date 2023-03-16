@@ -185,7 +185,10 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
                         logger.trace("{}#{} received {} signal after step {} over argument {}", this.id(), output.tag().uid(), strategy, name, indexed.uid());
                         break STEP_LOOP;
                     }
-                    /* If we STOP, we add all indexed objects to the discard list ; we don't simply break the loop because there may still be pinned steps to run, abort only prevents non-pinned steps */
+                    /*
+                     * If we STOP, we add all indexed objects to the discard list
+                     * we don't simply break the loop because there may still be pinned steps to run, abort only prevents non-pinned steps
+                     */
                     if (strategy == StepStrategy.STOP)
                     {
                         logger.trace("{}#{} received {} signal after step {} over argument {}", this.id(), output.tag().uid(), strategy, name, indexed.uid());

@@ -2,10 +2,10 @@ package tech.illuin.pipeline.generic.pipeline.step;
 
 import tech.illuin.pipeline.generic.model.A;
 import tech.illuin.pipeline.generic.pipeline.TestResult;
-import tech.illuin.pipeline.generic.pipeline.execution.condition.IsTypeB;
-import tech.illuin.pipeline.generic.pipeline.execution.error.WrapAll;
-import tech.illuin.pipeline.generic.pipeline.execution.evaluator.AbortOnStatusKo;
-import tech.illuin.pipeline.generic.pipeline.execution.evaluator.DiscardOnStatusKo;
+import tech.illuin.pipeline.generic.pipeline.step.execution.condition.IsTypeB;
+import tech.illuin.pipeline.generic.pipeline.step.execution.error.WrapAll;
+import tech.illuin.pipeline.generic.pipeline.step.execution.evaluator.AbortOnStatusKo;
+import tech.illuin.pipeline.generic.pipeline.step.execution.evaluator.DiscardOnStatusKo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tech.illuin.pipeline.context.Context;

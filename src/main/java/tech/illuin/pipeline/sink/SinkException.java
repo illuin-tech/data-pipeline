@@ -14,4 +14,9 @@ public class SinkException extends Exception
     {
         super(message, cause);
     }
+
+    public SinkException(Throwable cause)
+    {
+        super(cause);
+    }
 }

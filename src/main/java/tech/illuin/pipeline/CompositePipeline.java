@@ -8,14 +8,15 @@ import tech.illuin.pipeline.context.Context;
 import tech.illuin.pipeline.input.author_resolver.AuthorResolver;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.input.indexer.Indexer;
-import tech.illuin.pipeline.input.initializer.Initializer;
+import tech.illuin.pipeline.input.initializer.InitializerException;
+import tech.illuin.pipeline.input.initializer.builder.InitializerDescriptor;
 import tech.illuin.pipeline.metering.PipelineInitializationMetrics;
 import tech.illuin.pipeline.metering.PipelineMetrics;
 import tech.illuin.pipeline.metering.PipelineSinkMetrics;
 import tech.illuin.pipeline.metering.PipelineStepMetrics;
 import tech.illuin.pipeline.output.Output;
-import tech.illuin.pipeline.sink.SinkDescriptor;
 import tech.illuin.pipeline.sink.SinkException;
+import tech.illuin.pipeline.sink.builder.SinkDescriptor;
 import tech.illuin.pipeline.step.StepException;
 import tech.illuin.pipeline.step.builder.StepDescriptor;
 import tech.illuin.pipeline.step.execution.evaluator.StepStrategy;
@@ -34,7 +35,7 @@ import java.util.concurrent.TimeUnit;
 public final class CompositePipeline<I, P> implements Pipeline<I, P>
 {
     private final String id;
-    private final Initializer<I, P> initializer;
+    private final InitializerDescriptor<I, P> initializer;
     private final AuthorResolver<I> authorResolver;
     private final List<Indexer<P>> indexers;
     private final List<StepDescriptor<Indexable, I, P>> steps;
@@ -51,7 +52,7 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
     @SuppressWarnings("ParameterNumber")
     public CompositePipeline(
         String id,
-        Initializer<I, P> initializer,
+        InitializerDescriptor<I, P> initializer,
         AuthorResolver<I> authorResolver,
         List<Indexer<P>> indexers,
         List<StepDescriptor<Indexable, I, P>> steps,
@@ -98,11 +99,11 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
 
             return output;
         }
-        catch (StepException | SinkException e) {
+        catch (InitializerException | StepException | SinkException e) {
             metrics.failureCounter().increment();
             throw new PipelineException(e);
         }
-        catch (Exception e) {
+        catch (RuntimeException e) {
             metrics.failureCounter().increment();
             throw e;
         }
@@ -113,13 +114,12 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
     }
 
     @SuppressWarnings("IllegalCatch")
-    private Output<P> runInitialization(I input, Context<P> context)
+    private Output<P> runInitialization(I input, Context<P> context) throws InitializerException
     {
         if (context == null)
             throw new IllegalArgumentException("Runtime context cannot be null");
 
         PipelineInitializationMetrics metrics = new PipelineInitializationMetrics(this.meterRegistry, this);
-
         long start = System.nanoTime();
         try {
             Output<P> output = new Output<>(
@@ -127,8 +127,7 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
                 this.authorResolver.resolve(input, context)
             );
 
-            logger.trace("{}#{} initializing payload", this.id(), output.tag().uid());
-            output.setPayload(this.initializer.initialize(input, context));
+            output.setPayload(this.runInitializer(input, output, context));
 
             for (Indexer<P> indexer : this.indexers)
             {
@@ -142,13 +141,27 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
 
             return output;
         }
-        catch (Exception e) {
+        catch (InitializerException | RuntimeException e) {
             metrics.failureCounter().increment();
+            this.initializer.handleException(e, context);
             throw e;
         }
         finally {
             metrics.runTimer().record(System.nanoTime() - start, TimeUnit.NANOSECONDS);
             metrics.totalCounter().increment();
+        }
+    }
+
+    private P runInitializer(I input, Output<P> output, Context<P> context) throws InitializerException
+    {
+        String name = getPrintableName(this.initializer);
+        try {
+            logger.trace("{}#{} initializing payload", this.id(), output.tag().uid());
+            return this.initializer.execute(input, context);
+        }
+        catch (InitializerException e) {
+            logger.trace("{}#{} initializer {} threw an {}: {}", this.id(), output.tag().uid(), name, e.getClass().getName(), e.getMessage());
+            return this.initializer.handleException(e, context);
         }
     }
 
@@ -221,7 +234,7 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
             metrics.successCounter().increment();
             return result;
         }
-        catch (Exception e) {
+        catch (StepException | RuntimeException e) {
             logger.trace("{}#{} step {} threw an {}: {}", this.id(), output.tag().uid(), name, e.getClass().getName(), e.getMessage());
             metrics.failureCounter().increment();
             return step.handleException(e, context);
@@ -246,17 +259,19 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
     }
 
     @SuppressWarnings("IllegalCatch")
-    private void runSinkSynchronously(SinkDescriptor<P> descriptor, Output<P> output, Context<P> context, PipelineSinkMetrics metrics) throws SinkException
+    private void runSinkSynchronously(SinkDescriptor<P> sink, Output<P> output, Context<P> context, PipelineSinkMetrics metrics) throws SinkException
     {
+        String name = getPrintableName(sink);
         long start = System.nanoTime();
         try {
-            logger.trace("{}#{} launching sink {} (is-async: {})", this.id(), output.tag().uid(), descriptor.sink().getClass().getName(), false);
-            descriptor.sink().execute(output, context);
+            logger.trace("{}#{} launching sink {}", this.id(), output.tag().uid(), name);
+            sink.execute(output, context);
             metrics.successCounter().increment();
         }
-        catch (Exception e) {
+        catch (SinkException | RuntimeException e) {
+            logger.error("{}#{} sink {} threw an {}: {}", this.id(), output.tag().uid(), name, e.getClass().getName(), e.getMessage());
             metrics.failureCounter().increment();
-            throw e;
+            sink.handleException(e, context);
         }
         finally {
             metrics.runTimer().record(System.nanoTime() - start, TimeUnit.NANOSECONDS);
@@ -265,19 +280,21 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
     }
 
     @SuppressWarnings("IllegalCatch")
-    private void runSinkAsynchronously(SinkDescriptor<P> descriptor, Output<P> output, Context<P> context, PipelineSinkMetrics metrics)
+    private void runSinkAsynchronously(SinkDescriptor<P> sink, Output<P> output, Context<P> context, PipelineSinkMetrics metrics)
     {
-        logger.trace("{}#{} queuing sink {} (is-async: {})", this.id(), output.tag().uid(), descriptor.sink().getClass().getName(), true);
+        String name = getPrintableName(sink);
+        logger.trace("{}#{} queuing sink {}", this.id(), output.tag().uid(), name);
         CompletableFuture.runAsync(() -> {
             long start = System.nanoTime();
             try {
-                logger.trace("{}#{} launching sink {} (is-async: {})", this.id(), output.tag().uid(), descriptor.sink().getClass().getName(), true);
-                descriptor.sink().execute(output, context);
+                logger.trace("{}#{} launching sink {}", this.id(), output.tag().uid(), name);
+                sink.execute(output, context);
                 metrics.successCounter().increment();
             }
             catch (RuntimeException | SinkException e) {
-                logger.error("{}#{} an error occurred while running an async sink: {}", this.id(), output.tag().uid(), e.getMessage());
+                logger.error("{}#{} sink {} threw an {}: {}", this.id(), output.tag().uid(), name, e.getClass().getName(), e.getMessage());
                 metrics.failureCounter().increment();
+                sink.handleExceptionThenSwallow(e, context);
             }
             finally {
                 metrics.runTimer().record(System.nanoTime() - start, TimeUnit.NANOSECONDS);
@@ -303,8 +320,18 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
         logger.info("{} closed (executor termination status: {})", this.id(), status);
     }
 
+    private static String getPrintableName(InitializerDescriptor<?, ?> initializer)
+    {
+        return initializer.id();
+    }
+
     private static String getPrintableName(StepDescriptor<?, ?, ?> step)
     {
         return step.id() + (step.isPinned() ? " (pinned)" : "");
+    }
+
+    private static String getPrintableName(SinkDescriptor<?> sink)
+    {
+        return sink.id() + (sink.isAsync() ? " (async)" : "");
     }
 }

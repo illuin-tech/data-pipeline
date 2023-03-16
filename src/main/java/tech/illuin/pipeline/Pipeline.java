@@ -7,6 +7,7 @@ import tech.illuin.pipeline.builder.VoidPayload;
 import tech.illuin.pipeline.context.Context;
 import tech.illuin.pipeline.context.SimpleContext;
 import tech.illuin.pipeline.input.initializer.Initializer;
+import tech.illuin.pipeline.input.initializer.builder.InitializerAssembler;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.step.Step;
 import tech.illuin.pipeline.step.result.Result;
@@ -132,6 +133,17 @@ public interface Pipeline<I, P> extends AutoCloseable
      * @see #ofPayload(String)
      */
     static <I, P> PayloadPipelineBuilder<I, P> ofPayload(String id, Initializer<I, P> initializer)
+    {
+        return new PayloadPipelineBuilder<I, P>()
+            .setId(id)
+            .setInitializer(initializer)
+        ;
+    }
+
+    /**
+     * @see #ofPayload(String)
+     */
+    static <I, P> PayloadPipelineBuilder<I, P> ofPayload(String id, InitializerAssembler<I, ? extends P> initializer)
     {
         return new PayloadPipelineBuilder<I, P>()
             .setId(id)

@@ -11,12 +11,12 @@ import tech.illuin.pipeline.step.result.ResultView;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-class CircuitBreakerStep<T extends Indexable, I, P> implements Step<T, I, P>
+public class CircuitBreakerStep<T extends Indexable, I, P> implements Step<T, I, P>
 {
     private final Step<T, I, P> step;
     private final CircuitBreaker circuitBreaker;
 
-    CircuitBreakerStep(Step<T, I, P> step, CircuitBreaker circuitBreaker)
+    public CircuitBreakerStep(Step<T, I, P> step, CircuitBreaker circuitBreaker)
     {
         this.step = step;
         this.circuitBreaker = circuitBreaker;

@@ -38,4 +38,9 @@ public final class PipelineContainer
             this.register(pipeline);
         return this;
     }
+
+    public int count()
+    {
+        return this.pipelines.size();
+    }
 }

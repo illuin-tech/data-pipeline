@@ -19,6 +19,7 @@ public final class StepDescriptor<T extends Indexable, I, P>
 {
     private final String id;
     private final Step<T, I, P> step;
+    private final boolean pinned;
     private final StepWrapper<T, I, P> executionWrapper;
     private final StepCondition activationPredicate;
     private final ResultEvaluator resultEvaluator;
@@ -27,6 +28,7 @@ public final class StepDescriptor<T extends Indexable, I, P>
     StepDescriptor(
         String id,
         Step<T, I, P> step,
+        boolean pinned,
         StepWrapper<T, I, P> executionWrapper,
         StepCondition activationPredicate,
         ResultEvaluator resultEvaluator,
@@ -34,6 +36,7 @@ public final class StepDescriptor<T extends Indexable, I, P>
     ) {
         this.id = id;
         this.step = step;
+        this.pinned = pinned;
         this.executionWrapper = executionWrapper;
         this.activationPredicate = activationPredicate;
         this.resultEvaluator = resultEvaluator;
@@ -63,5 +66,10 @@ public final class StepDescriptor<T extends Indexable, I, P>
     public String id()
     {
         return this.id;
+    }
+
+    public boolean isPinned()
+    {
+        return this.pinned;
     }
 }

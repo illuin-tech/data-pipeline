@@ -20,6 +20,7 @@ public class StepBuilder<T extends Indexable, I, P>
 {
     private String id;
     private Step<T, I, P> step;
+    private Boolean pinned;
     private StepWrapper<T, I, P> executionWrapper;
     private StepCondition executionCondition;
     private ResultEvaluator resultEvaluator;
@@ -36,6 +37,8 @@ public class StepBuilder<T extends Indexable, I, P>
 
             if (this.executionWrapper == null && annotation.id() != null && !annotation.id().isBlank())
                 this.id = annotation.id();
+            if (this.pinned == null)
+                this.pinned = annotation.pinned();
             if (this.executionCondition == null && annotation.condition() != null)
             {
                 if (annotation.condition() != StepCondition.class)
@@ -57,6 +60,8 @@ public class StepBuilder<T extends Indexable, I, P>
     {
         if (this.id == null)
             this.id = this.step.defaultId();
+        if (this.pinned == null)
+            this.pinned = false;
         if (this.executionWrapper == null)
             this.executionWrapper = StepWrapper::noOp;
         if (this.executionCondition == null)
@@ -131,6 +136,12 @@ public class StepBuilder<T extends Indexable, I, P>
         return this;
     }
 
+    public StepBuilder<T, I, P> setPinned(boolean pin)
+    {
+        this.pinned = pin;
+        return this;
+    }
+
     StepDescriptor<T, I, P> build()
     {
         if (this.step == null)
@@ -142,6 +153,7 @@ public class StepBuilder<T extends Indexable, I, P>
         return new StepDescriptor<>(
             this.id,
             this.step,
+            this.pinned,
             this.executionWrapper,
             this.executionCondition,
             this.resultEvaluator,

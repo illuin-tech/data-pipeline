@@ -50,6 +50,13 @@ public class TestAnnotatedSteps
         public ErrorHandler(String name, String status) { super(name, status); }
     }
 
+    @StepConfig(id = "test-step-pinned", pinned = true)
+    public static class Pinned<T extends Indexable> extends AnnotatedStep<T>
+    {
+        public Pinned(String name, Function<T, String> function) { super(name, function); }
+        public Pinned(String name, String status) { super(name, status); }
+    }
+
     private abstract static class AnnotatedStep<T extends Indexable> implements IndexableStep<T>
     {
         private final String name;

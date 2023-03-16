@@ -9,6 +9,7 @@ import tech.illuin.pipeline.context.SimpleContext;
 import tech.illuin.pipeline.input.author_resolver.AuthorResolver;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.input.initializer.Initializer;
+import tech.illuin.pipeline.input.initializer.builder.InitializerAssembler;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.sink.Sink;
 import tech.illuin.pipeline.step.execution.error.StepErrorHandler;
@@ -35,9 +36,7 @@ public class PipelineBuilderTest
     private static final InputStep<Object> step4 = (input, results, context) -> new TestResult("4");
     private static final InputStep<Object> step5 = (input, results, context) -> new TestResult("5");
     private static final InputStep<Object> step6 = (input, results, context) -> new TestResult("6");
-    private static final Sink<?> sink1 = (output, context) -> context.get("sink", AtomicInteger.class).ifPresent(AtomicInteger::incrementAndGet);
-    private static final Sink<?> sink2 = (output, context) -> context.get("sink", AtomicInteger.class).ifPresent(AtomicInteger::incrementAndGet);
-    private static final Sink<?> sink3 = (output, context) -> context.get("sink", AtomicInteger.class).ifPresent(AtomicInteger::incrementAndGet);
+    private static final Sink<?> sink = (output, context) -> context.get("sink", AtomicInteger.class).ifPresent(AtomicInteger::incrementAndGet);
     private static final OnCloseHandler closeHandler = () -> {};
 
     @Test
@@ -54,8 +53,8 @@ public class PipelineBuilderTest
                 b -> b.step(step5),
                 b -> b.step(step6)
             ))
-            .registerSink(sink1)
-            .registerSinks(List.of(sink2, sink3))
+            .registerSink(sink)
+            .registerSinks(List.of(sink, sink))
             .registerOnCloseHandler(closeHandler)
         );
 
@@ -82,19 +81,14 @@ public class PipelineBuilderTest
             .setDefaultErrorHandler(errorHandler)
             .setDefaultEvaluator(resultEvaluator)
             .registerStep(step1)
-            .registerStep(b -> b.step(step2))
             .registerSteps(List.of(
-                (PayloadStep<TestIndexable>) (payload, results, context) -> new TestResult("3"),
-                (PayloadStep<TestIndexable>) (payload, results, context) -> new TestResult("4")
+                (PayloadStep<TestIndexable>) (payload, results, context) -> new TestResult("2"),
+                (PayloadStep<TestIndexable>) (payload, results, context) -> new TestResult("3")
             ))
-            .registerStepAssemblers(List.of(
-                b -> b.step(step5),
-                b -> b.step(step6)
-            ))
-            .registerSink((Sink<? extends TestIndexable>) sink1)
+            .registerSink((Sink<? extends TestIndexable>) sink)
             .registerSinks(List.of(
-                (Sink<? extends TestIndexable>) sink2,
-                (Sink<? extends TestIndexable>) sink3
+                (Sink<? extends TestIndexable>) sink,
+                (Sink<? extends TestIndexable>) sink
             ))
             .registerOnCloseHandler(closeHandler)
         );
@@ -102,14 +96,58 @@ public class PipelineBuilderTest
         Context<TestIndexable> ctx = new SimpleContext<TestIndexable>().set("sink", new AtomicInteger(0));
         Pipeline<Object, TestIndexable> pipeline = Assertions.assertDoesNotThrow(builder::build);
         Output<?> output = Assertions.assertDoesNotThrow(() -> pipeline.run(null, ctx));
+        Assertions.assertDoesNotThrow(pipeline::close);
 
         Assertions.assertEquals(builder.id(), output.tag().pipeline());
         Assertions.assertEquals("anon", output.author());
-        Assertions.assertEquals(6, output.results().stream().count());
+        Assertions.assertEquals(3, output.results().stream().count());
         Assertions.assertEquals("1", output.results().stream().findFirst().map(r -> ((TestResult) r).name()).orElse(null));
-        Assertions.assertEquals("6", output.results().latest(TestResult.class).map(TestResult::name).orElse(null));
+        Assertions.assertEquals("3", output.results().latest(TestResult.class).map(TestResult::name).orElse(null));
         Assertions.assertEquals(3, ctx.get("sink", AtomicInteger.class).map(AtomicInteger::get).orElse(0));
     }
+
+    @Test
+    public void test__payload__withAssemblers()
+    {
+        InitializerAssembler<Object, TestIndexable> initializer = b -> b
+            .withId("init-builder")
+            .initializer((input, context) -> new TestIndexable())
+        ;
+
+        var builder = Assertions.assertDoesNotThrow(() -> Pipeline.ofPayload("test-payload", initializer)
+            .setAuthorResolver(authorResolver)
+            .setDefaultErrorHandler(errorHandler)
+            .setDefaultEvaluator(resultEvaluator)
+            .registerStep(b -> b.withId("step-builder").step(step1))
+            .registerStepAssemblers(List.of(
+                b -> b.step(step2),
+                b -> b.step(step3)
+            ))
+            .registerSink(b -> b
+                .withId("sink-builder")
+                .sink((Sink<TestIndexable>) sink)
+                .setAsync(true)
+            )
+            .registerSinkAssemblers(List.of(
+                b -> b.sink((Sink<TestIndexable>) sink),
+                b -> b.sink((Sink<TestIndexable>) sink).setAsync(true)
+            ))
+            .registerOnCloseHandler(closeHandler)
+        );
+
+        Context<TestIndexable> ctx = new SimpleContext<TestIndexable>().set("sink", new AtomicInteger(0));
+        Pipeline<Object, TestIndexable> pipeline = Assertions.assertDoesNotThrow(builder::build);
+        Output<?> output = Assertions.assertDoesNotThrow(() -> pipeline.run(null, ctx));
+        Assertions.assertDoesNotThrow(pipeline::close);
+
+        Assertions.assertEquals(builder.id(), output.tag().pipeline());
+        Assertions.assertEquals("anon", output.author());
+        Assertions.assertEquals(3, output.results().stream().count());
+        Assertions.assertEquals("1", output.results().stream().findFirst().map(r -> ((TestResult) r).name()).orElse(null));
+        Assertions.assertEquals("3", output.results().latest(TestResult.class).map(TestResult::name).orElse(null));
+        Assertions.assertEquals(3, ctx.get("sink", AtomicInteger.class).map(AtomicInteger::get).orElse(0));
+    }
+
 
     public static class TestIndexable implements Indexable
     {

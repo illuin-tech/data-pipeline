@@ -11,8 +11,13 @@ import tech.illuin.pipeline.input.indexer.Indexer;
 import tech.illuin.pipeline.input.indexer.MultiIndexer;
 import tech.illuin.pipeline.input.indexer.SingleIndexer;
 import tech.illuin.pipeline.input.initializer.Initializer;
+import tech.illuin.pipeline.input.initializer.builder.InitializerAssembler;
+import tech.illuin.pipeline.input.initializer.builder.InitializerBuilder;
+import tech.illuin.pipeline.input.initializer.builder.InitializerDescriptor;
 import tech.illuin.pipeline.sink.Sink;
-import tech.illuin.pipeline.sink.SinkDescriptor;
+import tech.illuin.pipeline.sink.builder.SinkAssembler;
+import tech.illuin.pipeline.sink.builder.SinkBuilder;
+import tech.illuin.pipeline.sink.builder.SinkDescriptor;
 import tech.illuin.pipeline.step.Step;
 import tech.illuin.pipeline.step.builder.StepAssembler;
 import tech.illuin.pipeline.step.builder.StepBuilder;
@@ -44,7 +49,7 @@ public final class PayloadPipelineBuilder<I, P>
     private ResultEvaluator defaultEvaluator;
     private StepErrorHandler defaultErrorHandler;
     private MeterRegistry meterRegistry;
-    private Initializer<I, P> initializer;
+    private InitializerDescriptor<I, P> initializer;
     private final List<Indexer<P>> indexers;
 
     public PayloadPipelineBuilder()
@@ -55,7 +60,7 @@ public final class PayloadPipelineBuilder<I, P>
         this.sinks = new ArrayList<>();
         this.onCloseHandlers = new ArrayList<>();
         this.meterRegistry = null;
-        this.initializer = (in, ctx) -> null;
+        this.initializer = null;
         this.indexers = new ArrayList<>();
         this.closeTimeout = 15;
     }
@@ -63,6 +68,8 @@ public final class PayloadPipelineBuilder<I, P>
     @SuppressWarnings("unchecked")
     public Pipeline<I, P> build()
     {
+        if (this.initializer == null)
+            throw new IllegalStateException("A payload-based pipeline cannot be built without an initializer");
         if (this.indexers().isEmpty())
             this.indexers.add((Indexer<P>) SingleIndexer.auto());
 
@@ -143,16 +150,16 @@ public final class PayloadPipelineBuilder<I, P>
     }
 
     @SuppressWarnings("unchecked")
-    public PayloadPipelineBuilder<I, P> registerStep(StepAssembler<? extends Indexable, I, ? extends P> builder)
+    public PayloadPipelineBuilder<I, P> registerStep(StepAssembler<? extends Indexable, I, ? extends P> assembler)
     {
-        this.steps.add(((StepAssembler<Indexable, I, P>) builder).build(new StepBuilder<>()));
+        this.steps.add(((StepAssembler<Indexable, I, P>) assembler).build(new StepBuilder<>()));
         return this;
     }
 
-    public PayloadPipelineBuilder<I, P> registerStepAssemblers(List<? extends StepAssembler<? extends Indexable, I, ? extends P>> builders)
+    public PayloadPipelineBuilder<I, P> registerStepAssemblers(List<? extends StepAssembler<? extends Indexable, I, ? extends P>> assemblers)
     {
-        for (StepAssembler<? extends Indexable, I, ? extends P> builder : builders)
-            this.registerStep(builder);
+        for (StepAssembler<? extends Indexable, I, ? extends P> assembler : assemblers)
+            this.registerStep(assembler);
         return this;
     }
 
@@ -169,7 +176,16 @@ public final class PayloadPipelineBuilder<I, P>
     @SuppressWarnings("unchecked")
     public PayloadPipelineBuilder<I, P> registerSink(Sink<? extends P> sink, boolean async)
     {
-        this.sinks.add((SinkDescriptor<P>) new SinkDescriptor<>(sink, async));
+        return this.registerSink(builder -> builder
+            .sink((Sink<P>) sink)
+            .setAsync(async)
+        );
+    }
+
+    @SuppressWarnings("unchecked")
+    public PayloadPipelineBuilder<I, P> registerSink(SinkAssembler<? extends P> assembler)
+    {
+        this.sinks.add(((SinkAssembler<P>) assembler).build(new SinkBuilder<>()));
         return this;
     }
 
@@ -187,9 +203,16 @@ public final class PayloadPipelineBuilder<I, P>
         return this;
     }
 
+    public PayloadPipelineBuilder<I, P> registerSinkAssemblers(List<? extends SinkAssembler<? extends P>> assemblers)
+    {
+        for (SinkAssembler<? extends P> assembler : assemblers)
+            this.registerSink(assembler);
+        return this;
+    }
+
     public Supplier<ExecutorService> sinkExecutorProvider()
     {
-        return sinkExecutorProvider;
+        return this.sinkExecutorProvider;
     }
 
     public PayloadPipelineBuilder<I, P> setSinkExecutorProvider(Supplier<ExecutorService> sinkExecutorProvider)
@@ -259,7 +282,7 @@ public final class PayloadPipelineBuilder<I, P>
         return this;
     }
 
-    public Initializer<I, P> initializer()
+    public InitializerDescriptor<I, P> initializer()
     {
         return this.initializer;
     }
@@ -267,7 +290,13 @@ public final class PayloadPipelineBuilder<I, P>
     @SuppressWarnings("unchecked")
     public PayloadPipelineBuilder<I, P> setInitializer(Initializer<I, ? extends P> initializer)
     {
-        this.initializer = (Initializer<I, P>) initializer;
+        return this.setInitializer(builder -> builder.initializer((Initializer<I, P>) initializer));
+    }
+
+    @SuppressWarnings("unchecked")
+    public PayloadPipelineBuilder<I, P> setInitializer(InitializerAssembler<I, ? extends P> assembler)
+    {
+        this.initializer = (InitializerDescriptor<I, P>) assembler.build(new InitializerBuilder<>());
         return this;
     }
 

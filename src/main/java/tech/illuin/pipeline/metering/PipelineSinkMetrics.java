@@ -4,7 +4,7 @@ import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import tech.illuin.pipeline.Pipeline;
-import tech.illuin.pipeline.sink.SinkDescriptor;
+import tech.illuin.pipeline.sink.builder.SinkDescriptor;
 
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)

@@ -9,8 +9,12 @@ import tech.illuin.pipeline.input.author_resolver.AuthorResolver;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.input.indexer.SingleIndexer;
 import tech.illuin.pipeline.input.initializer.Initializer;
+import tech.illuin.pipeline.input.initializer.builder.InitializerAssembler;
+import tech.illuin.pipeline.input.initializer.builder.InitializerBuilder;
 import tech.illuin.pipeline.sink.Sink;
-import tech.illuin.pipeline.sink.SinkDescriptor;
+import tech.illuin.pipeline.sink.builder.SinkAssembler;
+import tech.illuin.pipeline.sink.builder.SinkBuilder;
+import tech.illuin.pipeline.sink.builder.SinkDescriptor;
 import tech.illuin.pipeline.step.Step;
 import tech.illuin.pipeline.step.builder.StepAssembler;
 import tech.illuin.pipeline.step.builder.StepBuilder;
@@ -55,9 +59,13 @@ public final class SimplePipelineBuilder<I>
 
     public Pipeline<I, VoidPayload> build()
     {
+        InitializerAssembler<I, VoidPayload> initializerAssembler = builder -> builder.initializer(
+            (in, ctx) -> Initializer.initializeFromParentOr(ctx, VoidPayload::new)
+        );
+
         return new CompositePipeline<>(
             this.id(),
-            (in, ctx) -> Initializer.initializeFromParentOr(ctx, VoidPayload::new),
+            initializerAssembler.build(new InitializerBuilder<>()),
             this.authorResolver(),
             Collections.singletonList(SingleIndexer.auto()),
             this.steps(),
@@ -136,15 +144,25 @@ public final class SimplePipelineBuilder<I>
         return this.sinks;
     }
 
+    @SuppressWarnings("unchecked")
     public SimplePipelineBuilder<I> registerSink(Sink<?> sink)
     {
-        return this.registerSink(sink, false);
+        return this.registerSink(builder -> builder.sink((Sink<Object>) sink));
     }
 
     @SuppressWarnings("unchecked")
     public SimplePipelineBuilder<I> registerSink(Sink<?> sink, boolean async)
     {
-        this.sinks.add(new SinkDescriptor<>((Sink<VoidPayload>) sink, async));
+        return this.registerSink(builder -> builder
+            .sink((Sink<Object>) sink)
+            .setAsync(async)
+        );
+    }
+
+    @SuppressWarnings("unchecked")
+    public SimplePipelineBuilder<I> registerSink(SinkAssembler<?> assembler)
+    {
+        this.sinks.add(((SinkAssembler<VoidPayload>) assembler).build(new SinkBuilder<>()));
         return this;
     }
 
@@ -155,10 +173,17 @@ public final class SimplePipelineBuilder<I>
         return this;
     }
 
-    public SimplePipelineBuilder<I> registerSinks(List<Sink<?>> sinks, boolean async)
+    public SimplePipelineBuilder<I> registerSinks(List<? extends Sink<?>> sinks, boolean async)
     {
         for (Sink<?> sink : sinks)
             this.registerSink(sink, async);
+        return this;
+    }
+
+    public SimplePipelineBuilder<I> registerSinkAssemblers(List<? extends SinkAssembler<?>> assemblers)
+    {
+        for (SinkAssembler<?> assembler : assemblers)
+            this.registerSink(assembler);
         return this;
     }
 

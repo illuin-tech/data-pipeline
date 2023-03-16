@@ -14,12 +14,12 @@ import java.util.concurrent.Future;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-class TimeLimiterStep<T extends Indexable, I, P> implements Step<T, I, P>
+public class TimeLimiterStep<T extends Indexable, I, P> implements Step<T, I, P>
 {
     private final Step<T, I, P> step;
     private final TimeLimiter limiter;
 
-    TimeLimiterStep(Step<T, I, P> step, TimeLimiter limiter)
+    public TimeLimiterStep(Step<T, I, P> step, TimeLimiter limiter)
     {
         this.step = step;
         this.limiter = limiter;

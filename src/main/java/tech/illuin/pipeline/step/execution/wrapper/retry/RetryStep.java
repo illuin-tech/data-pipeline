@@ -11,12 +11,12 @@ import tech.illuin.pipeline.step.result.ResultView;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-class RetryStep<T extends Indexable, I, P> implements Step<T, I, P>
+public class RetryStep<T extends Indexable, I, P> implements Step<T, I, P>
 {
     private final Step<T, I, P> step;
     private final Retry retry;
 
-    RetryStep(Step<T, I, P> step, Retry retry)
+    public RetryStep(Step<T, I, P> step, Retry retry)
     {
         this.step = step;
         this.retry = retry;

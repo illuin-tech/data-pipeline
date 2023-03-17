@@ -10,6 +10,7 @@ public interface ResultEvaluator
     StepStrategy evaluate(Result result);
 
     ResultEvaluator ALWAYS_CONTINUE = ResultEvaluator::alwaysContinue;
+    ResultEvaluator ALWAYS_SKIP = ResultEvaluator::alwaysSkip;
     ResultEvaluator ALWAYS_ABORT = ResultEvaluator::alwaysAbort;
     ResultEvaluator ALWAYS_STOP = ResultEvaluator::alwaysStop;
     ResultEvaluator ALWAYS_DISCARD = ResultEvaluator::alwaysDiscard;
@@ -17,6 +18,11 @@ public interface ResultEvaluator
     private static StepStrategy alwaysContinue(Result result)
     {
         return StepStrategy.CONTINUE;
+    }
+
+    private static StepStrategy alwaysSkip(Result result)
+    {
+        return StepStrategy.SKIP;
     }
 
     private static StepStrategy alwaysAbort(Result result)

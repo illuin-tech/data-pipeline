@@ -29,6 +29,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import static tech.illuin.pipeline.step.execution.evaluator.StrategyBehaviour.*;
+
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
@@ -187,32 +189,24 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
                 {
                     Result result = this.runStep(step, indexed, input, output, context);
 
-                    if (result instanceof PipelineResult<?> pResult)
-                        pResult.output().results().current().forEach(r -> output.results().register(indexed.uid(), r));
-                    else
-                        output.results().register(indexed.uid(), result);
-
                     StepStrategy strategy = step.postEvaluation(result);
-                    if (strategy == StepStrategy.ABORT)
+                    logger.trace("{}#{} received {} signal after step {} over argument {}", this.id(), output.tag().uid(), strategy, name, indexed.uid());
+
+                    if (strategy.hasBehaviour(REGISTER_RESULT))
                     {
-                        logger.trace("{}#{} received {} signal after step {} over argument {}", this.id(), output.tag().uid(), strategy, name, indexed.uid());
-                        break STEP_LOOP;
+                        if (result instanceof PipelineResult<?> pResult)
+                            pResult.output().results().current().forEach(r -> output.results().register(indexed.uid(), r));
+                        else
+                            output.results().register(indexed.uid(), result);
                     }
-                    /*
-                     * If we STOP, we add all indexed objects to the discard list
-                     * we don't simply break the loop because there may still be pinned steps to run, abort only prevents non-pinned steps
-                     */
-                    if (strategy == StepStrategy.STOP)
-                    {
-                        logger.trace("{}#{} received {} signal after step {} over argument {}", this.id(), output.tag().uid(), strategy, name, indexed.uid());
-                        discarded.addAll(output.index().stream().toList());
-                        break;
-                    }
-                    else if (strategy == StepStrategy.DISCARD_AND_CONTINUE)
-                    {
-                        logger.trace("{}#{} received {} signal after step {} over argument {}", this.id(), output.tag().uid(), strategy, name, indexed.uid());
+                    if (strategy.hasBehaviour(DISCARD_CURRENT))
                         discarded.add(indexed);
-                    }
+                    if (strategy.hasBehaviour(DISCARD_ALL))
+                        discarded.addAll(output.index().stream().toList());
+                    if (strategy.hasBehaviour(STOP_CURRENT))
+                        break;
+                    if (strategy.hasBehaviour(STOP_ALL))
+                        break STEP_LOOP;
                 }
             }
         }

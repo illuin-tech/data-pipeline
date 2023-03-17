@@ -3,6 +3,7 @@ package tech.illuin.pipeline.step;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import tech.illuin.pipeline.Pipeline;
+import tech.illuin.pipeline.builder.VoidPayload;
 import tech.illuin.pipeline.generic.TestFactory;
 import tech.illuin.pipeline.generic.model.A;
 import tech.illuin.pipeline.generic.model.B;
@@ -12,8 +13,10 @@ import tech.illuin.pipeline.input.indexer.SingleIndexer;
 import tech.illuin.pipeline.output.Output;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static tech.illuin.pipeline.generic.Tests.getResultTypes;
+import static tech.illuin.pipeline.step.execution.evaluator.ResultEvaluator.ALWAYS_SKIP;
 import static tech.illuin.pipeline.step.execution.evaluator.StepStrategy.*;
 
 /**
@@ -40,6 +43,29 @@ public class EvaluationTest
         Assertions.assertTrue(output.results().current("3").isPresent());
         Assertions.assertTrue(output.results().current("4").isPresent());
         Assertions.assertTrue(output.results().current("5").isEmpty());
+    }
+
+    @Test
+    public void testPipeline_shouldSkip()
+    {
+        AtomicInteger counter = new AtomicInteger(0);
+
+        Pipeline<?, VoidPayload> pipeline = Assertions.assertDoesNotThrow(() -> Pipeline.ofSimple("test-evaluation-skip")
+            .registerStep(builder -> builder
+                .step(new TestStep<>("1", in -> {
+                    counter.incrementAndGet();
+                    return "ok";
+                }))
+                .withEvaluation(ALWAYS_SKIP)
+            )
+            .build()
+        );
+
+        Output<?> output = Assertions.assertDoesNotThrow(() -> pipeline.run());
+        Assertions.assertDoesNotThrow(pipeline::close);
+
+        Assertions.assertEquals(1, counter.get());
+        Assertions.assertEquals(0, output.results().stream().count());
     }
 
     public static Pipeline<Void, A> createAbortingPipeline()

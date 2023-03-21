@@ -6,10 +6,16 @@
 
     <groupId>tech.illuin</groupId>
     <artifactId>data-pipeline</artifactId>
-    <version>0.5.1</version>
+    <version>0.5.2</version>
+    <packaging>jar</packaging>
 
     <name>Data Pipeline</name>
     <description>Toolkit for structuring data transformation applications</description>
+
+    <organization>
+        <name>Illuin Technology</name>
+        <url>https://www.illuin.tech</url>
+    </organization>
 
     <developers>
         <developer>
@@ -38,6 +44,7 @@
         <jacoco.version>0.8.7</jacoco.version>
         <checkstyle.version>9.1</checkstyle.version>
         <checkstyle.config.location>checkstyle.xml</checkstyle.config.location>
+        <maven-compiler.version>3.10.1</maven-compiler.version>
         <maven-surefire.version>3.0.0-M9</maven-surefire.version>
         <maven-source.version>3.2.1</maven-source.version>
         <maven-javadoc.version>3.5.0</maven-javadoc.version>
@@ -99,6 +106,12 @@
     <build>
         <pluginManagement>
             <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${maven-compiler.version}</version>
+                </plugin>
+
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>

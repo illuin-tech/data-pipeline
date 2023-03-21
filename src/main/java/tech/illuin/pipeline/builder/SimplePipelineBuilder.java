@@ -11,6 +11,7 @@ import tech.illuin.pipeline.input.indexer.SingleIndexer;
 import tech.illuin.pipeline.input.initializer.Initializer;
 import tech.illuin.pipeline.input.initializer.builder.InitializerAssembler;
 import tech.illuin.pipeline.input.initializer.builder.InitializerBuilder;
+import tech.illuin.pipeline.output.factory.DefaultOutputFactory;
 import tech.illuin.pipeline.sink.Sink;
 import tech.illuin.pipeline.sink.builder.SinkAssembler;
 import tech.illuin.pipeline.sink.builder.SinkBuilder;
@@ -68,6 +69,7 @@ public final class SimplePipelineBuilder<I>
             initializerAssembler.build(new InitializerBuilder<>()),
             this.authorResolver(),
             Collections.singletonList(SingleIndexer.auto()),
+            new DefaultOutputFactory<>(),
             this.steps(),
             this.sinks(),
             this.sinkExecutorProvider().get(),

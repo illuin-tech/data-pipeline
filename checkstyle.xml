@@ -35,6 +35,7 @@
     <module name="LineLength">
         <property name="fileExtensions" value="java"/>
         <property name="max" value="200"/>
+        <property name="ignorePattern" value="^ *\* .*$"/>
     </module>
 
     <!-- Checks for whitespace -->

@@ -15,6 +15,12 @@ import java.util.function.Function;
  */
 public class TestAnnotatedInitializers
 {
+    @InitializerConfig(id = "test-init")
+    public static class Default<I, P extends Indexable> extends AnnotatedInitializer<I, P>
+    {
+        public Default(String name, Function<I, P> function) { super(name, function); }
+    }
+
     @InitializerConfig(id = "test-init-error-handler", errorHandler = WrapAll.class)
     public static class ErrorHandler<I, P extends Indexable> extends AnnotatedInitializer<I, P>
     {

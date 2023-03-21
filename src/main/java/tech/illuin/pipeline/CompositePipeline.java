@@ -15,6 +15,7 @@ import tech.illuin.pipeline.metering.PipelineMetrics;
 import tech.illuin.pipeline.metering.PipelineSinkMetrics;
 import tech.illuin.pipeline.metering.PipelineStepMetrics;
 import tech.illuin.pipeline.output.Output;
+import tech.illuin.pipeline.output.factory.OutputFactory;
 import tech.illuin.pipeline.sink.SinkException;
 import tech.illuin.pipeline.sink.builder.SinkDescriptor;
 import tech.illuin.pipeline.step.StepException;
@@ -32,6 +33,17 @@ import java.util.concurrent.TimeUnit;
 import static tech.illuin.pipeline.step.execution.evaluator.StrategyBehaviour.*;
 
 /**
+ * <p>The CompositePipeline works by separating its run implementation into predefined categories of components:</p>
+ * <ul>
+ *     <li>1 {@link tech.illuin.pipeline.input.initializer.Initializer} responsible for creating the pipeline payload, which is reference in the {@link tech.illuin.pipeline.output.Output} and made available to steps and sinks</li>
+ *     <li>1 to n {@link tech.illuin.pipeline.input.indexer.Indexer} responsible for identifying parts (or all) of the payload that will be subjected to steps</li>
+ *     <li>0 to n {@link tech.illuin.pipeline.step.Step} performing transformative operations, ideally without external side effects, their output is indexed in the {@link tech.illuin.pipeline.step.result.ResultContainer}</li>
+ *     <li>0 to n {@link tech.illuin.pipeline.sink.Sink} performing terminal operations, expected to be external side effects, they can be executed in a synchronous or asynchronous fashion</li>
+ *     <li>0 to n {@link tech.illuin.pipeline.close.OnCloseHandler} responsible for cleaning up when tearing down the pipeline</li>
+ * </ul>
+ * <p>The pipeline references an {@link java.util.concurrent.ExecutorService} which the pipeline will attempt to close when its own close() method is called.</p>
+ * <p>It will additionally handle a variety of {@link MeterRegistry} counters reflecting the activity of its components.</p>
+ *
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
 public final class CompositePipeline<I, P> implements Pipeline<I, P>
@@ -40,6 +52,7 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
     private final InitializerDescriptor<I, P> initializer;
     private final AuthorResolver<I> authorResolver;
     private final List<Indexer<P>> indexers;
+    private final OutputFactory<P> outputFactory;
     private final List<StepDescriptor<Indexable, I, P>> steps;
     private final List<SinkDescriptor<P>> sinks;
 
@@ -57,6 +70,7 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
         InitializerDescriptor<I, P> initializer,
         AuthorResolver<I> authorResolver,
         List<Indexer<P>> indexers,
+        OutputFactory<P> outputFactory,
         List<StepDescriptor<Indexable, I, P>> steps,
         List<SinkDescriptor<P>> sinks,
         ExecutorService sinkExecutor,
@@ -68,6 +82,7 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
         this.initializer = initializer;
         this.authorResolver = authorResolver;
         this.indexers = indexers;
+        this.outputFactory = outputFactory;
         this.steps = steps;
         this.sinks = sinks;
         this.sinkExecutor = sinkExecutor;
@@ -124,10 +139,8 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
         PipelineInitializationMetrics metrics = new PipelineInitializationMetrics(this.meterRegistry, this);
         long start = System.nanoTime();
         try {
-            Output<P> output = new Output<>(
-                this.id(),
-                this.authorResolver.resolve(input, context)
-            );
+            String author = this.authorResolver.resolve(input, context);
+            Output<P> output = this.outputFactory.create(this.id(), author);
 
             output.setPayload(this.runInitializer(input, output, context));
 

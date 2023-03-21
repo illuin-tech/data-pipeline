@@ -14,6 +14,8 @@ import tech.illuin.pipeline.input.initializer.Initializer;
 import tech.illuin.pipeline.input.initializer.builder.InitializerAssembler;
 import tech.illuin.pipeline.input.initializer.builder.InitializerBuilder;
 import tech.illuin.pipeline.input.initializer.builder.InitializerDescriptor;
+import tech.illuin.pipeline.output.factory.DefaultOutputFactory;
+import tech.illuin.pipeline.output.factory.OutputFactory;
 import tech.illuin.pipeline.sink.Sink;
 import tech.illuin.pipeline.sink.builder.SinkAssembler;
 import tech.illuin.pipeline.sink.builder.SinkBuilder;
@@ -41,6 +43,7 @@ public final class PayloadPipelineBuilder<I, P>
 {
     private String id;
     private AuthorResolver<I> authorResolver;
+    private OutputFactory<P> outputFactory;
     private final List<StepDescriptor<Indexable, I, P>> steps;
     private final List<SinkDescriptor<P>> sinks;
     private Supplier<ExecutorService> sinkExecutorProvider;
@@ -55,6 +58,7 @@ public final class PayloadPipelineBuilder<I, P>
     public PayloadPipelineBuilder()
     {
         this.authorResolver = AuthorResolver::anonymous;
+        this.outputFactory = new DefaultOutputFactory<>();
         this.sinkExecutorProvider = () -> Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         this.steps = new ArrayList<>();
         this.sinks = new ArrayList<>();
@@ -78,6 +82,7 @@ public final class PayloadPipelineBuilder<I, P>
             this.initializer(),
             this.authorResolver(),
             this.indexers(),
+            this.outputFactory(),
             this.steps(),
             this.sinks(),
             this.sinkExecutorProvider().get(),
@@ -314,6 +319,17 @@ public final class PayloadPipelineBuilder<I, P>
     public PayloadPipelineBuilder<I, P> registerIndexer(MultiIndexer<P> indexer)
     {
         this.indexers.add(indexer);
+        return this;
+    }
+
+    public OutputFactory<P> outputFactory()
+    {
+        return this.outputFactory;
+    }
+
+    public PayloadPipelineBuilder<I, P> setOutputFactory(OutputFactory<P> outputFactory)
+    {
+        this.outputFactory = outputFactory;
         return this;
     }
 }

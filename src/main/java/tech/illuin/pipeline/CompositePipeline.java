@@ -23,7 +23,9 @@ import tech.illuin.pipeline.step.StepException;
 import tech.illuin.pipeline.step.builder.StepDescriptor;
 import tech.illuin.pipeline.step.execution.evaluator.StepStrategy;
 import tech.illuin.pipeline.step.result.Result;
+import tech.illuin.pipeline.step.result.ResultDescriptor;
 
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -212,8 +214,15 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
                     {
                         if (result instanceof PipelineResult<?> pResult)
                             pResult.output().results().currentDescriptors().forEach(rd -> output.results().register(indexed.uid(), rd));
-                        else
-                            output.results().register(indexed.uid(), step.createResult(this.uidGenerator, result));
+                        else {
+                            output.results().register(indexed.uid(), new ResultDescriptor<>(
+                                this.uidGenerator.generate(),
+                                output.tag(),
+                                Instant.now(),
+                                result
+                            ));
+                        }
+
                     }
                     if (strategy.hasBehaviour(DISCARD_CURRENT))
                         discarded.add(indexed);

@@ -1,6 +1,7 @@
 package tech.illuin.pipeline.step.result;
 
 import tech.illuin.pipeline.input.indexer.Indexable;
+import tech.illuin.pipeline.output.PipelineTag;
 
 import java.time.Instant;
 
@@ -9,11 +10,12 @@ import java.time.Instant;
  */
 public record ResultDescriptor<R extends Result>(
     String uid,
+    PipelineTag tag,
     Instant createdAt,
     R payload
 ) implements Indexable {
-    public ResultDescriptor(String uid, R payload)
+    public ResultDescriptor(String uid, PipelineTag tag, R payload)
     {
-        this(uid, Instant.now(), payload);
+        this(uid, tag, Instant.now(), payload);
     }
 }

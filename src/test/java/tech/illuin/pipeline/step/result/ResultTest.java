@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.input.uid_generator.KSUIDGenerator;
 import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
+import tech.illuin.pipeline.output.PipelineTag;
 
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
@@ -98,7 +99,7 @@ public class ResultTest
 
     private static <R extends Result> ResultDescriptor<R> createDescriptor(R result)
     {
-        return new ResultDescriptor<>(uidGenerator.generate(), result);
+        return new ResultDescriptor<>(uidGenerator.generate(), new PipelineTag(null, null), result);
     }
 
     private record Entity(

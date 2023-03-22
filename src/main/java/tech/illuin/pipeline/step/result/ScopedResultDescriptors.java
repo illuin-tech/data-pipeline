@@ -6,38 +6,31 @@ import java.util.stream.Stream;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public final class GlobalResultView implements ResultView
+public final class ScopedResultDescriptors implements ResultDescriptors
 {
     private final String uid;
     private final ResultContainer container;
 
-    GlobalResultView(String uid, ResultContainer container)
+    ScopedResultDescriptors(String uid, ResultContainer container)
     {
         this.uid = uid;
         this.container = container;
     }
 
-    @Override
-    public Stream<Result> stream()
+    public String uid()
     {
-        return this.container.stream();
+        return this.uid;
     }
 
     @Override
-    public ResultDescriptors descriptors()
+    public Stream<ResultDescriptor<?>> stream()
     {
-        return new GlobalResultDescriptors(this.container);
+        return this.container.descriptorStream(this.uid);
     }
 
     @Override
     public Instant currentStart()
     {
         return this.container.createdAt();
-    }
-
-    @Override
-    public ScopedResultView self()
-    {
-        return new ScopedResultView(this.uid, this.container);
     }
 }

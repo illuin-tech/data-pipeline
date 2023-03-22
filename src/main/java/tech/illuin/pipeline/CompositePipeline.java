@@ -213,7 +213,7 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
                     if (strategy.hasBehaviour(REGISTER_RESULT))
                     {
                         if (result instanceof PipelineResult<?> pResult)
-                            pResult.output().results().currentDescriptors().forEach(rd -> output.results().register(indexed.uid(), rd));
+                            pResult.output().results().descriptors().current().forEach(rd -> output.results().register(indexed.uid(), rd));
                         else {
                             output.results().register(indexed.uid(), new ResultDescriptor<>(
                                 this.uidGenerator.generate(),

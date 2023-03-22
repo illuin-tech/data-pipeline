@@ -32,8 +32,8 @@ public class ResultTest
         Assertions.assertEquals(5, container.stream().count());
         Assertions.assertEquals(5, container.current().count());
 
-        Assertions.assertEquals(2, container.stream(first).count());
-        Assertions.assertEquals(3, container.stream(second).count());
+        Assertions.assertEquals(2, container.of(first).stream().count());
+        Assertions.assertEquals(3, container.of(second).stream().count());
 
         Assertions.assertEquals(5, container.current(TestResult.class).map(TestResult::value).orElse(-1));
         Assertions.assertEquals(5, container.latest(TestResult.class).map(TestResult::value).orElse(-1));
@@ -66,7 +66,7 @@ public class ResultTest
         container.register(second.uid(), createDescriptor(new TestResult(4)));
         container.register(second.uid(), createDescriptor(new TestResult(5)));
 
-        ResultView view = container.view(first).self();
+        Results view = container.of(first);
 
         Assertions.assertEquals(container.createdAt(), view.currentStart());
 
@@ -86,7 +86,7 @@ public class ResultTest
         secondGenContainer.register(first.uid(), createDescriptor(new TestResult(6)));
         secondGenContainer.register(second.uid(), createDescriptor(new TestResult(7)));
 
-        ResultView secondGenView = secondGenContainer.view(first).self();
+        Results secondGenView = secondGenContainer.of(first);
 
         Assertions.assertEquals(2, secondGenContainer.size());
         Assertions.assertEquals(7, secondGenContainer.stream().count());

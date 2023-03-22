@@ -26,6 +26,12 @@ public final class GlobalResultView implements ResultView
     }
 
     @Override
+    public Stream<ResultDescriptor<?>> descriptors()
+    {
+        return this.container.descriptors();
+    }
+
+    @Override
     public Instant currentStart()
     {
         return this.container.createdAt();

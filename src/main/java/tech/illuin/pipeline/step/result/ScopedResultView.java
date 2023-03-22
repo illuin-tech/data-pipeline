@@ -29,6 +29,12 @@ public final class ScopedResultView implements ResultView
     }
 
     @Override
+    public Stream<ResultDescriptor<?>> descriptors()
+    {
+        return this.container.descriptors(this.uid);
+    }
+
+    @Override
     public Instant currentStart()
     {
         return this.container.createdAt();

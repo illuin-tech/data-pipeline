@@ -13,6 +13,8 @@ public interface ResultView
 {
     Stream<Result> stream();
 
+    Stream<ResultDescriptor<?>> descriptors();
+
     Instant currentStart();
 
     ScopedResultView self();
@@ -27,16 +29,17 @@ public interface ResultView
         return this.stream(type.name());
     }
 
-    default Stream<Result> stream(String type)
+    default Stream<Result> stream(String name)
     {
-        return this.stream().filter(r -> Objects.equals(r.type(), type));
+        return this.stream().filter(r -> Objects.equals(r.name(), name));
     }
 
     default <R extends Result> Optional<R> latest(Class<R> type)
     {
-        return this.stream()
-            .filter(type::isInstance)
-            .max(Comparator.comparing(Result::createdAt))
+        return this.descriptors()
+            .filter(rd -> type.isInstance(rd.payload()))
+            .max(Comparator.comparing(ResultDescriptor::createdAt))
+            .map(ResultDescriptor::payload)
             .map(type::cast)
         ;
     }
@@ -46,20 +49,22 @@ public interface ResultView
         return this.latest(type.name());
     }
 
-    default Optional<Result> latest(String type)
+    default Optional<Result> latest(String name)
     {
-        return this.stream()
-           .filter(r -> Objects.equals(r.type(), type))
-           .max(Comparator.comparing(Result::createdAt))
+        return this.descriptors()
+            .filter(rd -> Objects.equals(rd.payload().name(), name))
+            .max(Comparator.comparing(ResultDescriptor::createdAt))
+            .map(ResultDescriptor::payload)
         ;
     }
 
     default <R extends Result> Optional<R> current(Class<R> type)
     {
-        return this.stream()
+        return this.descriptors()
             .filter(r -> r.createdAt().isAfter(this.currentStart()))
-            .filter(type::isInstance)
-            .max(Comparator.comparing(Result::createdAt))
+            .filter(rd -> type.isInstance(rd.payload()))
+            .max(Comparator.comparing(ResultDescriptor::createdAt))
+            .map(ResultDescriptor::payload)
             .map(type::cast)
         ;
     }
@@ -69,12 +74,13 @@ public interface ResultView
         return this.current(type.name());
     }
 
-    default Optional<Result> current(String type)
+    default Optional<Result> current(String name)
     {
-        return this.stream()
-            .filter(r -> r.createdAt().isAfter(this.currentStart()))
-            .filter(r -> Objects.equals(r.type(), type))
-            .max(Comparator.comparing(Result::createdAt))
+        return this.descriptors()
+            .filter(rd -> rd.createdAt().isAfter(this.currentStart()))
+            .filter(rd -> Objects.equals(rd.payload().name(), name))
+            .max(Comparator.comparing(ResultDescriptor::createdAt))
+            .map(ResultDescriptor::payload)
         ;
     }
 }

@@ -11,6 +11,8 @@ import tech.illuin.pipeline.input.indexer.SingleIndexer;
 import tech.illuin.pipeline.input.initializer.Initializer;
 import tech.illuin.pipeline.input.initializer.builder.InitializerAssembler;
 import tech.illuin.pipeline.input.initializer.builder.InitializerBuilder;
+import tech.illuin.pipeline.input.uid_generator.KSUIDGenerator;
+import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
 import tech.illuin.pipeline.output.factory.DefaultOutputFactory;
 import tech.illuin.pipeline.sink.Sink;
 import tech.illuin.pipeline.sink.builder.SinkAssembler;
@@ -38,6 +40,7 @@ public final class SimplePipelineBuilder<I>
 {
     private String id;
     private AuthorResolver<I> authorResolver;
+    private UIDGenerator uidGenerator;
     private final List<StepDescriptor<Indexable, I, VoidPayload>> steps;
     private final List<SinkDescriptor<VoidPayload>> sinks;
     private Supplier<ExecutorService> sinkExecutorProvider;
@@ -50,6 +53,7 @@ public final class SimplePipelineBuilder<I>
     public SimplePipelineBuilder()
     {
         this.authorResolver = AuthorResolver::anonymous;
+        this.uidGenerator = KSUIDGenerator.INSTANCE;
         this.sinkExecutorProvider = () -> Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         this.steps = new ArrayList<>();
         this.sinks = new ArrayList<>();
@@ -61,11 +65,12 @@ public final class SimplePipelineBuilder<I>
     public Pipeline<I, VoidPayload> build()
     {
         InitializerAssembler<I, VoidPayload> initializerAssembler = builder -> builder.initializer(
-            (in, ctx) -> Initializer.initializeFromParentOr(ctx, VoidPayload::new)
+            (in, ctx, gen) -> Initializer.initializeFromParentOr(ctx, () -> new VoidPayload(gen.generate()))
         );
 
         return new CompositePipeline<>(
             this.id(),
+            this.uidGenerator(),
             initializerAssembler.build(new InitializerBuilder<>()),
             this.authorResolver(),
             Collections.singletonList(SingleIndexer.auto()),
@@ -258,6 +263,17 @@ public final class SimplePipelineBuilder<I>
     public SimplePipelineBuilder<I> setMeterRegistry(MeterRegistry meterRegistry)
     {
         this.meterRegistry = meterRegistry;
+        return this;
+    }
+
+    public UIDGenerator uidGenerator()
+    {
+        return this.uidGenerator;
+    }
+
+    public SimplePipelineBuilder<I> setUidGenerator(UIDGenerator uidGenerator)
+    {
+        this.uidGenerator = uidGenerator;
         return this;
     }
 }

@@ -1,14 +1,14 @@
 package tech.illuin.pipeline.generic.pipeline.step;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import tech.illuin.pipeline.context.Context;
 import tech.illuin.pipeline.generic.model.A;
 import tech.illuin.pipeline.generic.pipeline.TestResult;
 import tech.illuin.pipeline.generic.pipeline.step.execution.condition.IsTypeB;
 import tech.illuin.pipeline.generic.pipeline.step.execution.error.WrapAll;
 import tech.illuin.pipeline.generic.pipeline.step.execution.evaluator.AbortOnStatusKo;
 import tech.illuin.pipeline.generic.pipeline.step.execution.evaluator.DiscardOnStatusKo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import tech.illuin.pipeline.context.Context;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.step.annotation.StepConfig;
 import tech.illuin.pipeline.step.result.Result;

@@ -10,6 +10,7 @@ import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.input.indexer.Indexer;
 import tech.illuin.pipeline.input.initializer.InitializerException;
 import tech.illuin.pipeline.input.initializer.builder.InitializerDescriptor;
+import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
 import tech.illuin.pipeline.metering.PipelineInitializationMetrics;
 import tech.illuin.pipeline.metering.PipelineMetrics;
 import tech.illuin.pipeline.metering.PipelineSinkMetrics;
@@ -49,6 +50,7 @@ import static tech.illuin.pipeline.step.execution.evaluator.StrategyBehaviour.*;
 public final class CompositePipeline<I, P> implements Pipeline<I, P>
 {
     private final String id;
+    private final UIDGenerator uidGenerator;
     private final InitializerDescriptor<I, P> initializer;
     private final AuthorResolver<I> authorResolver;
     private final List<Indexer<P>> indexers;
@@ -67,6 +69,7 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
     @SuppressWarnings("ParameterNumber")
     public CompositePipeline(
         String id,
+        UIDGenerator uidGenerator,
         InitializerDescriptor<I, P> initializer,
         AuthorResolver<I> authorResolver,
         List<Indexer<P>> indexers,
@@ -79,6 +82,7 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
         MeterRegistry meterRegistry
     ) {
         this.id = id;
+        this.uidGenerator = uidGenerator;
         this.initializer = initializer;
         this.authorResolver = authorResolver;
         this.indexers = indexers;
@@ -140,7 +144,7 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
         long start = System.nanoTime();
         try {
             String author = this.authorResolver.resolve(input, context);
-            Output<P> output = this.outputFactory.create(this.id(), author);
+            Output<P> output = this.outputFactory.create(this.uidGenerator.generate(), this.id(), author);
 
             output.setPayload(this.runInitializer(input, output, context));
 
@@ -153,12 +157,10 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
             context.parent().ifPresent(parent -> output.results().register(parent.results()));
 
             metrics.successCounter().increment();
-
             return output;
         }
         catch (InitializerException | RuntimeException e) {
             metrics.failureCounter().increment();
-            this.initializer.handleException(e, context);
             throw e;
         }
         finally {
@@ -172,11 +174,11 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
         String name = getPrintableName(this.initializer);
         try {
             logger.trace("{}#{} initializing payload", this.id(), output.tag().uid());
-            return this.initializer.execute(input, context);
+            return this.initializer.execute(input, context, this.uidGenerator);
         }
-        catch (InitializerException e) {
+        catch (InitializerException | RuntimeException e) {
             logger.trace("{}#{} initializer {} threw an {}: {}", this.id(), output.tag().uid(), name, e.getClass().getName(), e.getMessage());
-            return this.initializer.handleException(e, context);
+            return this.initializer.handleException(e, context, this.uidGenerator);
         }
     }
 
@@ -208,9 +210,9 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
                     if (strategy.hasBehaviour(REGISTER_RESULT))
                     {
                         if (result instanceof PipelineResult<?> pResult)
-                            pResult.output().results().current().forEach(r -> output.results().register(indexed.uid(), r));
+                            pResult.output().results().currentDescriptors().forEach(rd -> output.results().register(indexed.uid(), rd));
                         else
-                            output.results().register(indexed.uid(), result);
+                            output.results().register(indexed.uid(), step.createResult(this.uidGenerator, result));
                     }
                     if (strategy.hasBehaviour(DISCARD_CURRENT))
                         discarded.add(indexed);
@@ -238,6 +240,7 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
         try {
             logger.trace("{}#{} running step {} over argument {}", this.id(), output.tag().uid(), name, indexed.uid());
             Result result = step.execute(indexed, input, output.payload(), output.results().view(indexed), context);
+
             metrics.successCounter().increment();
             return result;
         }
@@ -298,7 +301,7 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
                 sink.execute(output, context);
                 metrics.successCounter().increment();
             }
-            catch (RuntimeException | SinkException e) {
+            catch (SinkException | RuntimeException e) {
                 logger.error("{}#{} sink {} threw an {}: {}", this.id(), output.tag().uid(), name, e.getClass().getName(), e.getMessage());
                 metrics.failureCounter().increment();
                 sink.handleExceptionThenSwallow(e, context);

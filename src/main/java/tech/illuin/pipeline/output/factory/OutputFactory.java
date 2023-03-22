@@ -1,5 +1,6 @@
 package tech.illuin.pipeline.output.factory;
 
+import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
 import tech.illuin.pipeline.output.Output;
 
 /**
@@ -7,5 +8,5 @@ import tech.illuin.pipeline.output.Output;
  */
 public interface OutputFactory<P>
 {
-    Output<P> create(String pipelineId, String author);
+    Output<P> create(String uid, String pipelineId, String author);
 }

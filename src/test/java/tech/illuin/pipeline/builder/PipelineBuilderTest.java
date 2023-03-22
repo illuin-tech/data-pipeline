@@ -75,7 +75,7 @@ public class PipelineBuilderTest
     {
         var builder = Assertions.assertDoesNotThrow(() -> Pipeline.ofPayload(
                 "test-payload",
-                (Initializer<Object, TestIndexable>) (input, context) -> new TestIndexable()
+                (Initializer<Object, TestIndexable>) (input, context, generator) -> new TestIndexable(generator.generate())
             )
             .setAuthorResolver(authorResolver)
             .setDefaultErrorHandler(errorHandler)
@@ -111,7 +111,7 @@ public class PipelineBuilderTest
     {
         InitializerAssembler<Object, TestIndexable> initializer = b -> b
             .withId("init-builder")
-            .initializer((input, context) -> new TestIndexable())
+            .initializer((input, context, generator) -> new TestIndexable(generator.generate()))
         ;
 
         var builder = Assertions.assertDoesNotThrow(() -> Pipeline.ofPayload("test-payload", initializer)
@@ -149,31 +149,11 @@ public class PipelineBuilderTest
     }
 
 
-    public static class TestIndexable implements Indexable
-    {
-        private final String uid;
+    public record TestIndexable(
+        String uid
+    ) implements Indexable {};
 
-        public TestIndexable()
-        {
-            this.uid = Indexable.generateUid();
-        }
-
-        @Override
-        public String uid()
-        {
-            return this.uid;
-        }
-    }
-
-    public static class TestResult extends Result
-    {
-        private final String name;
-
-        public TestResult(String name) { this.name = name; }
-
-        public String name()
-        {
-            return name;
-        }
-    }
+    public record TestResult(
+        String name
+    ) implements Result {}
 }

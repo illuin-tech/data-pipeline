@@ -8,8 +8,8 @@ import tech.illuin.pipeline.output.Output;
 public class DefaultOutputFactory<P> implements OutputFactory<P>
 {
     @Override
-    public Output<P> create(String pipelineId, String author)
+    public Output<P> create(String uid, String pipelineId, String author)
     {
-        return new Output<>(pipelineId, author);
+        return new Output<>(uid, pipelineId, author);
     }
 }

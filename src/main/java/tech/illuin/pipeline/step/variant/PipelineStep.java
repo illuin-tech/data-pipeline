@@ -7,6 +7,7 @@ import tech.illuin.pipeline.builder.VoidPayload;
 import tech.illuin.pipeline.context.Context;
 import tech.illuin.pipeline.context.SimpleContext;
 import tech.illuin.pipeline.input.indexer.Indexable;
+import tech.illuin.pipeline.input.uid_generator.KSUIDGenerator;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.step.Step;
 import tech.illuin.pipeline.step.StepException;
@@ -37,11 +38,11 @@ public final class PipelineStep<I, P> implements Step<Indexable, I, VoidPayload>
     {
         try {
             /* TODO: Bad design -> this should be challenged ASAP */
-            Output<P> prev = new Output<>(results.self().uid(), ANONYMOUS);
+            Output<P> prev = new Output<>(KSUIDGenerator.INSTANCE.generate(), results.self().uid(), ANONYMOUS);
             prev.setPayload(null);
             prev.results().register(results);
             Output<P> out = this.pipeline.run(input, new SimpleContext<>(prev));
-            return resultMapper.apply(out);
+            return this.resultMapper.apply(out);
         }
         catch (PipelineException e) {
             throw new StepException(e.getMessage(), e);

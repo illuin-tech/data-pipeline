@@ -14,6 +14,8 @@ import tech.illuin.pipeline.input.initializer.Initializer;
 import tech.illuin.pipeline.input.initializer.builder.InitializerAssembler;
 import tech.illuin.pipeline.input.initializer.builder.InitializerBuilder;
 import tech.illuin.pipeline.input.initializer.builder.InitializerDescriptor;
+import tech.illuin.pipeline.input.uid_generator.KSUIDGenerator;
+import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
 import tech.illuin.pipeline.output.factory.DefaultOutputFactory;
 import tech.illuin.pipeline.output.factory.OutputFactory;
 import tech.illuin.pipeline.sink.Sink;
@@ -44,6 +46,7 @@ public final class PayloadPipelineBuilder<I, P>
     private String id;
     private AuthorResolver<I> authorResolver;
     private OutputFactory<P> outputFactory;
+    private UIDGenerator uidGenerator;
     private final List<StepDescriptor<Indexable, I, P>> steps;
     private final List<SinkDescriptor<P>> sinks;
     private Supplier<ExecutorService> sinkExecutorProvider;
@@ -59,6 +62,7 @@ public final class PayloadPipelineBuilder<I, P>
     {
         this.authorResolver = AuthorResolver::anonymous;
         this.outputFactory = new DefaultOutputFactory<>();
+        this.uidGenerator = KSUIDGenerator.INSTANCE;
         this.sinkExecutorProvider = () -> Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         this.steps = new ArrayList<>();
         this.sinks = new ArrayList<>();
@@ -79,6 +83,7 @@ public final class PayloadPipelineBuilder<I, P>
 
         return new CompositePipeline<>(
             this.id(),
+            this.uidGenerator(),
             this.initializer(),
             this.authorResolver(),
             this.indexers(),
@@ -330,6 +335,17 @@ public final class PayloadPipelineBuilder<I, P>
     public PayloadPipelineBuilder<I, P> setOutputFactory(OutputFactory<P> outputFactory)
     {
         this.outputFactory = outputFactory;
+        return this;
+    }
+
+    public UIDGenerator uidGenerator()
+    {
+        return this.uidGenerator;
+    }
+
+    public PayloadPipelineBuilder<I, P> setUidGenerator(UIDGenerator uidGenerator)
+    {
+        this.uidGenerator = uidGenerator;
         return this;
     }
 }

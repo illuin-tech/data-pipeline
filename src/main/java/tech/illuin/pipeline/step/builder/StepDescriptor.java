@@ -2,6 +2,7 @@ package tech.illuin.pipeline.step.builder;
 
 import tech.illuin.pipeline.context.Context;
 import tech.illuin.pipeline.input.indexer.Indexable;
+import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
 import tech.illuin.pipeline.step.Step;
 import tech.illuin.pipeline.step.StepException;
 import tech.illuin.pipeline.step.execution.error.StepErrorHandler;
@@ -10,7 +11,10 @@ import tech.illuin.pipeline.step.execution.wrapper.StepWrapper;
 import tech.illuin.pipeline.step.result.Result;
 import tech.illuin.pipeline.step.execution.evaluator.ResultEvaluator;
 import tech.illuin.pipeline.step.execution.evaluator.StepStrategy;
+import tech.illuin.pipeline.step.result.ResultDescriptor;
 import tech.illuin.pipeline.step.result.ResultView;
+
+import java.time.Instant;
 
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
@@ -51,6 +55,15 @@ public final class StepDescriptor<T extends Indexable, I, P>
     public boolean canExecute(Indexable indexable)
     {
         return this.activationPredicate.canExecute(indexable);
+    }
+
+    public <R extends Result> ResultDescriptor<R> createResult(UIDGenerator generator, R payload)
+    {
+        return new ResultDescriptor<>(
+            generator.generate(),
+            Instant.now(),
+            payload
+        );
     }
 
     public StepStrategy postEvaluation(Result result)

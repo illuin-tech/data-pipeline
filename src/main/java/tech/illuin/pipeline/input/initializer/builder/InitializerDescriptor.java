@@ -4,6 +4,7 @@ import tech.illuin.pipeline.context.Context;
 import tech.illuin.pipeline.input.initializer.Initializer;
 import tech.illuin.pipeline.input.initializer.InitializerException;
 import tech.illuin.pipeline.input.initializer.execution.error.InitializerErrorHandler;
+import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
 
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
@@ -24,14 +25,14 @@ public final class InitializerDescriptor<I, P>
         this.errorHandler = errorHandler;
     }
 
-    public P execute(I input, Context<P> context) throws InitializerException
+    public P execute(I input, Context<P> ctx, UIDGenerator generator) throws InitializerException
     {
-        return this.initializer.initialize(input, context);
+        return this.initializer.initialize(input, ctx, generator);
     }
 
-    public P handleException(Exception ex, Context<P> ctx) throws InitializerException
+    public P handleException(Exception ex, Context<P> ctx, UIDGenerator generator) throws InitializerException
     {
-        return this.errorHandler.handle(ex, ctx);
+        return this.errorHandler.handle(ex, ctx, generator);
     }
 
     public String id()

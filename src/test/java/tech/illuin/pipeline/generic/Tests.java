@@ -15,6 +15,6 @@ public final class Tests
 
     public static List<String> getResultTypes(Output<?> output, Indexable object)
     {
-        return output.results().stream(object).map(Result::type).sorted().toList();
+        return output.results().stream(object).map(Result::name).sorted().toList();
     }
 }

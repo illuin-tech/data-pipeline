@@ -11,8 +11,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import static tech.illuin.pipeline.input.indexer.Indexable.PIPELINE_PREFIX;
-
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
@@ -26,9 +24,8 @@ public class Output<T> implements Comparable<Output<T>>
     private Instant finishedAt;
     private T payload;
 
-    public Output(String pipeline, String author)
+    public Output(String uid, String pipeline, String author)
     {
-        String uid = PIPELINE_PREFIX + Indexable.generateUid();
         this.tag = new PipelineTag(uid, pipeline);
         this.author = author;
         this.createdAt = Instant.now();

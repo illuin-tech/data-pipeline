@@ -169,6 +169,7 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
         }
     }
 
+    @SuppressWarnings("IllegalCatch")
     private P runInitializer(I input, Output<P> output, Context<P> context) throws InitializerException
     {
         String name = getPrintableName(this.initializer);

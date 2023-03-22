@@ -1,6 +1,5 @@
 package tech.illuin.pipeline.output.factory;
 
-import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
 import tech.illuin.pipeline.output.Output;
 
 /**

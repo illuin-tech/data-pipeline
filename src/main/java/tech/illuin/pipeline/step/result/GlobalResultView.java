@@ -1,5 +1,7 @@
 package tech.illuin.pipeline.step.result;
 
+import tech.illuin.pipeline.input.indexer.Indexable;
+
 import java.time.Instant;
 import java.util.stream.Stream;
 
@@ -36,8 +38,18 @@ public final class GlobalResultView implements ResultView
     }
 
     @Override
-    public ScopedResultView self()
+    public ScopedResults self()
     {
-        return new ScopedResultView(this.uid, this.container);
+        return new ScopedResults(this.uid, this.container);
+    }
+
+    public ScopedResults of(Indexable indexable)
+    {
+        return new ScopedResults(indexable.uid(), this.container);
+    }
+
+    public ScopedResults of(String uid)
+    {
+        return new ScopedResults(uid, this.container);
     }
 }

@@ -6,12 +6,12 @@ import java.util.stream.Stream;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public final class ScopedResultView implements Results
+public final class ScopedResults implements Results
 {
     private final String uid;
     private final ResultContainer container;
 
-    ScopedResultView(String uid, ResultContainer container)
+    ScopedResults(String uid, ResultContainer container)
     {
         this.uid = uid;
         this.container = container;

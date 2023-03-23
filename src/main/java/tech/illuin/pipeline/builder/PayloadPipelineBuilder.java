@@ -45,7 +45,7 @@ public final class PayloadPipelineBuilder<I, P>
 {
     private String id;
     private AuthorResolver<I> authorResolver;
-    private OutputFactory<P> outputFactory;
+    private OutputFactory<I, P> outputFactory;
     private UIDGenerator uidGenerator;
     private final List<StepDescriptor<Indexable, I, P>> steps;
     private final List<SinkDescriptor<P>> sinks;
@@ -327,12 +327,12 @@ public final class PayloadPipelineBuilder<I, P>
         return this;
     }
 
-    public OutputFactory<P> outputFactory()
+    public OutputFactory<I, P> outputFactory()
     {
         return this.outputFactory;
     }
 
-    public PayloadPipelineBuilder<I, P> setOutputFactory(OutputFactory<P> outputFactory)
+    public PayloadPipelineBuilder<I, P> setOutputFactory(OutputFactory<I, P> outputFactory)
     {
         this.outputFactory = outputFactory;
         return this;

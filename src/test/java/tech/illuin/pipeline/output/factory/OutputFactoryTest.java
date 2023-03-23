@@ -3,6 +3,7 @@ package tech.illuin.pipeline.output.factory;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import tech.illuin.pipeline.Pipeline;
+import tech.illuin.pipeline.context.Context;
 import tech.illuin.pipeline.generic.model.B;
 import tech.illuin.pipeline.generic.pipeline.initializer.TestAnnotatedInitializers.Default;
 import tech.illuin.pipeline.output.Output;
@@ -36,7 +37,7 @@ public class OutputFactoryTest
 
     private static class CustomOutput extends Output<B>
     {
-        public CustomOutput(String uid, String pipeline, String author)
+        public CustomOutput(String uid, String pipeline, String author, Void input, Context<B> context)
         {
             super(uid, pipeline, author);
         }

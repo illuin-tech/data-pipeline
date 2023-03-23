@@ -43,7 +43,7 @@ public class ResultContainer implements Results
 
     public void register(ResultView view)
     {
-        ScopedResultView scoped = view.self();
+        ScopedResults scoped = view.self();
         scoped.descriptors().stream().forEach(result -> this.register(scoped.uid(), result));
     }
 
@@ -86,11 +86,11 @@ public class ResultContainer implements Results
 
     public Results of(Indexable indexable)
     {
-        return new ScopedResultView(indexable.uid(), this);
+        return new ScopedResults(indexable.uid(), this);
     }
 
     public Results of(String uid)
     {
-        return new ScopedResultView(uid, this);
+        return new ScopedResults(uid, this);
     }
 }

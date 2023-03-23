@@ -56,7 +56,7 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
     private final InitializerDescriptor<I, P> initializer;
     private final AuthorResolver<I> authorResolver;
     private final List<Indexer<P>> indexers;
-    private final OutputFactory<P> outputFactory;
+    private final OutputFactory<I, P> outputFactory;
     private final List<StepDescriptor<Indexable, I, P>> steps;
     private final List<SinkDescriptor<P>> sinks;
 
@@ -75,7 +75,7 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
         InitializerDescriptor<I, P> initializer,
         AuthorResolver<I> authorResolver,
         List<Indexer<P>> indexers,
-        OutputFactory<P> outputFactory,
+        OutputFactory<I, P> outputFactory,
         List<StepDescriptor<Indexable, I, P>> steps,
         List<SinkDescriptor<P>> sinks,
         ExecutorService sinkExecutor,
@@ -146,7 +146,7 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
         long start = System.nanoTime();
         try {
             String author = this.authorResolver.resolve(input, context);
-            Output<P> output = this.outputFactory.create(this.uidGenerator.generate(), this.id(), author);
+            Output<P> output = this.outputFactory.create(this.uidGenerator.generate(), this.id(), author, input, context);
 
             output.setPayload(this.runInitializer(input, output, context));
 

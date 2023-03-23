@@ -25,9 +25,14 @@ public class Output<T> implements Comparable<Output<T>>
 
     public Output(String uid, String pipeline, String author)
     {
+        this(uid, pipeline, author, Instant.now());
+    }
+
+    public Output(String uid, String pipeline, String author, Instant createdAt)
+    {
         this.tag = new PipelineTag(uid, pipeline);
         this.author = author;
-        this.createdAt = Instant.now();
+        this.createdAt = createdAt;
         this.index = new IndexContainer();
         this.results = new ResultContainer();
     }

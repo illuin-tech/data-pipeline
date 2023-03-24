@@ -63,9 +63,9 @@ public class PipelineBuilderTest
         Output<?> output = Assertions.assertDoesNotThrow(() -> pipeline.run(null, ctx));
 
         Assertions.assertEquals(builder.id(), output.tag().pipeline());
-        Assertions.assertEquals("anon", output.author());
+        Assertions.assertEquals("anon", output.tag().author());
         Assertions.assertEquals(6, output.results().stream().count());
-        Assertions.assertEquals("1", output.results().stream().findFirst().map(r -> ((TestResult) r).name()).orElse(null));
+        Assertions.assertEquals("1", output.results().stream().findFirst().map(Result::name).orElse(null));
         Assertions.assertEquals("6", output.results().latest(TestResult.class).map(TestResult::name).orElse(null));
         Assertions.assertEquals(3, ctx.get("sink", AtomicInteger.class).map(AtomicInteger::get).orElse(0));
     }
@@ -75,7 +75,7 @@ public class PipelineBuilderTest
     {
         var builder = Assertions.assertDoesNotThrow(() -> Pipeline.ofPayload(
                 "test-payload",
-                (Initializer<Object, TestIndexable>) (input, context) -> new TestIndexable()
+                (Initializer<Object, TestIndexable>) (input, context, generator) -> new TestIndexable(generator.generate())
             )
             .setAuthorResolver(authorResolver)
             .setDefaultErrorHandler(errorHandler)
@@ -99,9 +99,9 @@ public class PipelineBuilderTest
         Assertions.assertDoesNotThrow(pipeline::close);
 
         Assertions.assertEquals(builder.id(), output.tag().pipeline());
-        Assertions.assertEquals("anon", output.author());
+        Assertions.assertEquals("anon", output.tag().author());
         Assertions.assertEquals(3, output.results().stream().count());
-        Assertions.assertEquals("1", output.results().stream().findFirst().map(r -> ((TestResult) r).name()).orElse(null));
+        Assertions.assertEquals("1", output.results().stream().findFirst().map(Result::name).orElse(null));
         Assertions.assertEquals("3", output.results().latest(TestResult.class).map(TestResult::name).orElse(null));
         Assertions.assertEquals(3, ctx.get("sink", AtomicInteger.class).map(AtomicInteger::get).orElse(0));
     }
@@ -111,7 +111,7 @@ public class PipelineBuilderTest
     {
         InitializerAssembler<Object, TestIndexable> initializer = b -> b
             .withId("init-builder")
-            .initializer((input, context) -> new TestIndexable())
+            .initializer((input, context, generator) -> new TestIndexable(generator.generate()))
         ;
 
         var builder = Assertions.assertDoesNotThrow(() -> Pipeline.ofPayload("test-payload", initializer)
@@ -141,39 +141,19 @@ public class PipelineBuilderTest
         Assertions.assertDoesNotThrow(pipeline::close);
 
         Assertions.assertEquals(builder.id(), output.tag().pipeline());
-        Assertions.assertEquals("anon", output.author());
+        Assertions.assertEquals("anon", output.tag().author());
         Assertions.assertEquals(3, output.results().stream().count());
-        Assertions.assertEquals("1", output.results().stream().findFirst().map(r -> ((TestResult) r).name()).orElse(null));
+        Assertions.assertEquals("1", output.results().stream().findFirst().map(Result::name).orElse(null));
         Assertions.assertEquals("3", output.results().latest(TestResult.class).map(TestResult::name).orElse(null));
         Assertions.assertEquals(3, ctx.get("sink", AtomicInteger.class).map(AtomicInteger::get).orElse(0));
     }
 
 
-    public static class TestIndexable implements Indexable
-    {
-        private final String uid;
+    public record TestIndexable(
+        String uid
+    ) implements Indexable {};
 
-        public TestIndexable()
-        {
-            this.uid = Indexable.generateUid();
-        }
-
-        @Override
-        public String uid()
-        {
-            return this.uid;
-        }
-    }
-
-    public static class TestResult extends Result
-    {
-        private final String name;
-
-        public TestResult(String name) { this.name = name; }
-
-        public String name()
-        {
-            return name;
-        }
-    }
+    public record TestResult(
+        String name
+    ) implements Result {}
 }

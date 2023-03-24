@@ -9,10 +9,10 @@ import java.util.stream.Stream;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public class ResultContainer
+public class ResultContainer implements Results
 {
     private final Instant createdAt;
-    private final Map<String, List<Result>> results;
+    private final Map<String, List<ResultDescriptor<?>>> results;
 
     public ResultContainer()
     {
@@ -22,10 +22,10 @@ public class ResultContainer
 
     public Instant createdAt()
     {
-        return createdAt;
+        return this.createdAt;
     }
 
-    public ResultContainer register(String uid, Result result)
+    public ResultContainer register(String uid, ResultDescriptor<?> result)
     {
         if (!this.results.containsKey(uid))
             this.results.put(uid, new ArrayList<>());
@@ -36,84 +36,37 @@ public class ResultContainer
     public void register(ResultContainer results)
     {
         results.results.forEach((key, value) -> {
-            for (Result result : value)
+            for (ResultDescriptor<?> result : value)
                 this.register(key, result);
         });
     }
 
     public void register(ResultView view)
     {
-        ScopedResultView scoped = view.self();
-        scoped.stream().forEach(result -> this.register(scoped.uid(), result));
+        ScopedResults scoped = view.self();
+        scoped.descriptors().stream().forEach(result -> this.register(scoped.uid(), result));
     }
 
-    public Stream<Result> stream(Indexable indexable)
+    @Override
+    public ResultDescriptors descriptors()
     {
-        return this.stream(indexable.uid());
+        return new GlobalResultDescriptors(this);
     }
 
-    public Stream<Result> stream(String uid)
-    {
-        return this.results.getOrDefault(uid, Collections.emptyList()).stream();
-    }
-
-    public Stream<Result> stream()
+    Stream<ResultDescriptor<?>> descriptorStream()
     {
         return this.results.values().stream().flatMap(Collection::stream);
     }
 
-    public <R extends Result> Stream<R> stream(Class<R> type)
+    Stream<ResultDescriptor<?>> descriptorStream(String uid)
     {
-        return this.stream().filter(type::isInstance).map(type::cast);
+        return this.results.get(uid).stream();
     }
 
-    public <R extends Result> Optional<R> latest(Class<R> type)
+    @Override
+    public Instant currentStart()
     {
-        return this.stream()
-            .filter(type::isInstance)
-            .max(Comparator.comparing(Result::createdAt))
-            .map(type::cast)
-        ;
-    }
-
-    public <E extends Enum<E>> Optional<Result> latest(E type)
-    {
-        return this.latest(type.name());
-    }
-
-    public Optional<Result> latest(String type)
-    {
-        return this.stream()
-            .filter(r -> Objects.equals(r.type(), type))
-            .max(Comparator.comparing(Result::createdAt))
-        ;
-    }
-
-    public Stream<Result> current()
-    {
-        return this.stream().filter(r -> r.createdAt().isAfter(this.createdAt()));
-    }
-
-    public <R extends Result> Optional<R> current(Class<R> type)
-    {
-        return this.current()
-            .filter(type::isInstance)
-            .max(Comparator.comparing(Result::createdAt))
-            .map(type::cast)
-        ;
-    }
-
-    public <E extends Enum<E>> Optional<Result> current(E type)
-    {
-        return this.current(type.name());
-    }
-
-    public Optional<Result> current(String type)
-    {
-        return this.current()
-            .filter(r -> Objects.equals(r.type(), type))
-            .max(Comparator.comparing(Result::createdAt))
-        ;
+        return this.createdAt;
     }
 
     public int size()
@@ -123,6 +76,21 @@ public class ResultContainer
 
     public ResultView view(Indexable indexable)
     {
-        return new GlobalResultView(indexable, this);
+        return new GlobalResultView(indexable.uid(), this);
+    }
+
+    public ResultView view(String uid)
+    {
+        return new GlobalResultView(uid, this);
+    }
+
+    public Results of(Indexable indexable)
+    {
+        return new ScopedResults(indexable.uid(), this);
+    }
+
+    public Results of(String uid)
+    {
+        return new ScopedResults(uid, this);
     }
 }

@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import tech.illuin.pipeline.context.Context;
 import tech.illuin.pipeline.generic.model.A;
 import tech.illuin.pipeline.generic.model.B;
+import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
 
 import java.util.Collections;
 import java.util.List;
@@ -16,16 +17,16 @@ public class TestFactory
 {
     private static final Logger logger = LoggerFactory.getLogger(TestFactory.class);
 
-    public static A initializer(Void input, Context<A> context)
+    public static A initializer(Void input, Context<A> context, UIDGenerator generator)
     {
-        return new A(List.of(
-            new B("b1"),
-            new B("b2")
+        return new A(generator.generate(), List.of(
+            new B(generator.generate(), "b1"),
+            new B(generator.generate(), "b2")
         ));
     }
 
-    public static A initializerOfEmpty(Void input, Context<A> context)
+    public static A initializerOfEmpty(Void input, Context<A> context, UIDGenerator generator)
     {
-        return new A(Collections.emptyList());
+        return new A(generator.generate(), Collections.emptyList());
     }
 }

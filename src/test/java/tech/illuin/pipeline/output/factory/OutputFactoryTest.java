@@ -3,10 +3,11 @@ package tech.illuin.pipeline.output.factory;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import tech.illuin.pipeline.Pipeline;
+import tech.illuin.pipeline.context.Context;
 import tech.illuin.pipeline.generic.model.B;
 import tech.illuin.pipeline.generic.pipeline.initializer.TestAnnotatedInitializers.Default;
-import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.output.Output;
+import tech.illuin.pipeline.output.PipelineTag;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -20,7 +21,7 @@ public class OutputFactoryTest
     {
         AtomicInteger counter = new AtomicInteger(0);
 
-        var pipeline = Assertions.assertDoesNotThrow(() -> Pipeline.ofPayload("test-output-factory", new Default<Void, B>("b-init", v -> new B(Indexable.generateUid(), "b")))
+        var pipeline = Assertions.assertDoesNotThrow(() -> Pipeline.ofPayload("test-output-factory", new Default<Void, B>("b-init", (gen, v) -> new B(gen.generate(), "b")))
             .setOutputFactory(CustomOutput::new)
             .registerSink((out, ctx) -> {
                 if (out instanceof CustomOutput)
@@ -37,9 +38,9 @@ public class OutputFactoryTest
 
     private static class CustomOutput extends Output<B>
     {
-        public CustomOutput(String pipeline, String author)
+        public CustomOutput(PipelineTag tag, Void input, Context<B> context)
         {
-            super(pipeline, author);
+            super(tag);
         }
     }
 }

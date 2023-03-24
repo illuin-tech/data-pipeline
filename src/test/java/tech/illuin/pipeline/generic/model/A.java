@@ -10,9 +10,4 @@ import java.util.List;
 public record A(
     String uid,
     List<B> bs
-) implements Indexable {
-    public A(List<B> bs)
-    {
-        this(Indexable.generateUid(), bs);
-    }
-}
+) implements Indexable {}

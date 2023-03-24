@@ -4,6 +4,7 @@ import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import tech.illuin.pipeline.input.indexer.Indexable;
+import tech.illuin.pipeline.input.uid_generator.KSUIDGenerator;
 import tech.illuin.pipeline.sink.Sink;
 import tech.illuin.pipeline.sink.execution.wrapper.SinkWrapper;
 import tech.illuin.pipeline.sink.execution.wrapper.circuitbreaker.CircuitBreakerSink;
@@ -20,7 +21,7 @@ public class CircuitBreakerWrapper<T extends Indexable, I, P> implements StepWra
 
     public CircuitBreakerWrapper(CircuitBreakerConfig config)
     {
-        this.circuitBreaker = CircuitBreakerRegistry.of(config).circuitBreaker("circuit-breaker-" + Indexable.generateUid());
+        this.circuitBreaker = CircuitBreakerRegistry.of(config).circuitBreaker("circuit-breaker-" + KSUIDGenerator.INSTANCE.generate());
     }
 
     @Override

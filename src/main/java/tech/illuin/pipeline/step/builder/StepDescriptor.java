@@ -4,12 +4,12 @@ import tech.illuin.pipeline.context.Context;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.step.Step;
 import tech.illuin.pipeline.step.StepException;
-import tech.illuin.pipeline.step.execution.error.StepErrorHandler;
 import tech.illuin.pipeline.step.execution.condition.StepCondition;
-import tech.illuin.pipeline.step.execution.wrapper.StepWrapper;
-import tech.illuin.pipeline.step.result.Result;
+import tech.illuin.pipeline.step.execution.error.StepErrorHandler;
 import tech.illuin.pipeline.step.execution.evaluator.ResultEvaluator;
 import tech.illuin.pipeline.step.execution.evaluator.StepStrategy;
+import tech.illuin.pipeline.step.execution.wrapper.StepWrapper;
+import tech.illuin.pipeline.step.result.Result;
 import tech.illuin.pipeline.step.result.ResultView;
 
 /**

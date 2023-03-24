@@ -6,12 +6,12 @@ import java.util.stream.Stream;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public final class ScopedResultView implements ResultView
+public final class ScopedResultDescriptors implements ResultDescriptors
 {
     private final String uid;
     private final ResultContainer container;
 
-    ScopedResultView(String uid, ResultContainer container)
+    ScopedResultDescriptors(String uid, ResultContainer container)
     {
         this.uid = uid;
         this.container = container;
@@ -23,20 +23,14 @@ public final class ScopedResultView implements ResultView
     }
 
     @Override
-    public Stream<Result> stream()
+    public Stream<ResultDescriptor<?>> stream()
     {
-        return this.container.stream(this.uid);
+        return this.container.descriptorStream(this.uid);
     }
 
     @Override
     public Instant currentStart()
     {
         return this.container.createdAt();
-    }
-
-    @Override
-    public ScopedResultView self()
-    {
-        return this;
     }
 }

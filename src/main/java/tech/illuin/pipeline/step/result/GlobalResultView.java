@@ -13,9 +13,9 @@ public final class GlobalResultView implements ResultView
     private final String uid;
     private final ResultContainer container;
 
-    GlobalResultView(Indexable indexable, ResultContainer container)
+    GlobalResultView(String uid, ResultContainer container)
     {
-        this.uid = indexable.uid();
+        this.uid = uid;
         this.container = container;
     }
 
@@ -26,14 +26,30 @@ public final class GlobalResultView implements ResultView
     }
 
     @Override
+    public ResultDescriptors descriptors()
+    {
+        return new GlobalResultDescriptors(this.container);
+    }
+
+    @Override
     public Instant currentStart()
     {
         return this.container.createdAt();
     }
 
     @Override
-    public ScopedResultView self()
+    public ScopedResults self()
     {
-        return new ScopedResultView(this.uid, this.container);
+        return new ScopedResults(this.uid, this.container);
+    }
+
+    public ScopedResults of(Indexable indexable)
+    {
+        return new ScopedResults(indexable.uid(), this.container);
+    }
+
+    public ScopedResults of(String uid)
+    {
+        return new ScopedResults(uid, this.container);
     }
 }

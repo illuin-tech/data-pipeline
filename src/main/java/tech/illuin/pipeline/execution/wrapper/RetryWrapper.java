@@ -4,6 +4,7 @@ import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryConfig;
 import io.github.resilience4j.retry.RetryRegistry;
 import tech.illuin.pipeline.input.indexer.Indexable;
+import tech.illuin.pipeline.input.uid_generator.KSUIDGenerator;
 import tech.illuin.pipeline.sink.Sink;
 import tech.illuin.pipeline.sink.execution.wrapper.SinkWrapper;
 import tech.illuin.pipeline.sink.execution.wrapper.retry.RetrySink;
@@ -20,7 +21,7 @@ public class RetryWrapper<T extends Indexable, I, P> implements StepWrapper<T, I
 
     public RetryWrapper(RetryConfig config)
     {
-        this.retry = RetryRegistry.of(config).retry("retry-" + Indexable.generateUid());
+        this.retry = RetryRegistry.of(config).retry("retry-" + KSUIDGenerator.INSTANCE.generate());
     }
 
     @Override

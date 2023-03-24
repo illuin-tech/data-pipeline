@@ -3,6 +3,7 @@ package tech.illuin.pipeline.input.initializer;
 
 import tech.illuin.pipeline.commons.Reflection;
 import tech.illuin.pipeline.context.Context;
+import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
 import tech.illuin.pipeline.output.Output;
 
 import java.util.function.Supplier;
@@ -13,7 +14,7 @@ import java.util.function.Supplier;
 @FunctionalInterface
 public interface Initializer<I, P>
 {
-    P initialize(I input, Context<P> context) throws InitializerException;
+    P initialize(I input, Context<P> context, UIDGenerator generator) throws InitializerException;
 
     static <I, P> P initializeFromParent(I input, Context<P> context)
     {

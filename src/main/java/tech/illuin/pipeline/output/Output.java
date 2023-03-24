@@ -3,15 +3,12 @@ package tech.illuin.pipeline.output;
 import tech.illuin.pipeline.input.indexer.IndexContainer;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.input.indexer.SingleIndexer;
-import tech.illuin.pipeline.step.result.Result;
 import tech.illuin.pipeline.step.result.ResultContainer;
+import tech.illuin.pipeline.step.result.Results;
 
 import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Stream;
-
-import static tech.illuin.pipeline.input.indexer.Indexable.PIPELINE_PREFIX;
 
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
@@ -19,19 +16,21 @@ import static tech.illuin.pipeline.input.indexer.Indexable.PIPELINE_PREFIX;
 public class Output<T> implements Comparable<Output<T>>
 {
     private final PipelineTag tag;
-    private final String author;
     private final Instant createdAt;
     private final IndexContainer index;
     private final ResultContainer results;
     private Instant finishedAt;
     private T payload;
 
-    public Output(String pipeline, String author)
+    public Output(PipelineTag tag)
     {
-        String uid = PIPELINE_PREFIX + Indexable.generateUid();
-        this.tag = new PipelineTag(uid, pipeline);
-        this.author = author;
-        this.createdAt = Instant.now();
+        this(tag, Instant.now());
+    }
+
+    public Output(PipelineTag tag, Instant createdAt)
+    {
+        this.tag = tag;
+        this.createdAt = createdAt;
         this.index = new IndexContainer();
         this.results = new ResultContainer();
     }
@@ -39,11 +38,6 @@ public class Output<T> implements Comparable<Output<T>>
     public PipelineTag tag()
     {
         return this.tag;
-    }
-
-    public String author()
-    {
-        return this.author;
     }
 
     public Instant createdAt()
@@ -84,14 +78,14 @@ public class Output<T> implements Comparable<Output<T>>
         return this.results;
     }
 
-    public Stream<Result> results(Indexable indexable)
+    public Results results(Indexable indexable)
     {
-        return this.results.stream(indexable);
+        return this.results.of(indexable);
     }
 
-    public Stream<Result> results(SingleIndexer<T> indexer)
+    public Results results(SingleIndexer<T> indexer)
     {
-        return this.results.stream(indexer.resolve(this.payload()));
+        return this.results.view(indexer.resolve(this.payload()));
     }
 
     @Override

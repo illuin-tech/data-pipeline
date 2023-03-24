@@ -8,9 +8,4 @@ import tech.illuin.pipeline.input.indexer.Indexable;
 public record B(
     String uid,
     String name
-) implements Indexable {
-    public B(String name)
-    {
-        this(Indexable.generateUid(), name);
-    }
-}
+) implements Indexable {}

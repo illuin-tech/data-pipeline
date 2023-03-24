@@ -21,6 +21,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 public @interface StepConfig
 {
     String id() default "";
+    String resultKey() default "";
     boolean pinned() default false;
     Class<? extends StepCondition> condition() default StepCondition.class;
     Class<? extends Indexable> conditionOnClass() default Indexable.class;

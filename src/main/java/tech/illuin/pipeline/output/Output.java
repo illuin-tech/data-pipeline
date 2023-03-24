@@ -16,22 +16,20 @@ import java.util.Optional;
 public class Output<T> implements Comparable<Output<T>>
 {
     private final PipelineTag tag;
-    private final String author;
     private final Instant createdAt;
     private final IndexContainer index;
     private final ResultContainer results;
     private Instant finishedAt;
     private T payload;
 
-    public Output(String uid, String pipeline, String author)
+    public Output(PipelineTag tag)
     {
-        this(uid, pipeline, author, Instant.now());
+        this(tag, Instant.now());
     }
 
-    public Output(String uid, String pipeline, String author, Instant createdAt)
+    public Output(PipelineTag tag, Instant createdAt)
     {
-        this.tag = new PipelineTag(uid, pipeline);
-        this.author = author;
+        this.tag = tag;
         this.createdAt = createdAt;
         this.index = new IndexContainer();
         this.results = new ResultContainer();
@@ -40,11 +38,6 @@ public class Output<T> implements Comparable<Output<T>>
     public PipelineTag tag()
     {
         return this.tag;
-    }
-
-    public String author()
-    {
-        return this.author;
     }
 
     public Instant createdAt()

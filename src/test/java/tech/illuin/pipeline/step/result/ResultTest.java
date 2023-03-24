@@ -99,7 +99,7 @@ public class ResultTest
 
     private static <R extends Result> ResultDescriptor<R> createDescriptor(R result)
     {
-        return new ResultDescriptor<>(uidGenerator.generate(), new PipelineTag(null, null), result);
+        return new ResultDescriptor<>(uidGenerator.generate(), new PipelineTag(null, null, null), result);
     }
 
     private record Entity(

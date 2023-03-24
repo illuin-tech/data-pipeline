@@ -7,6 +7,7 @@ import tech.illuin.pipeline.context.Context;
 import tech.illuin.pipeline.generic.model.B;
 import tech.illuin.pipeline.generic.pipeline.initializer.TestAnnotatedInitializers.Default;
 import tech.illuin.pipeline.output.Output;
+import tech.illuin.pipeline.output.PipelineTag;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -37,9 +38,9 @@ public class OutputFactoryTest
 
     private static class CustomOutput extends Output<B>
     {
-        public CustomOutput(String uid, String pipeline, String author, Void input, Context<B> context)
+        public CustomOutput(PipelineTag tag, Void input, Context<B> context)
         {
-            super(uid, pipeline, author);
+            super(tag);
         }
     }
 }

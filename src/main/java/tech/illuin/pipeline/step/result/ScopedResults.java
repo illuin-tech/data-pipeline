@@ -25,7 +25,7 @@ public final class ScopedResults implements Results
     @Override
     public Stream<Result> stream()
     {
-        return this.container.descriptorStream(this.uid).map(ResultDescriptor::payload);
+        return this.container.descriptorStream(this.uid).map(ResultDescriptor::result);
     }
 
     @Override

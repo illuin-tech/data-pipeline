@@ -7,5 +7,6 @@ import tech.illuin.pipeline.input.indexer.Indexable;
  */
 public record PipelineTag(
     String uid,
-    String pipeline
+    String pipeline,
+    String author
 ) implements Indexable {}

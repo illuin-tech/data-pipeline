@@ -16,6 +16,7 @@ import tech.illuin.pipeline.metering.PipelineMetrics;
 import tech.illuin.pipeline.metering.PipelineSinkMetrics;
 import tech.illuin.pipeline.metering.PipelineStepMetrics;
 import tech.illuin.pipeline.output.Output;
+import tech.illuin.pipeline.output.PipelineTag;
 import tech.illuin.pipeline.output.factory.OutputFactory;
 import tech.illuin.pipeline.sink.SinkException;
 import tech.illuin.pipeline.sink.builder.SinkDescriptor;
@@ -145,8 +146,8 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
         PipelineInitializationMetrics metrics = new PipelineInitializationMetrics(this.meterRegistry, this);
         long start = System.nanoTime();
         try {
-            String author = this.authorResolver.resolve(input, context);
-            Output<P> output = this.outputFactory.create(this.uidGenerator.generate(), this.id(), author, input, context);
+            PipelineTag tag = new PipelineTag(this.uidGenerator.generate(), this.id(), this.authorResolver.resolve(input, context));
+            Output<P> output = this.outputFactory.create(tag, input, context);
 
             output.setPayload(this.runInitializer(input, output, context));
 

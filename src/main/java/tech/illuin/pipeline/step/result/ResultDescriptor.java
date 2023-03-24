@@ -12,10 +12,10 @@ public record ResultDescriptor<R extends Result>(
     String uid,
     PipelineTag tag,
     Instant createdAt,
-    R payload
+    R result
 ) implements Indexable {
-    public ResultDescriptor(String uid, PipelineTag tag, R payload)
+    public ResultDescriptor(String uid, PipelineTag tag, R result)
     {
-        this(uid, tag, Instant.now(), payload);
+        this(uid, tag, Instant.now(), result);
     }
 }

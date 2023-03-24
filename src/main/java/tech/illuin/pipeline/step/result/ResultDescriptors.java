@@ -18,7 +18,7 @@ public interface ResultDescriptors
     @SuppressWarnings("unchecked")
     default <R extends Result> Stream<ResultDescriptor<R>> stream(Class<R> type)
     {
-        return this.stream().filter(rd -> type.isInstance(rd.payload())).map(rd -> (ResultDescriptor<R>) rd);
+        return this.stream().filter(rd -> type.isInstance(rd.result())).map(rd -> (ResultDescriptor<R>) rd);
     }
 
     default <E extends Enum<E>> Stream<ResultDescriptor<?>> stream(E type)
@@ -28,14 +28,14 @@ public interface ResultDescriptors
 
     default Stream<ResultDescriptor<?>> stream(String name)
     {
-        return this.stream().filter(rd -> Objects.equals(rd.payload().name(), name));
+        return this.stream().filter(rd -> Objects.equals(rd.result().name(), name));
     }
 
     @SuppressWarnings("unchecked")
     default <R extends Result> Optional<ResultDescriptor<R>> latest(Class<R> type)
     {
         return this.stream()
-           .filter(rd -> type.isInstance(rd.payload()))
+           .filter(rd -> type.isInstance(rd.result()))
            .max(Comparator.comparing(ResultDescriptor::createdAt))
            .map(rd -> (ResultDescriptor<R>) rd)
         ;
@@ -49,7 +49,7 @@ public interface ResultDescriptors
     default Optional<ResultDescriptor<?>> latest(String name)
     {
         return this.stream()
-           .filter(rd -> Objects.equals(rd.payload().name(), name))
+           .filter(rd -> Objects.equals(rd.result().name(), name))
            .max(Comparator.comparing(ResultDescriptor::createdAt))
         ;
     }
@@ -63,7 +63,7 @@ public interface ResultDescriptors
     default <R extends Result> Optional<ResultDescriptor<R>> current(Class<R> type)
     {
         return this.current()
-            .filter(rd -> type.isInstance(rd.payload()))
+            .filter(rd -> type.isInstance(rd.result()))
             .max(Comparator.comparing(ResultDescriptor::createdAt))
             .map(rd -> (ResultDescriptor<R>) rd)
         ;
@@ -77,7 +77,7 @@ public interface ResultDescriptors
     default Optional<ResultDescriptor<?>> current(String name)
     {
         return this.current()
-           .filter(rd -> Objects.equals(rd.payload().name(), name))
+           .filter(rd -> Objects.equals(rd.result().name(), name))
            .max(Comparator.comparing(ResultDescriptor::createdAt))
         ;
     }

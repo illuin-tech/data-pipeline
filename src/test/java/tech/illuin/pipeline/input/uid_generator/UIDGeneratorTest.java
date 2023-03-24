@@ -99,7 +99,7 @@ public class UIDGeneratorTest
             .setUidGenerator(generator)
             .registerStep((input, results, context) -> new TestResult("0", "ok"))
             .registerStep((input, results, context) -> new TestResult("1", "ok"))
-            .registerSink((out, ctx) -> out.results().descriptors().current().forEach(rd -> logger.info("Found result {} created at {} and of type {}", rd.uid(), rd.createdAt(), rd.payload().getClass().getName())))
+            .registerSink((out, ctx) -> out.results().descriptors().current().forEach(rd -> logger.info("Found result {} created at {} and of type {}", rd.uid(), rd.createdAt(), rd.result().getClass().getName())))
             .registerSink((out, ctx) -> out.results().descriptors().current().findFirst().ifPresent(rd -> {
                 uidTest.accept(rd.uid());
                 counter.incrementAndGet();

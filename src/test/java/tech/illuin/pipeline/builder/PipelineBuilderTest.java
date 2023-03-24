@@ -63,9 +63,9 @@ public class PipelineBuilderTest
         Output<?> output = Assertions.assertDoesNotThrow(() -> pipeline.run(null, ctx));
 
         Assertions.assertEquals(builder.id(), output.tag().pipeline());
-        Assertions.assertEquals("anon", output.author());
+        Assertions.assertEquals("anon", output.tag().author());
         Assertions.assertEquals(6, output.results().stream().count());
-        Assertions.assertEquals("1", output.results().stream().findFirst().map(r -> ((TestResult) r).name()).orElse(null));
+        Assertions.assertEquals("1", output.results().stream().findFirst().map(Result::name).orElse(null));
         Assertions.assertEquals("6", output.results().latest(TestResult.class).map(TestResult::name).orElse(null));
         Assertions.assertEquals(3, ctx.get("sink", AtomicInteger.class).map(AtomicInteger::get).orElse(0));
     }
@@ -99,9 +99,9 @@ public class PipelineBuilderTest
         Assertions.assertDoesNotThrow(pipeline::close);
 
         Assertions.assertEquals(builder.id(), output.tag().pipeline());
-        Assertions.assertEquals("anon", output.author());
+        Assertions.assertEquals("anon", output.tag().author());
         Assertions.assertEquals(3, output.results().stream().count());
-        Assertions.assertEquals("1", output.results().stream().findFirst().map(r -> ((TestResult) r).name()).orElse(null));
+        Assertions.assertEquals("1", output.results().stream().findFirst().map(Result::name).orElse(null));
         Assertions.assertEquals("3", output.results().latest(TestResult.class).map(TestResult::name).orElse(null));
         Assertions.assertEquals(3, ctx.get("sink", AtomicInteger.class).map(AtomicInteger::get).orElse(0));
     }
@@ -141,9 +141,9 @@ public class PipelineBuilderTest
         Assertions.assertDoesNotThrow(pipeline::close);
 
         Assertions.assertEquals(builder.id(), output.tag().pipeline());
-        Assertions.assertEquals("anon", output.author());
+        Assertions.assertEquals("anon", output.tag().author());
         Assertions.assertEquals(3, output.results().stream().count());
-        Assertions.assertEquals("1", output.results().stream().findFirst().map(r -> ((TestResult) r).name()).orElse(null));
+        Assertions.assertEquals("1", output.results().stream().findFirst().map(Result::name).orElse(null));
         Assertions.assertEquals("3", output.results().latest(TestResult.class).map(TestResult::name).orElse(null));
         Assertions.assertEquals(3, ctx.get("sink", AtomicInteger.class).map(AtomicInteger::get).orElse(0));
     }

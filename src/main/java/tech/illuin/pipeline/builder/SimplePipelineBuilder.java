@@ -139,6 +139,13 @@ public final class SimplePipelineBuilder<I>
         return this;
     }
 
+    @SuppressWarnings("unchecked")
+    public SimplePipelineBuilder<I> insertStep(StepAssembler<?, I, ?> builder, int index)
+    {
+        this.steps.add(index, ((StepAssembler<Indexable, I, VoidPayload>) builder).build(new StepBuilder<>()));
+        return this;
+    }
+
     public SimplePipelineBuilder<I> registerStepAssemblers(List<? extends StepAssembler<?, I, ?>> builders)
     {
         for (StepAssembler<?, I, ?> builder : builders)

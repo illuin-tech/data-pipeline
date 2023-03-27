@@ -1,5 +1,6 @@
 package tech.illuin.pipeline.output;
 
+import tech.illuin.pipeline.context.Context;
 import tech.illuin.pipeline.input.indexer.IndexContainer;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.input.indexer.SingleIndexer;
@@ -19,20 +20,24 @@ public class Output<T> implements Comparable<Output<T>>
     private final Instant createdAt;
     private final IndexContainer index;
     private final ResultContainer results;
+    private final Context<T> context;
+    private final T payload;
     private Instant finishedAt;
-    private T payload;
 
-    public Output(PipelineTag tag)
+    public Output(PipelineTag tag, T payload, Context<T> context)
     {
-        this(tag, Instant.now());
+        this(tag, Instant.now(), payload, context);
     }
 
-    public Output(PipelineTag tag, Instant createdAt)
+    public Output(PipelineTag tag, Instant createdAt, T payload, Context<T> context)
     {
         this.tag = tag;
+        this.payload = payload;
+        this.context = context;
         this.createdAt = createdAt;
         this.index = new IndexContainer();
         this.results = new ResultContainer();
+        context.parent().ifPresent(parent -> this.results().register(parent.results()));
     }
 
     public PipelineTag tag()
@@ -62,10 +67,9 @@ public class Output<T> implements Comparable<Output<T>>
         return this.payload;
     }
 
-    public Output<T> setPayload(T payload)
+    public Context<T> context()
     {
-        this.payload = payload;
-        return this;
+        return this.context;
     }
 
     public IndexContainer index()

@@ -2,6 +2,7 @@ package tech.illuin.pipeline.step.builder;
 
 import tech.illuin.pipeline.context.Context;
 import tech.illuin.pipeline.input.indexer.Indexable;
+import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.step.Step;
 import tech.illuin.pipeline.step.StepException;
 import tech.illuin.pipeline.step.execution.condition.StepCondition;
@@ -10,7 +11,6 @@ import tech.illuin.pipeline.step.execution.evaluator.ResultEvaluator;
 import tech.illuin.pipeline.step.execution.evaluator.StepStrategy;
 import tech.illuin.pipeline.step.execution.wrapper.StepWrapper;
 import tech.illuin.pipeline.step.result.Result;
-import tech.illuin.pipeline.step.result.ResultView;
 
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
@@ -43,9 +43,9 @@ public final class StepDescriptor<T extends Indexable, I, P>
         this.errorHandler = errorHandler;
     }
 
-    public Result execute(T data, I input, P payload, ResultView view, Context<P> context) throws StepException
+    public Result execute(T data, I input, Output<P> output) throws StepException
     {
-        return this.executionWrapper.wrap(this.step).execute(data, input, payload, view, context);
+        return this.executionWrapper.wrap(this.step).execute(data, input, output);
     }
 
     public boolean canExecute(Indexable indexable)

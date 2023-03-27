@@ -32,9 +32,9 @@ public final class SinkDescriptor<T>
         this.errorHandler = errorHandler;
     }
 
-    public void execute(Output<T> output, Context<T> context) throws SinkException
+    public void execute(Output<T> output) throws SinkException
     {
-        this.executionWrapper.wrap(this.sink).execute(output, context);
+        this.executionWrapper.wrap(this.sink).execute(output);
     }
 
     public void handleException(Exception ex, Context<T> ctx) throws SinkException

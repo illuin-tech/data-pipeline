@@ -10,8 +10,8 @@ import tech.illuin.pipeline.output.PipelineTag;
 public class DefaultOutputFactory<I, P> implements OutputFactory<I, P>
 {
     @Override
-    public Output<P> create(PipelineTag tag, I input, Context<P> context)
+    public Output<P> create(PipelineTag tag, I input, P payload, Context<P> context)
     {
-        return new Output<>(tag);
+        return new Output<>(tag, payload, context);
     }
 }

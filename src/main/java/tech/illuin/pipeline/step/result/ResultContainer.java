@@ -60,6 +60,8 @@ public class ResultContainer implements Results
 
     Stream<ResultDescriptor<?>> descriptorStream(String uid)
     {
+        if (!this.results.containsKey(uid))
+            return Stream.empty();
         return this.results.get(uid).stream();
     }
 

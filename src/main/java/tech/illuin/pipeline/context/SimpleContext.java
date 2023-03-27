@@ -2,9 +2,9 @@ package tech.illuin.pipeline.context;
 
 import tech.illuin.pipeline.output.Output;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
@@ -22,7 +22,7 @@ public class SimpleContext<P> implements Context<P>
     public SimpleContext(Output<P> parent)
     {
         this.parent = parent;
-        this.metadata = new ConcurrentHashMap<>();
+        this.metadata = new HashMap<>();
     }
 
     @Override

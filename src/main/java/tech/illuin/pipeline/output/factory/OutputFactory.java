@@ -9,5 +9,5 @@ import tech.illuin.pipeline.output.PipelineTag;
  */
 public interface OutputFactory<I, P>
 {
-    Output<P> create(PipelineTag tag, I input, Context<P> context);
+    Output<P> create(PipelineTag tag, I input, P payload, Context<P> context);
 }

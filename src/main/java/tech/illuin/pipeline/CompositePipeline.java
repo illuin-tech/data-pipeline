@@ -125,7 +125,7 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
         }
         catch (InitializerException | StepException | SinkException e) {
             metrics.failureCounter().increment();
-            throw new PipelineException(e);
+            throw new PipelineException(e.getMessage(), e);
         }
         catch (RuntimeException e) {
             metrics.failureCounter().increment();
@@ -147,17 +147,15 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
         long start = System.nanoTime();
         try {
             PipelineTag tag = new PipelineTag(this.uidGenerator.generate(), this.id(), this.authorResolver.resolve(input, context));
-            Output<P> output = this.outputFactory.create(tag, input, context);
 
-            output.setPayload(this.runInitializer(input, output, context));
+            P payload = this.runInitializer(input, tag, context);
+            Output<P> output = this.outputFactory.create(tag, input, payload, context);
 
             for (Indexer<P> indexer : this.indexers)
             {
-                logger.trace("{}#{} launching indexer {}", this.id(), output.tag().uid(), indexer.getClass().getName());
-                indexer.index(output.payload(), output.index());
+                logger.trace("{}#{} launching indexer {}", this.id(), tag.uid(), indexer.getClass().getName());
+                indexer.index(payload, output.index());
             }
-
-            context.parent().ifPresent(parent -> output.results().register(parent.results()));
 
             metrics.successCounter().increment();
             return output;
@@ -173,15 +171,15 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
     }
 
     @SuppressWarnings("IllegalCatch")
-    private P runInitializer(I input, Output<P> output, Context<P> context) throws InitializerException
+    private P runInitializer(I input, PipelineTag tag, Context<P> context) throws InitializerException
     {
         String name = getPrintableName(this.initializer);
         try {
-            logger.trace("{}#{} initializing payload", this.id(), output.tag().uid());
+            logger.trace("{}#{} initializing payload", this.id(), tag.uid());
             return this.initializer.execute(input, context, this.uidGenerator);
         }
         catch (InitializerException | RuntimeException e) {
-            logger.trace("{}#{} initializer {} threw an {}: {}", this.id(), output.tag().uid(), name, e.getClass().getName(), e.getMessage());
+            logger.trace("{}#{} initializer {} threw an {}: {}", this.id(), tag.uid(), name, e.getClass().getName(), e.getMessage());
             return this.initializer.handleException(e, context, this.uidGenerator);
         }
     }
@@ -250,7 +248,7 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
         long start = System.nanoTime();
         try {
             logger.trace("{}#{} running step {} over argument {}", this.id(), output.tag().uid(), name, indexed.uid());
-            Result result = step.execute(indexed, input, output.payload(), output.results().view(indexed), context);
+            Result result = step.execute(indexed, input, output);
 
             metrics.successCounter().increment();
             return result;
@@ -286,7 +284,7 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
         long start = System.nanoTime();
         try {
             logger.trace("{}#{} launching sink {}", this.id(), output.tag().uid(), name);
-            sink.execute(output, context);
+            sink.execute(output);
             metrics.successCounter().increment();
         }
         catch (SinkException | RuntimeException e) {
@@ -309,7 +307,7 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
             long start = System.nanoTime();
             try {
                 logger.trace("{}#{} launching sink {}", this.id(), output.tag().uid(), name);
-                sink.execute(output, context);
+                sink.execute(output);
                 metrics.successCounter().increment();
             }
             catch (SinkException | RuntimeException e) {

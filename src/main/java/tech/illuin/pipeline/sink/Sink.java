@@ -11,6 +11,11 @@ public interface Sink<T>
 {
     void execute(Output<T> output, Context<T> context) throws SinkException;
 
+    default void execute(Output<T> output) throws SinkException
+    {
+        this.execute(output, output.context());
+    }
+
     default String defaultId()
     {
         return Reflection.isAnonymousImplementation(this.getClass()) ? "anonymous-sink" : this.getClass().getName();

@@ -39,8 +39,11 @@ public final class PipelineStep<I, P> implements Step<Indexable, I, VoidPayload>
     {
         try {
             /* TODO: Bad design -> this should be challenged ASAP */
-            Output<P> prev = new Output<>(new PipelineTag(KSUIDGenerator.INSTANCE.generate(), results.self().uid(), ANONYMOUS));
-            prev.setPayload(null);
+            Output<P> prev = new Output<>(
+                new PipelineTag(KSUIDGenerator.INSTANCE.generate(), results.self().uid(), ANONYMOUS),
+                null,
+                new SimpleContext<>()
+            );
             prev.results().register(results);
             Output<P> out = this.pipeline.run(input, new SimpleContext<>(prev));
             return this.resultMapper.apply(out);

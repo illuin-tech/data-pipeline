@@ -38,9 +38,9 @@ public class OutputFactoryTest
 
     private static class CustomOutput extends Output<B>
     {
-        public CustomOutput(PipelineTag tag, Void input, Context<B> context)
+        public CustomOutput(PipelineTag tag, Void input, B payload, Context<B> context)
         {
-            super(tag);
+            super(tag, payload, context);
         }
     }
 }

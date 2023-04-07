@@ -60,7 +60,7 @@ public class PinTest
            .registerStep(builder -> builder
                .step(new TestStep<>("2", b -> { throw new RuntimeException("Some error"); }))
                .withId("step-2")
-               .withErrorHandler((ex, ctx) -> new TestResult("error", "ko"))
+               .withErrorHandler((ex, in, payload, res, ctx) -> new TestResult("error", "ko"))
                .withEvaluation(evaluator)
                .withCondition(A.class)
            )

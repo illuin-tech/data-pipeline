@@ -17,4 +17,9 @@ public final class Tests
     {
         return output.results(object).stream().map(Result::name).sorted().toList();
     }
+
+    public static List<String> getResultTypes(Output<?> output)
+    {
+        return output.results().stream().map(Result::name).sorted().toList();
+    }
 }

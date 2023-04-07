@@ -37,15 +37,15 @@ public final class SinkDescriptor<T>
         this.executionWrapper.wrap(this.sink).execute(output);
     }
 
-    public void handleException(Exception ex, Context<T> ctx) throws SinkException
+    public void handleException(Exception ex, Output<T> output, Context<T> ctx) throws SinkException
     {
-        this.errorHandler.handle(ex, ctx);
+        this.errorHandler.handle(ex, output, ctx);
     }
 
-    public void handleExceptionThenSwallow(Exception ex, Context<T> ctx)
+    public void handleExceptionThenSwallow(Exception ex, Output<T> output, Context<T> ctx)
     {
         try {
-            this.handleException(ex, ctx);
+            this.handleException(ex, output, ctx);
         }
         catch (SinkException ignore) {}
     }

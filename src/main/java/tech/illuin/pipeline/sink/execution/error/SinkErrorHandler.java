@@ -1,6 +1,7 @@
 package tech.illuin.pipeline.sink.execution.error;
 
 import tech.illuin.pipeline.context.Context;
+import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.sink.SinkException;
 
 /**
@@ -9,11 +10,11 @@ import tech.illuin.pipeline.sink.SinkException;
 @FunctionalInterface
 public interface SinkErrorHandler
 {
-    void handle(Exception exception, Context<?> context) throws SinkException;
+    void handle(Exception exception, Output<?> output, Context<?> context) throws SinkException;
 
     SinkErrorHandler RETHROW_ALL = SinkErrorHandler::rethrowAll;
 
-    private static void rethrowAll(Exception ex, Context<?> ctx) throws SinkException
+    private static void rethrowAll(Exception ex, Output<?> output, Context<?> ctx) throws SinkException
     {
         if (ex instanceof SinkException sinkEx)
             throw sinkEx;

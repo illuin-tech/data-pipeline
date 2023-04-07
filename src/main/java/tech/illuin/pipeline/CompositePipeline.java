@@ -195,7 +195,7 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
                 /* Arguments are a list of Indexable which satisfy the step's execution predicate */
                 List<Indexable> arguments = output.index().stream()
                     .filter(idx -> !discarded.contains(idx) || step.isPinned())
-                    .filter(step::canExecute)
+                    .filter(idx -> step.canExecute(idx, context))
                     .toList()
                 ;
 
@@ -256,7 +256,7 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
         catch (StepException | RuntimeException e) {
             logger.trace("{}#{} step {} threw an {}: {}", this.id(), output.tag().uid(), name, e.getClass().getName(), e.getMessage());
             metrics.failureCounter().increment();
-            return step.handleException(e, context);
+            return step.handleException(e, input, output.payload(), output.results(), context);
         }
         finally {
             metrics.runTimer().record(System.nanoTime() - start, TimeUnit.NANOSECONDS);
@@ -290,7 +290,7 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
         catch (SinkException | RuntimeException e) {
             logger.error("{}#{} sink {} threw an {}: {}", this.id(), output.tag().uid(), name, e.getClass().getName(), e.getMessage());
             metrics.failureCounter().increment();
-            sink.handleException(e, context);
+            sink.handleException(e, output, context);
         }
         finally {
             metrics.runTimer().record(System.nanoTime() - start, TimeUnit.NANOSECONDS);
@@ -313,7 +313,7 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
             catch (SinkException | RuntimeException e) {
                 logger.error("{}#{} sink {} threw an {}: {}", this.id(), output.tag().uid(), name, e.getClass().getName(), e.getMessage());
                 metrics.failureCounter().increment();
-                sink.handleExceptionThenSwallow(e, context);
+                sink.handleExceptionThenSwallow(e, output, context);
             }
             finally {
                 metrics.runTimer().record(System.nanoTime() - start, TimeUnit.NANOSECONDS);

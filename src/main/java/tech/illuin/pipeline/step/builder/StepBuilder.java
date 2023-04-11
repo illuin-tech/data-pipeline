@@ -44,7 +44,7 @@ public class StepBuilder<T extends Indexable, I, P>
                 if (annotation.condition() != StepCondition.class)
                     this.executionCondition = annotation.condition().getConstructor().newInstance();
                 else if (annotation.conditionOnClass() != Indexable.class)
-                    this.executionCondition = idx -> annotation.conditionOnClass().isInstance(idx);
+                    this.executionCondition = (idx, ctx) -> annotation.conditionOnClass().isInstance(idx);
             }
             if (this.resultEvaluator == null && annotation.evaluator() != null && annotation.evaluator() != ResultEvaluator.class)
                 this.resultEvaluator = annotation.evaluator().getConstructor().newInstance();
@@ -114,7 +114,7 @@ public class StepBuilder<T extends Indexable, I, P>
 
     public StepBuilder<T, I, P> withCondition(Class<? extends Indexable> typeCondition)
     {
-        this.executionCondition = typeCondition::isInstance;
+        this.executionCondition = (idx, ctx) -> typeCondition.isInstance(idx);
         return this;
     }
 

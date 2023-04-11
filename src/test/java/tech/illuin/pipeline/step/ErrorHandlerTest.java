@@ -67,7 +67,7 @@ public class ErrorHandlerTest
            )
            .registerStep(builder -> builder
                .step(new TestStep<>("3", b -> { throw new RuntimeException("Some error"); }))
-               .withErrorHandler((ex, ctx) -> new TestResult("error", "ko"))
+               .withErrorHandler((ex, in, payload, res, ctx) -> new TestResult("error", "ko"))
                .withEvaluation(ResultEvaluator.ALWAYS_ABORT)
                .withCondition(A.class)
            )

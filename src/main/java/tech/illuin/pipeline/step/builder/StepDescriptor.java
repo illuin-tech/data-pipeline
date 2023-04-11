@@ -11,6 +11,7 @@ import tech.illuin.pipeline.step.execution.evaluator.ResultEvaluator;
 import tech.illuin.pipeline.step.execution.evaluator.StepStrategy;
 import tech.illuin.pipeline.step.execution.wrapper.StepWrapper;
 import tech.illuin.pipeline.step.result.Result;
+import tech.illuin.pipeline.step.result.Results;
 
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
@@ -48,9 +49,9 @@ public final class StepDescriptor<T extends Indexable, I, P>
         return this.executionWrapper.wrap(this.step).execute(data, input, output);
     }
 
-    public boolean canExecute(Indexable indexable)
+    public boolean canExecute(Indexable indexable, Context<P> ctx)
     {
-        return this.activationPredicate.canExecute(indexable);
+        return this.activationPredicate.canExecute(indexable, ctx);
     }
 
     public StepStrategy postEvaluation(Result result)
@@ -58,9 +59,9 @@ public final class StepDescriptor<T extends Indexable, I, P>
         return this.resultEvaluator.evaluate(result);
     }
 
-    public Result handleException(Exception ex, Context<P> ctx) throws StepException
+    public Result handleException(Exception ex, I input, P payload, Results results, Context<P> ctx) throws StepException
     {
-        return this.errorHandler.handle(ex, ctx);
+        return this.errorHandler.handle(ex, input, payload, results, ctx);
     }
 
     public String id()

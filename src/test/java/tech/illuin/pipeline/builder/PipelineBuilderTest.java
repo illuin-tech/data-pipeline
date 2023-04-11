@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class PipelineBuilderTest
 {
     private static final AuthorResolver<Object> authorResolver = (input, context) -> "anon";
-    private static final StepErrorHandler errorHandler = (exception, context) -> new TestResult("error");
+    private static final StepErrorHandler errorHandler = (ex, in, p, res, ctx) -> new TestResult("error");
     private static final ResultEvaluator resultEvaluator = result -> StepStrategy.CONTINUE;
     private static final InputStep<Object> step1 = (input, results, context) -> new TestResult("1");
     private static final InputStep<Object> step2 = (input, results, context) -> new TestResult("2");

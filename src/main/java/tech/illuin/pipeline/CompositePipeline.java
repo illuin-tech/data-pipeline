@@ -5,6 +5,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tech.illuin.pipeline.close.OnCloseHandler;
 import tech.illuin.pipeline.context.Context;
+import tech.illuin.pipeline.execution.phase.PhaseException;
+import tech.illuin.pipeline.execution.phase.PipelinePhase;
+import tech.illuin.pipeline.execution.phase.PipelineStrategy;
 import tech.illuin.pipeline.input.author_resolver.AuthorResolver;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.input.indexer.Indexer;
@@ -60,6 +63,7 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
     private final OutputFactory<I, P> outputFactory;
     private final List<StepDescriptor<Indexable, I, P>> steps;
     private final List<SinkDescriptor<P>> sinks;
+    private final List<PipelinePhase<I, P>> phases;
 
     /* Beware of using a ForkJoinPool, it does not play nice with the Spring ClassLoader ; if absolutely needed a custom ForkJoinWorkerThreadFactory would be required. */
     private final ExecutorService sinkExecutor;
@@ -96,6 +100,10 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
         this.closeTimeout = closeTimeout;
         this.onCloseHandlers = onCloseHandlers;
         this.meterRegistry = meterRegistry;
+        this.phases = List.of(
+            this::runSteps,
+            this::runSinks
+        );
     }
 
     @Override
@@ -115,15 +123,21 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
             logger.debug("{}: launching pipeline over input of type {}", this.id(), input != null ? input.getClass().getName() : "null");
 
             Output<P> output = this.runInitialization(input, context);
-            this.runSteps(input, output, context);
-            this.runSinks(output, context);
+
+            /* We will go iteratively through each phase, if one requires a pipeline exit we will skip remaining phases */
+            for (PipelinePhase<I, P> phase : this.phases)
+            {
+                PipelineStrategy strategy = phase.run(input, output, context);
+                if (strategy == PipelineStrategy.EXIT)
+                    break;
+            }
 
             logger.trace("{}#{} finished", this.id(), output.tag().uid());
             metrics.successCounter().increment();
 
             return output;
         }
-        catch (InitializerException | StepException | SinkException e) {
+        catch (InitializerException | PhaseException e) {
             metrics.failureCounter().increment();
             throw new PipelineException(e.getMessage(), e);
         }
@@ -184,7 +198,7 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
         }
     }
 
-    private void runSteps(I input, Output<P> output, Context<P> context) throws StepException
+    private PipelineStrategy runSteps(I input, Output<P> output, Context<P> context) throws StepException
     {
         try {
             Set<Indexable> discarded = new HashSet<>();
@@ -221,8 +235,9 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
                                 result
                             ));
                         }
-
                     }
+                    if (strategy.hasBehaviour(EXIT_PIPELINE))
+                        return PipelineStrategy.EXIT;
                     if (strategy.hasBehaviour(DISCARD_CURRENT))
                         discarded.add(indexed);
                     if (strategy.hasBehaviour(DISCARD_ALL))
@@ -233,6 +248,8 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
                         break STEP_LOOP;
                 }
             }
+
+            return PipelineStrategy.CONTINUE;
         }
         finally {
             output.finish();
@@ -264,7 +281,7 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
         }
     }
 
-    private void runSinks(Output<P> output, Context<P> context) throws SinkException
+    private PipelineStrategy runSinks(I input, Output<P> output, Context<P> context) throws SinkException
     {
         for (SinkDescriptor<P> descriptor : this.sinks)
         {
@@ -275,6 +292,8 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
             else
                 this.runSinkSynchronously(descriptor, output, context, metrics);
         }
+
+        return PipelineStrategy.CONTINUE;
     }
 
     @SuppressWarnings("IllegalCatch")

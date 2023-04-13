@@ -19,6 +19,8 @@ public enum StepStrategy
     DISCARD_AND_CONTINUE(REGISTER_RESULT, DISCARD_CURRENT),
     /* Discard all objects from the pool, stop processing immediately */
     ABORT(REGISTER_RESULT, STOP_ALL),
+    /* Exits the pipeline without running remaining steps and sinks */
+    EXIT(REGISTER_RESULT, EXIT_PIPELINE),
     ;
 
     private final Set<StrategyBehaviour> behaviours;

@@ -134,11 +134,10 @@ public final class PayloadPipelineBuilder<I, P>
     @SuppressWarnings("unchecked")
     public PayloadPipelineBuilder<I, P> registerStep(Step<? extends Indexable, I, ? extends P> step)
     {
-        return this.registerStep(builder -> builder
-            .step((Step<Indexable, I, P>) step)
-            .withEvaluation(this.defaultEvaluator())
-            .withErrorHandler(this.defaultErrorHandler())
-        );
+        return this.registerStep(builder -> {
+            this.addAssemblerDefaults(builder);
+            builder.step((Step<Indexable, I, P>) step);
+        });
     }
 
     @SuppressWarnings("unchecked")
@@ -162,7 +161,9 @@ public final class PayloadPipelineBuilder<I, P>
     @SuppressWarnings("unchecked")
     public PayloadPipelineBuilder<I, P> registerStep(StepAssembler<? extends Indexable, I, ? extends P> assembler)
     {
-        this.steps.add(((StepAssembler<Indexable, I, P>) assembler).build(new StepBuilder<>()));
+        StepBuilder<Indexable, I, P> stepBuilder = new StepBuilder<>();
+        this.addAssemblerDefaults(stepBuilder);
+        this.steps.add(((StepAssembler<Indexable, I, P>) assembler).build(stepBuilder));
         return this;
     }
 
@@ -171,6 +172,14 @@ public final class PayloadPipelineBuilder<I, P>
         for (StepAssembler<? extends Indexable, I, ? extends P> assembler : assemblers)
             this.registerStep(assembler);
         return this;
+    }
+
+    private void addAssemblerDefaults(StepBuilder<?, ?, ?> stepBuilder)
+    {
+        stepBuilder
+            .withEvaluation(this.defaultEvaluator())
+            .withErrorHandler(this.defaultErrorHandler())
+        ;
     }
 
     public List<SinkDescriptor<P>> sinks()

@@ -120,11 +120,10 @@ public final class SimplePipelineBuilder<I>
 
     public <ID extends Indexable, T> SimplePipelineBuilder<I> registerStep(Step<ID, I, T> step)
     {
-        return this.registerStep((StepBuilder<ID, I, T> builder) -> builder
-            .step(step)
-            .withEvaluation(this.defaultEvaluator())
-            .withErrorHandler(this.defaultErrorHandler())
-        );
+        return this.registerStep((StepBuilder<ID, I, T> builder) -> {
+            this.addAssemblerDefaults(builder);
+            builder.step(step);
+        });
     }
 
     public SimplePipelineBuilder<I> registerStep(InputStep<I> step)
@@ -135,14 +134,18 @@ public final class SimplePipelineBuilder<I>
     @SuppressWarnings("unchecked")
     public SimplePipelineBuilder<I> registerStep(StepAssembler<?, I, ?> builder)
     {
-        this.steps.add(((StepAssembler<Indexable, I, VoidPayload>) builder).build(new StepBuilder<>()));
+        StepBuilder<Indexable, I, VoidPayload> stepBuilder = new StepBuilder<>();
+        this.addAssemblerDefaults(stepBuilder);
+        this.steps.add(((StepAssembler<Indexable, I, VoidPayload>) builder).build(stepBuilder));
         return this;
     }
 
     @SuppressWarnings("unchecked")
     public SimplePipelineBuilder<I> insertStep(StepAssembler<?, I, ?> builder, int index)
     {
-        this.steps.add(index, ((StepAssembler<Indexable, I, VoidPayload>) builder).build(new StepBuilder<>()));
+        StepBuilder<Indexable, I, VoidPayload> stepBuilder = new StepBuilder<>();
+        this.addAssemblerDefaults(stepBuilder);
+        this.steps.add(index, ((StepAssembler<Indexable, I, VoidPayload>) builder).build(stepBuilder));
         return this;
     }
 
@@ -151,6 +154,14 @@ public final class SimplePipelineBuilder<I>
         for (StepAssembler<?, I, ?> builder : builders)
             this.registerStep(builder);
         return this;
+    }
+
+    private void addAssemblerDefaults(StepBuilder<?, ?, ?> stepBuilder)
+    {
+        stepBuilder
+            .withEvaluation(this.defaultEvaluator())
+            .withErrorHandler(this.defaultErrorHandler())
+        ;
     }
 
     public List<SinkDescriptor<VoidPayload>> sinks()

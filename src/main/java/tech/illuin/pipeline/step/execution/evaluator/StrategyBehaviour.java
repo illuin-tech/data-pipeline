@@ -9,5 +9,6 @@ public enum StrategyBehaviour
     DISCARD_CURRENT,
     DISCARD_ALL,
     STOP_CURRENT,
-    STOP_ALL
+    STOP_ALL,
+    EXIT_PIPELINE,
 }

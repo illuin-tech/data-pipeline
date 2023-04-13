@@ -1,9 +1,11 @@
 package tech.illuin.pipeline.sink;
 
+import tech.illuin.pipeline.execution.phase.PhaseException;
+
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public class SinkException extends Exception
+public class SinkException extends PhaseException
 {
     public SinkException(String message)
     {

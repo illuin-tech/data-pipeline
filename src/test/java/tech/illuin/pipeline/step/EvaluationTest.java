@@ -79,7 +79,7 @@ public class EvaluationTest
            )
            .registerStep(builder -> builder
                .step(new TestStep<B>("2", b -> b.name().equals("b1") ? "ok" : "ko"))
-               .withEvaluation(res -> ((TestResult) res).status().equals("ok") ? CONTINUE : DISCARD_AND_CONTINUE)
+               .withEvaluation((res, obj, in, ctx) -> ((TestResult) res).status().equals("ok") ? CONTINUE : DISCARD_AND_CONTINUE)
                .withCondition(B.class)
            )
            .registerStep(builder -> builder
@@ -88,7 +88,7 @@ public class EvaluationTest
            )
            .registerStep(builder -> builder
                .step(new TestStep<>("4", "ko"))
-               .withEvaluation(res -> ABORT)
+               .withEvaluation((res, obj, in, ctx) -> ABORT)
                .withCondition(A.class)
            )
            .registerStep(new TestStep<>("5", "ok"))

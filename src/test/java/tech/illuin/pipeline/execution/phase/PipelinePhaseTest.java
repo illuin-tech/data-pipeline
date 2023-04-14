@@ -20,7 +20,7 @@ public class PipelinePhaseTest
     public void testPipeline__continue()
     {
         Counters counters = new Counters();
-        Pipeline<Object, ?> pipeline = createPipeline("test-continue", result -> StepStrategy.CONTINUE, counters);
+        Pipeline<Object, ?> pipeline = createPipeline("test-continue", (res, obj, in, ctx) -> StepStrategy.CONTINUE, counters);
 
         Assertions.assertDoesNotThrow(() -> pipeline.run());
         Assertions.assertDoesNotThrow(pipeline::close);
@@ -36,7 +36,7 @@ public class PipelinePhaseTest
     public void testPipeline__stop()
     {
         Counters counters = new Counters();
-        Pipeline<Object, ?> pipeline = createPipeline("test-exit", result -> StepStrategy.STOP, counters);
+        Pipeline<Object, ?> pipeline = createPipeline("test-exit", (res, obj, in, ctx) -> StepStrategy.STOP, counters);
 
         Assertions.assertDoesNotThrow(() -> pipeline.run());
         Assertions.assertDoesNotThrow(pipeline::close);
@@ -52,7 +52,7 @@ public class PipelinePhaseTest
     public void testPipeline__abort()
     {
         Counters counters = new Counters();
-        Pipeline<Object, ?> pipeline = createPipeline("test-abort", result -> StepStrategy.ABORT, counters);
+        Pipeline<Object, ?> pipeline = createPipeline("test-abort", (res, obj, in, ctx) -> StepStrategy.ABORT, counters);
 
         Assertions.assertDoesNotThrow(() -> pipeline.run());
         Assertions.assertDoesNotThrow(pipeline::close);
@@ -68,7 +68,7 @@ public class PipelinePhaseTest
     public void testPipeline__exit()
     {
         Counters counters = new Counters();
-        Pipeline<Object, ?> pipeline = createPipeline("test-exit", result -> StepStrategy.EXIT, counters);
+        Pipeline<Object, ?> pipeline = createPipeline("test-exit", (res, obj, in, ctx) -> StepStrategy.EXIT, counters);
 
         Assertions.assertDoesNotThrow(() -> pipeline.run());
         Assertions.assertDoesNotThrow(pipeline::close);

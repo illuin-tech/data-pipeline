@@ -29,7 +29,7 @@ public class PipelineBuilderTest
 {
     private static final AuthorResolver<Object> authorResolver = (input, context) -> "anon";
     private static final StepErrorHandler errorHandler = (ex, in, p, res, ctx) -> new TestResult("error");
-    private static final ResultEvaluator resultEvaluator = result -> StepStrategy.CONTINUE;
+    private static final ResultEvaluator resultEvaluator = (res, obj, in, ctx) -> StepStrategy.CONTINUE;
     private static final InputStep<Object> step1 = (input, results, context) -> new TestResult("1");
     private static final InputStep<Object> step2 = (input, results, context) -> new TestResult("2");
     private static final InputStep<Object> step3 = (input, results, context) -> new TestResult("3");

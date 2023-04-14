@@ -220,7 +220,7 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
                 {
                     Result result = this.runStep(step, indexed, input, output, context);
 
-                    StepStrategy strategy = step.postEvaluation(result);
+                    StepStrategy strategy = step.postEvaluation(result, indexed, input, context);
                     logger.trace("{}#{} received {} signal after step {} over argument {}", this.id(), output.tag().uid(), strategy, name, indexed.uid());
 
                     if (strategy.hasBehaviour(REGISTER_RESULT))

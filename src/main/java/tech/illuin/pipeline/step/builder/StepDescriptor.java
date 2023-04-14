@@ -54,9 +54,9 @@ public final class StepDescriptor<T extends Indexable, I, P>
         return this.activationPredicate.canExecute(indexable, ctx);
     }
 
-    public StepStrategy postEvaluation(Result result)
+    public StepStrategy postEvaluation(Result result, Indexable object, I input, Context<P> ctx)
     {
-        return this.resultEvaluator.evaluate(result);
+        return this.resultEvaluator.evaluate(result, object, input, ctx);
     }
 
     public Result handleException(Exception ex, I input, P payload, Results results, Context<P> ctx) throws StepException

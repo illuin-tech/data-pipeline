@@ -6,6 +6,6 @@ import tech.illuin.pipeline.step.result.Result;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-record PipelineResult<P>(
+public record PipelineResult<P>(
     Output<P> output
 ) implements Result {}

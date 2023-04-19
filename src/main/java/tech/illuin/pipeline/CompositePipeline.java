@@ -8,6 +8,8 @@ import tech.illuin.pipeline.context.Context;
 import tech.illuin.pipeline.execution.phase.PhaseException;
 import tech.illuin.pipeline.execution.phase.PipelinePhase;
 import tech.illuin.pipeline.execution.phase.PipelineStrategy;
+import tech.illuin.pipeline.execution.phase.impl.SinkPhase;
+import tech.illuin.pipeline.execution.phase.impl.StepPhase;
 import tech.illuin.pipeline.input.author_resolver.AuthorResolver;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.input.indexer.Indexer;
@@ -16,28 +18,15 @@ import tech.illuin.pipeline.input.initializer.builder.InitializerDescriptor;
 import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
 import tech.illuin.pipeline.metering.PipelineInitializationMetrics;
 import tech.illuin.pipeline.metering.PipelineMetrics;
-import tech.illuin.pipeline.metering.PipelineSinkMetrics;
-import tech.illuin.pipeline.metering.PipelineStepMetrics;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.output.PipelineTag;
 import tech.illuin.pipeline.output.factory.OutputFactory;
-import tech.illuin.pipeline.sink.SinkException;
 import tech.illuin.pipeline.sink.builder.SinkDescriptor;
-import tech.illuin.pipeline.step.StepException;
 import tech.illuin.pipeline.step.builder.StepDescriptor;
-import tech.illuin.pipeline.step.execution.evaluator.StepStrategy;
-import tech.illuin.pipeline.step.result.Result;
-import tech.illuin.pipeline.step.result.ResultDescriptor;
 
-import java.time.Instant;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
-
-import static tech.illuin.pipeline.step.execution.evaluator.StrategyBehaviour.*;
 
 /**
  * <p>The CompositePipeline works by separating its run implementation into predefined categories of components:</p>
@@ -61,13 +50,7 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
     private final AuthorResolver<I> authorResolver;
     private final List<Indexer<P>> indexers;
     private final OutputFactory<I, P> outputFactory;
-    private final List<StepDescriptor<Indexable, I, P>> steps;
-    private final List<SinkDescriptor<P>> sinks;
     private final List<PipelinePhase<I, P>> phases;
-
-    /* Beware of using a ForkJoinPool, it does not play nice with the Spring ClassLoader ; if absolutely needed a custom ForkJoinWorkerThreadFactory would be required. */
-    private final ExecutorService sinkExecutor;
-    private final int closeTimeout;
     private final List<OnCloseHandler> onCloseHandlers;
     private final MeterRegistry meterRegistry;
 
@@ -94,15 +77,11 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
         this.authorResolver = authorResolver;
         this.indexers = indexers;
         this.outputFactory = outputFactory;
-        this.steps = steps;
-        this.sinks = sinks;
-        this.sinkExecutor = sinkExecutor;
-        this.closeTimeout = closeTimeout;
         this.onCloseHandlers = onCloseHandlers;
         this.meterRegistry = meterRegistry;
         this.phases = List.of(
-            this::runSteps,
-            this::runSinks
+            new StepPhase<>(this, steps, uidGenerator, meterRegistry),
+            new SinkPhase<>(this, sinks, sinkExecutor, closeTimeout, meterRegistry)
         );
     }
 
@@ -198,178 +177,20 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
         }
     }
 
-    private PipelineStrategy runSteps(I input, Output<P> output, Context<P> context) throws StepException
-    {
-        try {
-            Set<Indexable> discarded = new HashSet<>();
-            STEP_LOOP: for (StepDescriptor<Indexable, I, P> step : this.steps)
-            {
-                String name = getPrintableName(step);
-
-                /* Arguments are a list of Indexable which satisfy the step's execution predicate */
-                List<Indexable> arguments = output.index().stream()
-                    .filter(idx -> !discarded.contains(idx) || step.isPinned())
-                    .filter(idx -> step.canExecute(idx, context))
-                    .toList()
-                ;
-
-                logger.trace("{}#{} retrieved {} arguments for step {}", this.id(), output.tag().uid(), arguments.size(), name);
-
-                /* For each argument we perform the step and register the produced Result */
-                for (Indexable indexed : arguments)
-                {
-                    Result result = this.runStep(step, indexed, input, output, context);
-
-                    StepStrategy strategy = step.postEvaluation(result, indexed, input, context);
-                    logger.trace("{}#{} received {} signal after step {} over argument {}", this.id(), output.tag().uid(), strategy, name, indexed.uid());
-
-                    if (strategy.hasBehaviour(REGISTER_RESULT))
-                    {
-                        if (result instanceof PipelineResult<?> pResult)
-                            pResult.output().results().descriptors().current().forEach(rd -> output.results().register(indexed.uid(), rd));
-                        else {
-                            output.results().register(indexed.uid(), new ResultDescriptor<>(
-                                this.uidGenerator.generate(),
-                                output.tag(),
-                                Instant.now(),
-                                result
-                            ));
-                        }
-                    }
-                    if (strategy.hasBehaviour(EXIT_PIPELINE))
-                        return PipelineStrategy.EXIT;
-                    if (strategy.hasBehaviour(DISCARD_CURRENT))
-                        discarded.add(indexed);
-                    if (strategy.hasBehaviour(DISCARD_ALL))
-                        discarded.addAll(output.index().stream().toList());
-                    if (strategy.hasBehaviour(STOP_CURRENT))
-                        break;
-                    if (strategy.hasBehaviour(STOP_ALL))
-                        break STEP_LOOP;
-                }
-            }
-
-            return PipelineStrategy.CONTINUE;
-        }
-        finally {
-            output.finish();
-        }
-    }
-
-    @SuppressWarnings("IllegalCatch")
-    private Result runStep(StepDescriptor<Indexable, I, P> step, Indexable indexed, I input, Output<P> output, Context<P> context) throws StepException
-    {
-        String name = getPrintableName(step);
-        PipelineStepMetrics metrics = new PipelineStepMetrics(this.meterRegistry, this, step);
-
-        long start = System.nanoTime();
-        try {
-            logger.trace("{}#{} running step {} over argument {}", this.id(), output.tag().uid(), name, indexed.uid());
-            Result result = step.execute(indexed, input, output);
-
-            metrics.successCounter().increment();
-            return result;
-        }
-        catch (StepException | RuntimeException e) {
-            logger.trace("{}#{} step {} threw an {}: {}", this.id(), output.tag().uid(), name, e.getClass().getName(), e.getMessage());
-            metrics.failureCounter().increment();
-            return step.handleException(e, input, output.payload(), output.results(), context);
-        }
-        finally {
-            metrics.runTimer().record(System.nanoTime() - start, TimeUnit.NANOSECONDS);
-            metrics.totalCounter().increment();
-        }
-    }
-
-    private PipelineStrategy runSinks(I input, Output<P> output, Context<P> context) throws SinkException
-    {
-        for (SinkDescriptor<P> descriptor : this.sinks)
-        {
-            PipelineSinkMetrics metrics = new PipelineSinkMetrics(this.meterRegistry, this, descriptor);
-
-            if (descriptor.isAsync())
-                this.runSinkAsynchronously(descriptor, output, context, metrics);
-            else
-                this.runSinkSynchronously(descriptor, output, context, metrics);
-        }
-
-        return PipelineStrategy.CONTINUE;
-    }
-
-    @SuppressWarnings("IllegalCatch")
-    private void runSinkSynchronously(SinkDescriptor<P> sink, Output<P> output, Context<P> context, PipelineSinkMetrics metrics) throws SinkException
-    {
-        String name = getPrintableName(sink);
-        long start = System.nanoTime();
-        try {
-            logger.trace("{}#{} launching sink {}", this.id(), output.tag().uid(), name);
-            sink.execute(output);
-            metrics.successCounter().increment();
-        }
-        catch (SinkException | RuntimeException e) {
-            logger.error("{}#{} sink {} threw an {}: {}", this.id(), output.tag().uid(), name, e.getClass().getName(), e.getMessage());
-            metrics.failureCounter().increment();
-            sink.handleException(e, output, context);
-        }
-        finally {
-            metrics.runTimer().record(System.nanoTime() - start, TimeUnit.NANOSECONDS);
-            metrics.totalCounter().increment();
-        }
-    }
-
-    @SuppressWarnings("IllegalCatch")
-    private void runSinkAsynchronously(SinkDescriptor<P> sink, Output<P> output, Context<P> context, PipelineSinkMetrics metrics)
-    {
-        String name = getPrintableName(sink);
-        logger.trace("{}#{} queuing sink {}", this.id(), output.tag().uid(), name);
-        CompletableFuture.runAsync(() -> {
-            long start = System.nanoTime();
-            try {
-                logger.trace("{}#{} launching sink {}", this.id(), output.tag().uid(), name);
-                sink.execute(output);
-                metrics.successCounter().increment();
-            }
-            catch (SinkException | RuntimeException e) {
-                logger.error("{}#{} sink {} threw an {}: {}", this.id(), output.tag().uid(), name, e.getClass().getName(), e.getMessage());
-                metrics.failureCounter().increment();
-                sink.handleExceptionThenSwallow(e, output, context);
-            }
-            finally {
-                metrics.runTimer().record(System.nanoTime() - start, TimeUnit.NANOSECONDS);
-                metrics.totalCounter().increment();
-            }
-        }, this.sinkExecutor);
-    }
-
     @Override
     public synchronized void close() throws Exception
     {
-        if (this.sinkExecutor.isShutdown())
-            return;
-
         logger.trace("{} closing, launching {} on-close handlers", this.id(), this.onCloseHandlers.size());
         for (OnCloseHandler handler : this.onCloseHandlers)
             handler.execute();
 
-        this.sinkExecutor.shutdown();
-        boolean success = this.sinkExecutor.awaitTermination(this.closeTimeout, TimeUnit.SECONDS);
-        var status = success ? "done" : "timeout after " + this.closeTimeout + " seconds";
-
-        logger.info("{} closed (executor termination status: {})", this.id(), status);
+        logger.trace("{} closing, closing {} phases", this.id(), this.phases.size());
+        for (PipelinePhase<I, P> phase : this.phases)
+            phase.close();
     }
 
     private static String getPrintableName(InitializerDescriptor<?, ?> initializer)
     {
         return initializer.id();
-    }
-
-    private static String getPrintableName(StepDescriptor<?, ?, ?> step)
-    {
-        return step.id() + (step.isPinned() ? " (pinned)" : "");
-    }
-
-    private static String getPrintableName(SinkDescriptor<?> sink)
-    {
-        return sink.id() + (sink.isAsync() ? " (async)" : "");
     }
 }

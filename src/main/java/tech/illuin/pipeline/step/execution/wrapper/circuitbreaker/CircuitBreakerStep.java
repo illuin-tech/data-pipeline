@@ -29,11 +29,10 @@ public class CircuitBreakerStep<T extends Indexable, I, P> implements Step<T, I,
         try {
             return this.circuitBreaker.executeCallable(() -> this.step.execute(object, input, payload, view, context));
         }
-        catch (StepException e) {
-            throw e;
-        }
         catch (Exception e) {
-            throw new RuntimeException(e.getMessage(), e);
+            if (e.getCause() instanceof StepException stepException)
+                throw stepException;
+            throw new CircuitBreakerException(e.getMessage(), e);
         }
     }
 

@@ -9,6 +9,7 @@ import tech.illuin.pipeline.step.result.Result;
 import tech.illuin.pipeline.step.result.ResultView;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 
 /**
@@ -18,11 +19,13 @@ public class TimeLimiterStep<T extends Indexable, I, P> implements Step<T, I, P>
 {
     private final Step<T, I, P> step;
     private final TimeLimiter limiter;
+    private final Executor executor;
 
-    public TimeLimiterStep(Step<T, I, P> step, TimeLimiter limiter)
+    public TimeLimiterStep(Step<T, I, P> step, TimeLimiter limiter, Executor executor)
     {
         this.step = step;
         this.limiter = limiter;
+        this.executor = executor;
     }
 
     @Override
@@ -35,11 +38,9 @@ public class TimeLimiterStep<T extends Indexable, I, P> implements Step<T, I, P>
         catch (TimeLimiterStepException e) {
             throw e.getCause();
         }
-        catch (StepException e) {
-            throw e;
-        }
+        /* If a timeout occurs, we throw a specific kind of runtime exception */
         catch (Exception e) {
-            throw new RuntimeException(e.getMessage(), e);
+            throw new TimeLimiterException(e.getMessage(), e);
         }
     }
 
@@ -52,7 +53,7 @@ public class TimeLimiterStep<T extends Indexable, I, P> implements Step<T, I, P>
             catch (StepException e) {
                 throw new TimeLimiterStepException(e.getMessage(), e);
             }
-        });
+        }, this.executor);
     }
 
     @Override

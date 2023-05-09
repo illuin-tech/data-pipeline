@@ -214,7 +214,7 @@ public final class SimplePipelineBuilder<I>
 
     public Supplier<ExecutorService> sinkExecutorProvider()
     {
-        return sinkExecutorProvider;
+        return this.sinkExecutorProvider;
     }
 
     public SimplePipelineBuilder<I> setSinkExecutorProvider(Supplier<ExecutorService> sinkExecutorProvider)

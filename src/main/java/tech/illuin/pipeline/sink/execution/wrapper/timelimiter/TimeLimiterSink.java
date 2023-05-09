@@ -8,6 +8,7 @@ import tech.illuin.pipeline.sink.Sink;
 import tech.illuin.pipeline.sink.SinkException;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import java.util.concurrent.Future;
 
 /**
@@ -17,11 +18,13 @@ public class TimeLimiterSink<T extends Indexable, I, P> implements Sink<P>
 {
     private final Sink<P> sink;
     private final TimeLimiter limiter;
+    private final Executor executor;
 
-    public TimeLimiterSink(Sink<P> sink, TimeLimiter limiter)
+    public TimeLimiterSink(Sink<P> sink, TimeLimiter limiter, Executor executor)
     {
         this.sink = sink;
         this.limiter = limiter;
+        this.executor = executor;
     }
 
     @Override
@@ -48,7 +51,7 @@ public class TimeLimiterSink<T extends Indexable, I, P> implements Sink<P>
             catch (SinkException e) {
                 throw new RuntimeException(e);
             }
-        });
+        }, this.executor);
     }
 
     @Override

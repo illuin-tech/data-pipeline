@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.concurrent.TimeoutException;
 
 import static tech.illuin.pipeline.generic.Tests.getResultTypes;
+import static tech.illuin.pipeline.generic.Tests.sleep;
 
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
@@ -28,7 +29,7 @@ public class WrapperTimeLimitTest
     {
         Pipeline<?, VoidPayload> pipeline = Assertions.assertDoesNotThrow(() -> createTimeoutPipeline(WrapperTimeLimitTest::addTimeLimitedStep));
 
-        var ex = Assertions.assertThrows(RuntimeException.class, () -> pipeline.run());
+        var ex = Assertions.assertThrows(RuntimeException.class, pipeline::run);
         Assertions.assertDoesNotThrow(pipeline::close);
 
         Assertions.assertTrue(ex.getCause() instanceof TimeoutException);
@@ -65,13 +66,8 @@ public class WrapperTimeLimitTest
     {
         builder
             .step(new TestStep<>("2", b -> {
-                try {
-                    Thread.sleep(5 * 1000);
-                    return "ok";
-                }
-                catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
+                sleep(Duration.ofSeconds(5));
+                return "ok";
             }))
             .withWrapper(new TimeLimiterWrapper<>(TimeLimiterConfig.custom()
                 .timeoutDuration(Duration.ofSeconds(2))

@@ -12,7 +12,7 @@ import tech.illuin.pipeline.step.Step;
 import tech.illuin.pipeline.step.execution.wrapper.StepWrapper;
 import tech.illuin.pipeline.step.execution.wrapper.timelimiter.TimeLimiterStep;
 
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 
 /**
@@ -21,14 +21,14 @@ import java.util.concurrent.ForkJoinPool;
 public class TimeLimiterWrapper<T extends Indexable, I, P> implements StepWrapper<T, I, P>, SinkWrapper<P>
 {
     private final TimeLimiter limiter;
-    private final Executor executor;
+    private final ExecutorService executor;
 
     public TimeLimiterWrapper(TimeLimiterConfig config)
     {
         this(config, ForkJoinPool.commonPool());
     }
 
-    public TimeLimiterWrapper(TimeLimiterConfig config, Executor executor)
+    public TimeLimiterWrapper(TimeLimiterConfig config, ExecutorService executor)
     {
         this.limiter = TimeLimiterRegistry.of(config).timeLimiter("time-limiter-" + KSUIDGenerator.INSTANCE.generate());
         this.executor = executor;

@@ -4,6 +4,7 @@ import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.step.result.Result;
 
+import java.time.Duration;
 import java.util.List;
 
 /**
@@ -21,5 +22,15 @@ public final class Tests
     public static List<String> getResultTypes(Output<?> output)
     {
         return output.results().stream().map(Result::name).sorted().toList();
+    }
+
+    public static void sleep(Duration duration)
+    {
+        try {
+            Thread.sleep(duration.toMillis());
+        }
+        catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

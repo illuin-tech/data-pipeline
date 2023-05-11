@@ -34,8 +34,8 @@ public class TimeLimiterStep<T extends Indexable, I, P> implements Step<T, I, P>
         try {
             return this.limiter.executeFutureSupplier(() -> this.executor.submit(() -> this.step.execute(object, input, payload, view, context)));
         }
-        catch (TimeLimiterStepException e) {
-            throw e.getCause();
+        catch (StepException e) {
+            throw e;
         }
         /* If a timeout occurs, we throw a specific kind of runtime exception */
         catch (Exception e) {

@@ -2,6 +2,7 @@ package tech.illuin.pipeline.step.execution.wrapper.circuitbreaker;
 
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import tech.illuin.pipeline.context.Context;
+import tech.illuin.pipeline.execution.wrapper.CircuitBreakerException;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.step.Step;
 import tech.illuin.pipeline.step.StepException;
@@ -29,9 +30,10 @@ public class CircuitBreakerStep<T extends Indexable, I, P> implements Step<T, I,
         try {
             return this.circuitBreaker.executeCallable(() -> this.step.execute(object, input, payload, view, context));
         }
+        catch (StepException e) {
+            throw e;
+        }
         catch (Exception e) {
-            if (e.getCause() instanceof StepException stepException)
-                throw stepException;
             throw new CircuitBreakerException(e.getMessage(), e);
         }
     }

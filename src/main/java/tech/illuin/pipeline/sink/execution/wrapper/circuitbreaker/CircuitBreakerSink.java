@@ -2,6 +2,7 @@ package tech.illuin.pipeline.sink.execution.wrapper.circuitbreaker;
 
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import tech.illuin.pipeline.context.Context;
+import tech.illuin.pipeline.execution.wrapper.CircuitBreakerException;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.sink.Sink;
 import tech.illuin.pipeline.sink.SinkException;
@@ -34,7 +35,7 @@ public class CircuitBreakerSink<P> implements Sink<P>
             throw e;
         }
         catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new CircuitBreakerException(e.getMessage(), e);
         }
     }
 

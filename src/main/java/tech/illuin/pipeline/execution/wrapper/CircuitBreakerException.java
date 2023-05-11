@@ -1,4 +1,4 @@
-package tech.illuin.pipeline.step.execution.wrapper.circuitbreaker;
+package tech.illuin.pipeline.execution.wrapper;
 
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)

@@ -2,6 +2,7 @@ package tech.illuin.pipeline.step.execution.wrapper.retry;
 
 import io.github.resilience4j.retry.Retry;
 import tech.illuin.pipeline.context.Context;
+import tech.illuin.pipeline.execution.wrapper.RetryException;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.step.Step;
 import tech.illuin.pipeline.step.StepException;
@@ -29,9 +30,10 @@ public class RetryStep<T extends Indexable, I, P> implements Step<T, I, P>
         try {
             return this.retry.executeCallable(() -> this.step.execute(object, input, payload, view, context));
         }
+        catch (StepException e) {
+            throw e;
+        }
         catch (Exception e) {
-            if (e.getCause() instanceof StepException stepException)
-                throw stepException;
             throw new RetryException(e.getMessage(), e);
         }
     }

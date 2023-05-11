@@ -2,6 +2,7 @@ package tech.illuin.pipeline.sink.execution.wrapper.retry;
 
 import io.github.resilience4j.retry.Retry;
 import tech.illuin.pipeline.context.Context;
+import tech.illuin.pipeline.execution.wrapper.RetryException;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.sink.Sink;
 import tech.illuin.pipeline.sink.SinkException;
@@ -34,7 +35,7 @@ public class RetrySink<P> implements Sink<P>
             throw e;
         }
         catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new RetryException(e.getMessage(), e);
         }
     }
 

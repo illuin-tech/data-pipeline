@@ -49,7 +49,7 @@
         <maven-surefire.version>3.0.0-M9</maven-surefire.version>
         <maven-source.version>3.2.1</maven-source.version>
         <maven-javadoc.version>3.5.0</maven-javadoc.version>
-        <maven-checkstyle.version>3.1.2</maven-checkstyle.version>
+        <maven-checkstyle.version>3.2.2</maven-checkstyle.version>
     </properties>
 
     <dependencies>

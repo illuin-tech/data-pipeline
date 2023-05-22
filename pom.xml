@@ -38,7 +38,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <ksuid.version>4.1.0</ksuid.version>
         <tsid.version>5.2.3</tsid.version>
-        <resilience4j.version>2.0.0</resilience4j.version>
+        <resilience4j.version>2.0.2</resilience4j.version>
         <micrometer.version>1.10.4</micrometer.version>
         <slf4j.version>1.7.36</slf4j.version>
         <junit.version>5.9.3</junit.version>

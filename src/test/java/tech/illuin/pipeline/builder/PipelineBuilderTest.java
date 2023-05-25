@@ -12,6 +12,7 @@ import tech.illuin.pipeline.input.initializer.Initializer;
 import tech.illuin.pipeline.input.initializer.builder.InitializerAssembler;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.sink.Sink;
+import tech.illuin.pipeline.step.StepException;
 import tech.illuin.pipeline.step.execution.error.StepErrorHandler;
 import tech.illuin.pipeline.step.execution.evaluator.ResultEvaluator;
 import tech.illuin.pipeline.step.execution.evaluator.StepStrategy;
@@ -148,6 +149,41 @@ public class PipelineBuilderTest
         Assertions.assertEquals(3, ctx.get("sink", AtomicInteger.class).map(AtomicInteger::get).orElse(0));
     }
 
+    @Test
+    public void test__withDefaultEvaluator()
+    {
+        var builder = Assertions.assertDoesNotThrow(() -> Pipeline.ofSimple("test-with-default-evaluator")
+            .registerStep(step1)
+            .registerStep(step2)
+            .setDefaultEvaluator((res, obj, in, ctx) -> StepStrategy.EXIT)
+        );
+
+        Pipeline<Object, VoidPayload> pipeline = Assertions.assertDoesNotThrow(builder::build);
+        Output<?> output = Assertions.assertDoesNotThrow(() -> pipeline.run());
+
+        Assertions.assertEquals(builder.id(), output.tag().pipeline());
+        Assertions.assertEquals(1, output.results().stream().count());
+        Assertions.assertEquals("1", output.results().stream().findFirst().map(Result::name).orElse(null));
+        Assertions.assertEquals("1", output.results().latest(TestResult.class).map(TestResult::name).orElse(null));
+    }
+
+    @Test
+    public void test__withDefaultErrorHandler()
+    {
+        var builder = Assertions.assertDoesNotThrow(() -> Pipeline.ofSimple("test-with-default-error-handler")
+            .registerStep((input, results, context) -> { throw new StepException("interrupted"); })
+            .registerStep(step2)
+            .setDefaultErrorHandler(errorHandler)
+        );
+
+        Pipeline<Object, VoidPayload> pipeline = Assertions.assertDoesNotThrow(builder::build);
+        Output<?> output = Assertions.assertDoesNotThrow(() -> pipeline.run());
+
+        Assertions.assertEquals(builder.id(), output.tag().pipeline());
+        Assertions.assertEquals(2, output.results().stream().count());
+        Assertions.assertEquals("error", output.results().stream().findFirst().map(Result::name).orElse(null));
+        Assertions.assertEquals("2", output.results().latest(TestResult.class).map(TestResult::name).orElse(null));
+    }
 
     public record TestIndexable(
         String uid

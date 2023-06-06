@@ -12,6 +12,8 @@ import tech.illuin.pipeline.input.initializer.Initializer;
 import tech.illuin.pipeline.input.initializer.builder.InitializerAssembler;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.sink.Sink;
+import tech.illuin.pipeline.sink.SinkException;
+import tech.illuin.pipeline.sink.execution.error.SinkErrorHandler;
 import tech.illuin.pipeline.step.StepException;
 import tech.illuin.pipeline.step.execution.error.StepErrorHandler;
 import tech.illuin.pipeline.step.execution.evaluator.ResultEvaluator;
@@ -29,7 +31,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class PipelineBuilderTest
 {
     private static final AuthorResolver<Object> authorResolver = (input, context) -> "anon";
-    private static final StepErrorHandler errorHandler = (ex, in, p, res, ctx) -> new TestResult("error");
+    private static final StepErrorHandler stepErrorHandler = (ex, in, p, res, ctx) -> new TestResult("stepError");
+    private static final SinkErrorHandler sinkErrorHandler = (exception, output, context) -> context.get("sinkError", AtomicInteger.class).ifPresent(AtomicInteger::incrementAndGet);
     private static final ResultEvaluator resultEvaluator = (res, obj, in, ctx) -> StepStrategy.CONTINUE;
     private static final InputStep<Object> step1 = (input, results, context) -> new TestResult("1");
     private static final InputStep<Object> step2 = (input, results, context) -> new TestResult("2");
@@ -45,7 +48,8 @@ public class PipelineBuilderTest
     {
         var builder = Assertions.assertDoesNotThrow(() -> Pipeline.ofSimple("test-simple")
             .setAuthorResolver(authorResolver)
-            .setDefaultErrorHandler(errorHandler)
+            .setDefaultStepErrorHandler(stepErrorHandler)
+            .setDefaultSinkErrorHandler(sinkErrorHandler)
             .setDefaultEvaluator(resultEvaluator)
             .registerStep(step1)
             .registerStep(b -> b.step(step2))
@@ -79,7 +83,8 @@ public class PipelineBuilderTest
                 (Initializer<Object, TestIndexable>) (input, context, generator) -> new TestIndexable(generator.generate())
             )
             .setAuthorResolver(authorResolver)
-            .setDefaultErrorHandler(errorHandler)
+            .setDefaultStepErrorHandler(stepErrorHandler)
+            .setDefaultSinkErrorHandler(sinkErrorHandler)
             .setDefaultEvaluator(resultEvaluator)
             .registerStep(step1)
             .registerSteps(List.of(
@@ -117,7 +122,8 @@ public class PipelineBuilderTest
 
         var builder = Assertions.assertDoesNotThrow(() -> Pipeline.ofPayload("test-payload", initializer)
             .setAuthorResolver(authorResolver)
-            .setDefaultErrorHandler(errorHandler)
+            .setDefaultStepErrorHandler(stepErrorHandler)
+            .setDefaultSinkErrorHandler(sinkErrorHandler)
             .setDefaultEvaluator(resultEvaluator)
             .registerStep(b -> b.withId("step-builder").step(step1))
             .registerStepAssemblers(List.of(
@@ -168,12 +174,12 @@ public class PipelineBuilderTest
     }
 
     @Test
-    public void test__withDefaultErrorHandler()
+    public void test__withDefaultStepErrorHandler()
     {
-        var builder = Assertions.assertDoesNotThrow(() -> Pipeline.ofSimple("test-with-default-error-handler")
+        var builder = Assertions.assertDoesNotThrow(() -> Pipeline.ofSimple("test-with-default-step-error-handler")
             .registerStep((input, results, context) -> { throw new StepException("interrupted"); })
             .registerStep(step2)
-            .setDefaultErrorHandler(errorHandler)
+            .setDefaultStepErrorHandler(stepErrorHandler)
         );
 
         Pipeline<Object, VoidPayload> pipeline = Assertions.assertDoesNotThrow(builder::build);
@@ -181,13 +187,33 @@ public class PipelineBuilderTest
 
         Assertions.assertEquals(builder.id(), output.tag().pipeline());
         Assertions.assertEquals(2, output.results().stream().count());
-        Assertions.assertEquals("error", output.results().stream().findFirst().map(Result::name).orElse(null));
+        Assertions.assertEquals("stepError", output.results().stream().findFirst().map(Result::name).orElse(null));
         Assertions.assertEquals("2", output.results().latest(TestResult.class).map(TestResult::name).orElse(null));
+    }
+
+    @Test
+    public void test__withDefaultSinkErrorHandler()
+    {
+        var builder = Assertions.assertDoesNotThrow(() -> Pipeline.ofSimple("test-with-default-sink-error-handler")
+                .registerStep(step1)
+                .registerStep(step2)
+                .registerSink((output, context) -> { throw new SinkException("interrupted"); })
+                .setDefaultSinkErrorHandler(sinkErrorHandler)
+        );
+
+        Context<VoidPayload> ctx = new SimpleContext<VoidPayload>().set("sinkError", new AtomicInteger(0));
+        Pipeline<Object, VoidPayload> pipeline = Assertions.assertDoesNotThrow(builder::build);
+        Output<?> output = Assertions.assertDoesNotThrow(() -> pipeline.run(null, ctx));
+
+        Assertions.assertEquals(builder.id(), output.tag().pipeline());
+        Assertions.assertEquals(2, output.results().stream().count());
+        Assertions.assertEquals("2", output.results().latest(TestResult.class).map(TestResult::name).orElse(null));
+        Assertions.assertEquals(1, ctx.get("sinkError", AtomicInteger.class).map(AtomicInteger::get).orElse(0));
     }
 
     public record TestIndexable(
         String uid
-    ) implements Indexable {};
+    ) implements Indexable {}
 
     public record TestResult(
         String name

@@ -118,10 +118,12 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
         }
         catch (InitializerException | PhaseException e) {
             metrics.failureCounter().increment();
+            logger.error("{}: {}", this.id(), e.getMessage());
             throw new PipelineException(e.getMessage(), e);
         }
         catch (RuntimeException e) {
             metrics.failureCounter().increment();
+            logger.error("{}: {}", this.id(), e.getMessage());
             throw e;
         }
         finally {

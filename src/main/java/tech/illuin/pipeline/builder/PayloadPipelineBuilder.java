@@ -22,6 +22,7 @@ import tech.illuin.pipeline.sink.Sink;
 import tech.illuin.pipeline.sink.builder.SinkAssembler;
 import tech.illuin.pipeline.sink.builder.SinkBuilder;
 import tech.illuin.pipeline.sink.builder.SinkDescriptor;
+import tech.illuin.pipeline.sink.execution.error.SinkErrorHandler;
 import tech.illuin.pipeline.step.Step;
 import tech.illuin.pipeline.step.builder.StepAssembler;
 import tech.illuin.pipeline.step.builder.StepBuilder;
@@ -53,7 +54,8 @@ public final class PayloadPipelineBuilder<I, P>
     private int closeTimeout;
     private final List<OnCloseHandler> onCloseHandlers;
     private ResultEvaluator defaultEvaluator;
-    private StepErrorHandler defaultErrorHandler;
+    private StepErrorHandler defaultStepErrorHandler;
+    private SinkErrorHandler defaultSinkErrorHandler;
     private MeterRegistry meterRegistry;
     private InitializerAssembler<I, P> initializer;
     private final List<Indexer<P>> indexers;
@@ -194,7 +196,7 @@ public final class PayloadPipelineBuilder<I, P>
     {
         stepBuilder
             .withEvaluation(this.defaultEvaluator())
-            .withErrorHandler(this.defaultErrorHandler())
+            .withErrorHandler(this.defaultStepErrorHandler())
         ;
     }
 
@@ -242,7 +244,9 @@ public final class PayloadPipelineBuilder<I, P>
 
     private void addAssemblerDefaults(SinkBuilder<?> sinkBuilder)
     {
-        //sinkBuilder;
+        sinkBuilder
+                .withErrorHandler(this.defaultSinkErrorHandler())
+        ;
     }
 
     public Supplier<ExecutorService> sinkExecutorProvider()
@@ -295,14 +299,25 @@ public final class PayloadPipelineBuilder<I, P>
         return this;
     }
 
-    public StepErrorHandler defaultErrorHandler()
+    public StepErrorHandler defaultStepErrorHandler()
     {
-        return this.defaultErrorHandler;
+        return this.defaultStepErrorHandler;
     }
 
-    public PayloadPipelineBuilder<I, P> setDefaultErrorHandler(StepErrorHandler defaultErrorHandler)
+    public SinkErrorHandler defaultSinkErrorHandler()
     {
-        this.defaultErrorHandler = defaultErrorHandler;
+        return this.defaultSinkErrorHandler;
+    }
+
+    public PayloadPipelineBuilder<I, P> setDefaultStepErrorHandler(StepErrorHandler defaultStepErrorHandler)
+    {
+        this.defaultStepErrorHandler = defaultStepErrorHandler;
+        return this;
+    }
+
+    public PayloadPipelineBuilder<I, P> setDefaultSinkErrorHandler(SinkErrorHandler defaultSinkErrorHandler)
+    {
+        this.defaultSinkErrorHandler = defaultSinkErrorHandler;
         return this;
     }
 

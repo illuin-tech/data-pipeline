@@ -3,7 +3,6 @@ package tech.illuin.pipeline.sink.builder;
 import tech.illuin.pipeline.context.Context;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.sink.Sink;
-import tech.illuin.pipeline.sink.SinkException;
 import tech.illuin.pipeline.sink.execution.error.SinkErrorHandler;
 import tech.illuin.pipeline.sink.execution.wrapper.SinkWrapper;
 
@@ -32,22 +31,23 @@ public final class SinkDescriptor<T>
         this.errorHandler = errorHandler;
     }
 
-    public void execute(Output<T> output) throws SinkException
+    public void execute(Output<T> output) throws Exception
     {
         this.executionWrapper.wrap(this.sink).execute(output);
     }
 
-    public void handleException(Exception ex, Output<T> output, Context<T> ctx) throws SinkException
+    public void handleException(Exception ex, Output<T> output, Context<T> ctx) throws Exception
     {
         this.errorHandler.handle(ex, output, ctx);
     }
 
+    @SuppressWarnings("IllegalCatch")
     public void handleExceptionThenSwallow(Exception ex, Output<T> output, Context<T> ctx)
     {
         try {
             this.handleException(ex, output, ctx);
         }
-        catch (SinkException ignore) {}
+        catch (Exception ignore) {}
     }
 
     public String id()

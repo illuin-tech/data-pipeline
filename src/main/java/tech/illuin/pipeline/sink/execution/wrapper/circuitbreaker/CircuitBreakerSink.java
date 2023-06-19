@@ -5,7 +5,7 @@ import tech.illuin.pipeline.context.Context;
 import tech.illuin.pipeline.execution.wrapper.CircuitBreakerException;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.sink.Sink;
-import tech.illuin.pipeline.sink.SinkException;
+import tech.illuin.pipeline.sink.execution.wrapper.SinkWrapperException;
 
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
@@ -23,19 +23,28 @@ public class CircuitBreakerSink<P> implements Sink<P>
 
     @Override
     @SuppressWarnings("IllegalCatch")
-    public void execute(Output<P> output, Context<P> context) throws SinkException
+    public void execute(Output<P> output, Context<P> context) throws Exception
     {
         try {
-            this.circuitBreaker.executeCallable(() -> {
-                this.sink.execute(output, context);
-                return true;
-            });
+            this.circuitBreaker.executeCallable(() -> executeSink(output, context));
         }
-        catch (SinkException e) {
-            throw e;
+        catch (SinkWrapperException e) {
+            throw (Exception) e.getCause();
         }
         catch (Exception e) {
             throw new CircuitBreakerException(e.getMessage(), e);
+        }
+    }
+
+    @SuppressWarnings("IllegalCatch")
+    private boolean executeSink(Output<P> output, Context<P> context) throws SinkWrapperException
+    {
+        try {
+            this.sink.execute(output, context);
+            return true;
+        }
+        catch (Exception e) {
+            throw new SinkWrapperException(e);
         }
     }
 

@@ -1,7 +1,6 @@
 package tech.illuin.pipeline.step.execution.error;
 
 import tech.illuin.pipeline.context.Context;
-import tech.illuin.pipeline.step.StepException;
 import tech.illuin.pipeline.step.result.Result;
 import tech.illuin.pipeline.step.result.Results;
 
@@ -11,16 +10,22 @@ import tech.illuin.pipeline.step.result.Results;
 @FunctionalInterface
 public interface StepErrorHandler
 {
-    Result handle(Exception exception, Object input, Object payload, Results results, Context<?> context) throws StepException;
+    Result handle(Exception exception, Object input, Object payload, Results results, Context<?> context) throws Exception;
 
-    StepErrorHandler RETHROW_ALL = StepErrorHandler::rethrowAll;
+    StepErrorHandler RETHROW_ALL = (Exception ex, Object input, Object payload, Results results, Context<?> ctx) -> {
+        throw ex;
+    };
 
-    private static Result rethrowAll(Exception ex, Object input, Object payload, Results results, Context<?> ctx) throws StepException
+    @SuppressWarnings("IllegalCatch")
+    default StepErrorHandler andThen(StepErrorHandler nextErrorHandler)
     {
-        if (ex instanceof StepException stepEx)
-            throw stepEx;
-        if (ex instanceof RuntimeException runEx)
-            throw runEx;
-        throw new RuntimeException("Unexpected error type found in handler: " + ex.getClass().getName() + " with message " + ex.getMessage());
+        return (Exception exception, Object input, Object payload, Results results, Context<?> context) -> {
+            try {
+                return handle(exception, input, payload, results, context);
+            }
+            catch (Exception e) {
+                return nextErrorHandler.handle(e, input, payload, results, context);
+            }
+        };
     }
 }

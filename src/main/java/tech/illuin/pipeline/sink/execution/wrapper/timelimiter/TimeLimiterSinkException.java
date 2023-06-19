@@ -1,20 +1,18 @@
 package tech.illuin.pipeline.sink.execution.wrapper.timelimiter;
 
-import tech.illuin.pipeline.sink.SinkException;
-
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
 public class TimeLimiterSinkException extends RuntimeException
 {
-    public TimeLimiterSinkException(SinkException ex)
+    public TimeLimiterSinkException(Exception ex)
     {
         super(ex.getMessage(), ex);
     }
 
     @Override
-    public SinkException getCause()
+    public Exception getCause()
     {
-        return (SinkException) super.getCause();
+        return (Exception) super.getCause();
     }
 }

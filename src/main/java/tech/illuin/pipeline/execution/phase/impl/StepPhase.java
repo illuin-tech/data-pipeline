@@ -6,14 +6,12 @@ import org.slf4j.LoggerFactory;
 import tech.illuin.pipeline.Pipeline;
 import tech.illuin.pipeline.PipelineResult;
 import tech.illuin.pipeline.context.Context;
-import tech.illuin.pipeline.execution.phase.PhaseException;
 import tech.illuin.pipeline.execution.phase.PipelinePhase;
 import tech.illuin.pipeline.execution.phase.PipelineStrategy;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
 import tech.illuin.pipeline.metering.PipelineStepMetrics;
 import tech.illuin.pipeline.output.Output;
-import tech.illuin.pipeline.step.StepException;
 import tech.illuin.pipeline.step.builder.StepDescriptor;
 import tech.illuin.pipeline.step.execution.evaluator.StepStrategy;
 import tech.illuin.pipeline.step.result.Result;
@@ -49,13 +47,14 @@ public class StepPhase<I, P> implements PipelinePhase<I, P>
     }
 
     @Override
-    public PipelineStrategy run(I input, Output<P> output, Context<P> context) throws PhaseException
+    public PipelineStrategy run(I input, Output<P> output, Context<P> context) throws Exception
     {
         try {
             Set<Indexable> discarded = new HashSet<>();
             STEP_LOOP: for (StepDescriptor<Indexable, I, P> step : this.steps)
             {
                 String name = getPrintableName(step);
+                PipelineStepMetrics metrics = new PipelineStepMetrics(this.meterRegistry, this.pipeline, step);
 
                 /* Arguments are a list of Indexable which satisfy the step's execution predicate */
                 List<Indexable> arguments = output.index().stream()
@@ -64,15 +63,15 @@ public class StepPhase<I, P> implements PipelinePhase<I, P>
                     .toList()
                 ;
 
-                logger.trace("{}#{} retrieved {} arguments for step {}", this.pipeline.id(), output.tag().uid(), arguments.size(), name);
+                logger.trace(metrics.marker(output.tag()), "{}#{} retrieved {} arguments for step {}", this.pipeline.id(), output.tag().uid(), arguments.size(), name);
 
                 /* For each argument we perform the step and register the produced Result */
                 for (Indexable indexed : arguments)
                 {
-                    Result result = this.runStep(step, indexed, input, output, context);
+                    Result result = this.runStep(step, indexed, input, output, context, metrics);
 
                     StepStrategy strategy = step.postEvaluation(result, indexed, input, context);
-                    logger.trace("{}#{} received {} signal after step {} over argument {}", this.pipeline.id(), output.tag().uid(), strategy, name, indexed.uid());
+                    logger.trace(metrics.marker(output.tag()), "{}#{} received {} signal after step {} over argument {}", this.pipeline.id(), output.tag().uid(), strategy, name, indexed.uid());
 
                     if (strategy.hasBehaviour(REGISTER_RESULT))
                     {
@@ -108,22 +107,22 @@ public class StepPhase<I, P> implements PipelinePhase<I, P>
     }
 
     @SuppressWarnings("IllegalCatch")
-    private Result runStep(StepDescriptor<Indexable, I, P> step, Indexable indexed, I input, Output<P> output, Context<P> context) throws StepException
+    private Result runStep(StepDescriptor<Indexable, I, P> step, Indexable indexed, I input, Output<P> output, Context<P> context, PipelineStepMetrics metrics) throws Exception
     {
         String name = getPrintableName(step);
-        PipelineStepMetrics metrics = new PipelineStepMetrics(this.meterRegistry, this.pipeline, step);
 
         long start = System.nanoTime();
         try {
-            logger.trace("{}#{} running step {} over argument {}", this.pipeline.id(), output.tag().uid(), name, indexed.uid());
+            logger.trace(metrics.marker(output.tag()), "{}#{} running step {} over argument {}", this.pipeline.id(), output.tag().uid(), name, indexed.uid());
             Result result = step.execute(indexed, input, output);
 
             metrics.successCounter().increment();
             return result;
         }
-        catch (StepException | RuntimeException e) {
-            logger.trace("{}#{} step {} threw an {}: {}", this.pipeline.id(), output.tag().uid(), name, e.getClass().getName(), e.getMessage());
+        catch (Exception e) {
+            logger.trace(metrics.marker(output.tag(), e), "{}#{} step {} threw an {}: {}", this.pipeline.id(), output.tag().uid(), name, e.getClass().getName(), e.getMessage());
             metrics.failureCounter().increment();
+            metrics.errorCounter(e).increment();
             return step.handleException(e, input, output.payload(), output.results(), context);
         }
         finally {

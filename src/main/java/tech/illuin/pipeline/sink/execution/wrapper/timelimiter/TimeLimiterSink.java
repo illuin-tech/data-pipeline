@@ -6,7 +6,6 @@ import tech.illuin.pipeline.execution.wrapper.TimeLimiterException;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.sink.Sink;
-import tech.illuin.pipeline.sink.SinkException;
 
 import java.util.concurrent.ExecutorService;
 
@@ -28,7 +27,7 @@ public class TimeLimiterSink<T extends Indexable, I, P> implements Sink<P>
 
     @Override
     @SuppressWarnings("IllegalCatch")
-    public void execute(Output<P> output, Context<P> context) throws SinkException
+    public void execute(Output<P> output, Context<P> context) throws Exception
     {
         try {
             this.limiter.executeFutureSupplier(() -> this.executor.submit(() -> this.executeSink(output, context)));
@@ -42,12 +41,13 @@ public class TimeLimiterSink<T extends Indexable, I, P> implements Sink<P>
         }
     }
 
-    private void executeSink(Output<P> output, Context<P> context)
+    @SuppressWarnings("IllegalCatch")
+    private void executeSink(Output<P> output, Context<P> context) throws TimeLimiterSinkException
     {
         try {
             this.sink.execute(output, context);
         }
-        catch (SinkException e) {
+        catch (Exception e) {
             throw new TimeLimiterSinkException(e);
         }
     }

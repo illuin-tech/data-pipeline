@@ -5,12 +5,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tech.illuin.pipeline.Pipeline;
 import tech.illuin.pipeline.context.Context;
-import tech.illuin.pipeline.execution.phase.PhaseException;
 import tech.illuin.pipeline.execution.phase.PipelinePhase;
 import tech.illuin.pipeline.execution.phase.PipelineStrategy;
 import tech.illuin.pipeline.metering.PipelineSinkMetrics;
 import tech.illuin.pipeline.output.Output;
-import tech.illuin.pipeline.sink.SinkException;
 import tech.illuin.pipeline.sink.builder.SinkDescriptor;
 
 import java.util.List;
@@ -42,7 +40,7 @@ public class SinkPhase<I, P> implements PipelinePhase<I, P>
     }
 
     @Override
-    public PipelineStrategy run(I input, Output<P> output, Context<P> context) throws PhaseException
+    public PipelineStrategy run(I input, Output<P> output, Context<P> context) throws Exception
     {
         for (SinkDescriptor<P> descriptor : this.sinks)
         {
@@ -58,18 +56,19 @@ public class SinkPhase<I, P> implements PipelinePhase<I, P>
     }
 
     @SuppressWarnings("IllegalCatch")
-    private void runSinkSynchronously(SinkDescriptor<P> sink, Output<P> output, Context<P> context, PipelineSinkMetrics metrics) throws SinkException
+    private void runSinkSynchronously(SinkDescriptor<P> sink, Output<P> output, Context<P> context, PipelineSinkMetrics metrics) throws Exception
     {
         String name = getPrintableName(sink);
         long start = System.nanoTime();
         try {
-            logger.trace("{}#{} launching sink {}", this.pipeline.id(), output.tag().uid(), name);
+            logger.trace(metrics.marker(output.tag()), "{}#{} launching sink {}", this.pipeline.id(), output.tag().uid(), name);
             sink.execute(output);
             metrics.successCounter().increment();
         }
-        catch (SinkException | RuntimeException e) {
-            logger.error("{}#{} sink {} threw an {}: {}", this.pipeline.id(), output.tag().uid(), name, e.getClass().getName(), e.getMessage());
+        catch (Exception e) {
+            logger.error(metrics.marker(output.tag(), e), "{}#{} sink {} threw an {}: {}", this.pipeline.id(), output.tag().uid(), name, e.getClass().getName(), e.getMessage());
             metrics.failureCounter().increment();
+            metrics.errorCounter(e).increment();
             sink.handleException(e, output, context);
         }
         finally {
@@ -82,17 +81,18 @@ public class SinkPhase<I, P> implements PipelinePhase<I, P>
     private void runSinkAsynchronously(SinkDescriptor<P> sink, Output<P> output, Context<P> context, PipelineSinkMetrics metrics)
     {
         String name = getPrintableName(sink);
-        logger.trace("{}#{} queuing sink {}", this.pipeline.id(), output.tag().uid(), name);
+        logger.trace(metrics.marker(output.tag()), "{}#{} queuing sink {}", this.pipeline.id(), output.tag().uid(), name);
         CompletableFuture.runAsync(() -> {
             long start = System.nanoTime();
             try {
-                logger.trace("{}#{} launching sink {}", this.pipeline.id(), output.tag().uid(), name);
+                logger.trace(metrics.marker(output.tag()), "{}#{} launching sink {}", this.pipeline.id(), output.tag().uid(), name);
                 sink.execute(output);
                 metrics.successCounter().increment();
             }
-            catch (SinkException | RuntimeException e) {
-                logger.error("{}#{} sink {} threw an {}: {}", this.pipeline.id(), output.tag().uid(), name, e.getClass().getName(), e.getMessage());
+            catch (Exception e) {
+                logger.error(metrics.marker(output.tag(), e), "{}#{} sink {} threw an {}: {}", this.pipeline.id(), output.tag().uid(), name, e.getClass().getName(), e.getMessage());
                 metrics.failureCounter().increment();
+                metrics.errorCounter(e).increment();
                 sink.handleExceptionThenSwallow(e, output, context);
             }
             finally {

@@ -11,7 +11,6 @@ import tech.illuin.pipeline.input.uid_generator.KSUIDGenerator;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.output.PipelineTag;
 import tech.illuin.pipeline.step.Step;
-import tech.illuin.pipeline.step.StepException;
 import tech.illuin.pipeline.step.result.Result;
 import tech.illuin.pipeline.step.result.ResultView;
 
@@ -28,6 +27,8 @@ public final class PipelineStep<I, P> implements Step<Indexable, I, VoidPayload>
     private final Pipeline<I, P> pipeline;
     private final Function<Output<P>, Result> resultMapper;
 
+    public static final String IS_CHILD_PIPELINE = "is_child_pipeline";
+
     public PipelineStep(Pipeline<I, P> pipeline, Function<Output<P>, Result> resultMapper)
     {
         this.pipeline = pipeline;
@@ -35,7 +36,7 @@ public final class PipelineStep<I, P> implements Step<Indexable, I, VoidPayload>
     }
 
     @Override
-    public Result execute(Indexable object, I input, VoidPayload payload, ResultView results, Context<VoidPayload> context) throws StepException
+    public Result execute(Indexable object, I input, VoidPayload payload, ResultView results, Context<VoidPayload> context) throws Exception
     {
         try {
             /* TODO: Bad design -> this should be challenged ASAP */
@@ -45,11 +46,11 @@ public final class PipelineStep<I, P> implements Step<Indexable, I, VoidPayload>
                 new SimpleContext<>()
             );
             prev.results().register(results);
-            Output<P> out = this.pipeline.run(input, new SimpleContext<>(prev));
+            Output<P> out = this.pipeline.run(input, new SimpleContext<>(prev).set(IS_CHILD_PIPELINE, true));
             return this.resultMapper.apply(out);
         }
         catch (PipelineException e) {
-            throw new StepException(e.getMessage(), e);
+            throw (Exception) e.getCause();
         }
     }
 

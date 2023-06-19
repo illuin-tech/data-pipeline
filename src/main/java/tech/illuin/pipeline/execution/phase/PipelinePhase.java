@@ -8,7 +8,7 @@ import tech.illuin.pipeline.output.Output;
  */
 public interface PipelinePhase<I, P> extends AutoCloseable
 {
-    PipelineStrategy run(I input, Output<P> output, Context<P> context) throws PhaseException;
+    PipelineStrategy run(I input, Output<P> output, Context<P> context) throws Exception;
 
     default void close() throws Exception {}
 }

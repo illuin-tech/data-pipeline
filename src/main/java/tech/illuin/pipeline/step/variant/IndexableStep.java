@@ -4,7 +4,6 @@ import tech.illuin.pipeline.context.Context;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.step.Step;
-import tech.illuin.pipeline.step.StepException;
 import tech.illuin.pipeline.step.result.Result;
 import tech.illuin.pipeline.step.result.ResultView;
 
@@ -14,12 +13,12 @@ import tech.illuin.pipeline.step.result.ResultView;
 @FunctionalInterface
 public interface IndexableStep<T extends Indexable> extends Step<T, Object, Object>
 {
-    Result execute(T object, ResultView results, Context<?> context) throws StepException;
+    Result execute(T object, ResultView results, Context<?> context) throws Exception;
 
     /**
      * @see #execute(Indexable, ResultView, Context)
      */
-    default Result execute(T object, Object input, Object payload, ResultView results, Context<Object> context) throws StepException
+    default Result execute(T object, Object input, Object payload, ResultView results, Context<Object> context) throws Exception
     {
         return this.execute(object, results, context);
     }
@@ -27,7 +26,7 @@ public interface IndexableStep<T extends Indexable> extends Step<T, Object, Obje
     /**
      * @see #execute(Indexable, ResultView, Context)
      */
-    default Result execute(T object, Output<?> output) throws StepException
+    default Result execute(T object, Output<?> output) throws Exception
     {
         return this.execute(object, output.results().view(object), output.context());
     }

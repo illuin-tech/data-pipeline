@@ -46,10 +46,72 @@ public class ResultTest
 
         Assertions.assertEquals(2, secondGenContainer.size());
         Assertions.assertEquals(7, secondGenContainer.stream().count());
+        Assertions.assertEquals(7, secondGenContainer.descriptorStream().count());
         Assertions.assertEquals(2, secondGenContainer.current().count());
+        Assertions.assertEquals(2, secondGenContainer.descriptors().current().count());
 
         Assertions.assertEquals(7, secondGenContainer.current(TestResult.class).map(TestResult::value).orElse(-1));
+        Assertions.assertEquals(7, secondGenContainer.descriptors().current(TestResult.class).map(ResultDescriptor::result).map(TestResult::value).orElse(-1));
         Assertions.assertEquals(7, secondGenContainer.latest(TestResult.class).map(TestResult::value).orElse(-1));
+        Assertions.assertEquals(7, secondGenContainer.descriptors().latest(TestResult.class).map(ResultDescriptor::result).map(TestResult::value).orElse(-1));
+    }
+
+    @Test
+    public void testResultContainer_byName()
+    {
+        var container = new ResultContainer();
+
+        String uid = uidGenerator.generate();
+        container.register(uid, createDescriptor(new NamedResult(0, "first")));
+        container.register(uid, createDescriptor(new NamedResult(1, "second")));
+
+        Assertions.assertEquals(0, container.current("first").map(NamedResult.class::cast).map(NamedResult::id).orElse(-1));
+        Assertions.assertEquals(0, container.current(Names.first).map(NamedResult.class::cast).map(NamedResult::id).orElse(-1));
+        Assertions.assertEquals(0, container.latest("first").map(NamedResult.class::cast).map(NamedResult::id).orElse(-1));
+        Assertions.assertEquals(0, container.latest(Names.first).map(NamedResult.class::cast).map(NamedResult::id).orElse(-1));
+        Assertions.assertEquals(1, container.stream("first").count());
+        Assertions.assertEquals(1, container.stream(Names.first).count());
+
+        Assertions.assertEquals(1, container.current("second").map(NamedResult.class::cast).map(NamedResult::id).orElse(-1));
+        Assertions.assertEquals(1, container.current(Names.second).map(NamedResult.class::cast).map(NamedResult::id).orElse(-1));
+        Assertions.assertEquals(1, container.latest("second").map(NamedResult.class::cast).map(NamedResult::id).orElse(-1));
+        Assertions.assertEquals(1, container.latest(Names.second).map(NamedResult.class::cast).map(NamedResult::id).orElse(-1));
+        Assertions.assertEquals(1, container.stream("second").count());
+        Assertions.assertEquals(1, container.stream(Names.second).count());
+
+        Assertions.assertEquals(-1, container.current("third").map(NamedResult.class::cast).map(NamedResult::id).orElse(-1));
+        Assertions.assertEquals(-1, container.current(Names.third).map(NamedResult.class::cast).map(NamedResult::id).orElse(-1));
+        Assertions.assertEquals(-1, container.latest("third").map(NamedResult.class::cast).map(NamedResult::id).orElse(-1));
+        Assertions.assertEquals(-1, container.latest(Names.third).map(NamedResult.class::cast).map(NamedResult::id).orElse(-1));
+        Assertions.assertEquals(0, container.stream("third").count());
+        Assertions.assertEquals(0, container.stream(Names.third).count());
+
+        var secondGenContainer = new ResultContainer();
+        secondGenContainer.register(container);
+
+        secondGenContainer.register(uid, createDescriptor(new NamedResult(2, "first")));
+        secondGenContainer.register(uid, createDescriptor(new NamedResult(3, "third")));
+
+        Assertions.assertEquals(2, secondGenContainer.current("first").map(NamedResult.class::cast).map(NamedResult::id).orElse(-1));
+        Assertions.assertEquals(2, secondGenContainer.current(Names.first).map(NamedResult.class::cast).map(NamedResult::id).orElse(-1));
+        Assertions.assertEquals(2, secondGenContainer.latest("first").map(NamedResult.class::cast).map(NamedResult::id).orElse(-1));
+        Assertions.assertEquals(2, secondGenContainer.latest(Names.first).map(NamedResult.class::cast).map(NamedResult::id).orElse(-1));
+        Assertions.assertEquals(2, secondGenContainer.stream("first").count());
+        Assertions.assertEquals(2, secondGenContainer.stream(Names.first).count());
+
+        Assertions.assertEquals(-1, secondGenContainer.current("second").map(NamedResult.class::cast).map(NamedResult::id).orElse(-1));
+        Assertions.assertEquals(-1, secondGenContainer.current(Names.second).map(NamedResult.class::cast).map(NamedResult::id).orElse(-1));
+        Assertions.assertEquals(1, secondGenContainer.latest("second").map(NamedResult.class::cast).map(NamedResult::id).orElse(-1));
+        Assertions.assertEquals(1, secondGenContainer.latest(Names.second).map(NamedResult.class::cast).map(NamedResult::id).orElse(-1));
+        Assertions.assertEquals(1, secondGenContainer.stream("second").count());
+        Assertions.assertEquals(1, secondGenContainer.stream(Names.second).count());
+
+        Assertions.assertEquals(3, secondGenContainer.current("third").map(NamedResult.class::cast).map(NamedResult::id).orElse(-1));
+        Assertions.assertEquals(3, secondGenContainer.current(Names.third).map(NamedResult.class::cast).map(NamedResult::id).orElse(-1));
+        Assertions.assertEquals(3, secondGenContainer.latest("third").map(NamedResult.class::cast).map(NamedResult::id).orElse(-1));
+        Assertions.assertEquals(3, secondGenContainer.latest(Names.third).map(NamedResult.class::cast).map(NamedResult::id).orElse(-1));
+        Assertions.assertEquals(1, secondGenContainer.stream("third").count());
+        Assertions.assertEquals(1, secondGenContainer.stream(Names.third).count());
     }
 
     @Test
@@ -114,5 +176,20 @@ public class ResultTest
         {
             return Integer.toString(this.value());
         }
+    }
+
+    private record NamedResult(
+        int id,
+        String value
+    ) implements Result {
+        @Override
+        public String name()
+        {
+            return this.value();
+        }
+    }
+
+    private enum Names {
+        first, second, third
     }
 }

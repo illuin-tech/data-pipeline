@@ -14,4 +14,9 @@ public interface SinkWrapper<P>
     {
         return sink;
     }
+
+    default SinkWrapper<P> andThen(SinkWrapper<P> nextWrapper)
+    {
+        return step -> nextWrapper.wrap(this.wrap(step));
+    }
 }

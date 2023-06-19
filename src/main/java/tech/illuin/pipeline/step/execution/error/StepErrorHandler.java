@@ -21,7 +21,7 @@ public interface StepErrorHandler
     {
         return (Exception exception, Object input, Object payload, Results results, Context<?> context) -> {
             try {
-                return handle(exception, input, payload, results, context);
+                return this.handle(exception, input, payload, results, context);
             }
             catch (Exception e) {
                 return nextErrorHandler.handle(e, input, payload, results, context);

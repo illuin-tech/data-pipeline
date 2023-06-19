@@ -1,11 +1,11 @@
 package tech.illuin.pipeline;
 
+import com.github.loki4j.slf4j.marker.LabelMarker;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tech.illuin.pipeline.close.OnCloseHandler;
 import tech.illuin.pipeline.context.Context;
-import tech.illuin.pipeline.execution.phase.PhaseException;
 import tech.illuin.pipeline.execution.phase.PipelinePhase;
 import tech.illuin.pipeline.execution.phase.PipelineStrategy;
 import tech.illuin.pipeline.execution.phase.impl.SinkPhase;
@@ -13,7 +13,6 @@ import tech.illuin.pipeline.execution.phase.impl.StepPhase;
 import tech.illuin.pipeline.input.author_resolver.AuthorResolver;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.input.indexer.Indexer;
-import tech.illuin.pipeline.input.initializer.InitializerException;
 import tech.illuin.pipeline.input.initializer.builder.InitializerDescriptor;
 import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
 import tech.illuin.pipeline.metering.PipelineInitializationMetrics;
@@ -96,12 +95,13 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
     public Output<P> run(I input, Context<P> context) throws PipelineException
     {
         PipelineMetrics metrics = new PipelineMetrics(this.meterRegistry, this);
+        Output<P> output = null;
 
         long start = System.nanoTime();
         try {
-            logger.debug("{}: launching pipeline over input of type {}", this.id(), input != null ? input.getClass().getName() : "null");
+            logger.debug(metrics.marker(), "{}: launching pipeline over input of type {}", this.id(), input != null ? input.getClass().getName() : "null");
 
-            Output<P> output = this.runInitialization(input, context);
+            output = this.runInitialization(input, context);
 
             /* We will go iteratively through each phase, if one requires a pipeline exit we will skip remaining phases */
             for (PipelinePhase<I, P> phase : this.phases)
@@ -111,20 +111,19 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
                     break;
             }
 
-            logger.trace("{}#{} finished", this.id(), output.tag().uid());
+            logger.trace(metrics.marker(output.tag()), "{}#{} finished", this.id(), output.tag().uid());
             metrics.successCounter().increment();
 
             return output;
         }
-        catch (InitializerException | PhaseException e) {
+        catch (Exception e) {
             metrics.failureCounter().increment();
-            logger.error("{}: {}", this.id(), e.getMessage());
+            metrics.errorCounter(e).increment();
+            LabelMarker marker = output == null ? metrics.marker(e) : metrics.marker(output.tag(), e);
+            logger.error(marker, "{}: {}", this.id(), e.getMessage());
+            if (e instanceof RuntimeException re)
+                throw re;
             throw new PipelineException(e.getMessage(), e);
-        }
-        catch (RuntimeException e) {
-            metrics.failureCounter().increment();
-            logger.error("{}: {}", this.id(), e.getMessage());
-            throw e;
         }
         finally {
             metrics.runTimer().record(System.nanoTime() - start, TimeUnit.NANOSECONDS);
@@ -133,30 +132,31 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
     }
 
     @SuppressWarnings("IllegalCatch")
-    private Output<P> runInitialization(I input, Context<P> context) throws InitializerException
+    private Output<P> runInitialization(I input, Context<P> context) throws Exception
     {
         if (context == null)
             throw new IllegalArgumentException("Runtime context cannot be null");
 
-        PipelineInitializationMetrics metrics = new PipelineInitializationMetrics(this.meterRegistry, this);
+        PipelineInitializationMetrics metrics = new PipelineInitializationMetrics(this.meterRegistry, this, this.initializer);
         long start = System.nanoTime();
         try {
             PipelineTag tag = new PipelineTag(this.uidGenerator.generate(), this.id(), this.authorResolver.resolve(input, context));
 
-            P payload = this.runInitializer(input, tag, context);
+            P payload = this.runInitializer(input, tag, context, metrics);
             Output<P> output = this.outputFactory.create(tag, input, payload, context);
 
             for (Indexer<P> indexer : this.indexers)
             {
-                logger.trace("{}#{} launching indexer {}", this.id(), tag.uid(), indexer.getClass().getName());
+                logger.trace(metrics.marker(tag), "{}#{} launching indexer {}", this.id(), tag.uid(), indexer.getClass().getName());
                 indexer.index(payload, output.index());
             }
 
             metrics.successCounter().increment();
             return output;
         }
-        catch (InitializerException | RuntimeException e) {
+        catch (Exception e) {
             metrics.failureCounter().increment();
+            metrics.errorCounter(e).increment();
             throw e;
         }
         finally {
@@ -166,15 +166,15 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
     }
 
     @SuppressWarnings("IllegalCatch")
-    private P runInitializer(I input, PipelineTag tag, Context<P> context) throws InitializerException
+    private P runInitializer(I input, PipelineTag tag, Context<P> context, PipelineInitializationMetrics metrics) throws Exception
     {
         String name = getPrintableName(this.initializer);
         try {
-            logger.trace("{}#{} initializing payload", this.id(), tag.uid());
+            logger.trace(metrics.marker(tag), "{}#{} initializing payload", this.id(), tag.uid());
             return this.initializer.execute(input, context, this.uidGenerator);
         }
-        catch (InitializerException | RuntimeException e) {
-            logger.trace("{}#{} initializer {} threw an {}: {}", this.id(), tag.uid(), name, e.getClass().getName(), e.getMessage());
+        catch (Exception e) {
+            logger.trace(metrics.marker(tag, e), "{}#{} initializer {} threw an {}: {}", this.id(), tag.uid(), name, e.getClass().getName(), e.getMessage());
             return this.initializer.handleException(e, context, this.uidGenerator);
         }
     }

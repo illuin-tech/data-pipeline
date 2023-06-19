@@ -3,7 +3,6 @@ package tech.illuin.pipeline.sink;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import tech.illuin.pipeline.Pipeline;
-import tech.illuin.pipeline.PipelineException;
 import tech.illuin.pipeline.builder.VoidPayload;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -31,11 +30,10 @@ public class SinkTest
         var counter = new AtomicInteger(0);
 
         Pipeline<?, VoidPayload> pipeline = Assertions.assertDoesNotThrow(() -> createPipelineWithSinks_syncException(counter));
-        PipelineException ex = Assertions.assertThrows(PipelineException.class, pipeline::run);
+        Assertions.assertThrows(Exception.class, pipeline::run);
         Assertions.assertDoesNotThrow(pipeline::close);
 
         Assertions.assertEquals(1, counter.get());
-        Assertions.assertTrue(ex.getCause() instanceof SinkException);
     }
 
     @Test
@@ -65,7 +63,7 @@ public class SinkTest
     {
         return Pipeline.ofSimple("test-sink-sync-exception")
             .registerSink((o, ctx) -> counter.incrementAndGet())
-            .registerSink((o, ctx) -> { throw new SinkException("Interrupted"); })
+            .registerSink((o, ctx) -> { throw new Exception("Interrupted"); })
             .registerSink((o, ctx) -> counter.incrementAndGet(), true)
             .build()
         ;
@@ -76,7 +74,7 @@ public class SinkTest
         return Pipeline.ofSimple("test-sink-async-exception")
             .registerSink((o, ctx) -> counter.incrementAndGet())
             .registerSink((o, ctx) -> counter.incrementAndGet())
-            .registerSink((o, ctx) -> { throw new SinkException("Interrupted"); }, true)
+            .registerSink((o, ctx) -> { throw new Exception("Interrupted"); }, true)
             .registerSink((o, ctx) -> counter.incrementAndGet(), true)
             .build()
         ;

@@ -12,9 +12,7 @@ import tech.illuin.pipeline.input.initializer.Initializer;
 import tech.illuin.pipeline.input.initializer.builder.InitializerAssembler;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.sink.Sink;
-import tech.illuin.pipeline.sink.SinkException;
 import tech.illuin.pipeline.sink.execution.error.SinkErrorHandler;
-import tech.illuin.pipeline.step.StepException;
 import tech.illuin.pipeline.step.execution.error.StepErrorHandler;
 import tech.illuin.pipeline.step.execution.evaluator.ResultEvaluator;
 import tech.illuin.pipeline.step.execution.evaluator.StepStrategy;
@@ -177,7 +175,7 @@ public class PipelineBuilderTest
     public void test__withDefaultStepErrorHandler()
     {
         var builder = Assertions.assertDoesNotThrow(() -> Pipeline.ofSimple("test-with-default-step-error-handler")
-            .registerStep((input, results, context) -> { throw new StepException("interrupted"); })
+            .registerStep((input, results, context) -> { throw new Exception("interrupted"); })
             .registerStep(step2)
             .setDefaultStepErrorHandler(stepErrorHandler)
         );
@@ -197,7 +195,7 @@ public class PipelineBuilderTest
         var builder = Assertions.assertDoesNotThrow(() -> Pipeline.ofSimple("test-with-default-sink-error-handler")
                 .registerStep(step1)
                 .registerStep(step2)
-                .registerSink((output, context) -> { throw new SinkException("interrupted"); })
+                .registerSink((output, context) -> { throw new Exception("interrupted"); })
                 .setDefaultSinkErrorHandler(sinkErrorHandler)
         );
 

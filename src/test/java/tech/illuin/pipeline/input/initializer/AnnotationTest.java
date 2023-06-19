@@ -1,11 +1,10 @@
-package tech.illuin.pipeline.initializer;
+package tech.illuin.pipeline.input.initializer;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import tech.illuin.pipeline.Pipeline;
 import tech.illuin.pipeline.generic.model.A;
 import tech.illuin.pipeline.generic.pipeline.initializer.TestAnnotatedInitializers;
-import tech.illuin.pipeline.input.initializer.Initializer;
 
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicInteger;

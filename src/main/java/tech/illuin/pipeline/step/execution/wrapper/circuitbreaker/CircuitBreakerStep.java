@@ -5,7 +5,7 @@ import tech.illuin.pipeline.context.Context;
 import tech.illuin.pipeline.execution.wrapper.CircuitBreakerException;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.step.Step;
-import tech.illuin.pipeline.step.StepException;
+import tech.illuin.pipeline.step.execution.wrapper.StepWrapperException;
 import tech.illuin.pipeline.step.result.Result;
 import tech.illuin.pipeline.step.result.ResultView;
 
@@ -25,16 +25,27 @@ public class CircuitBreakerStep<T extends Indexable, I, P> implements Step<T, I,
 
     @Override
     @SuppressWarnings("IllegalCatch")
-    public Result execute(T object, I input, P payload, ResultView view, Context<P> context) throws StepException
+    public Result execute(T object, I input, P payload, ResultView view, Context<P> context) throws Exception
     {
         try {
-            return this.circuitBreaker.executeCallable(() -> this.step.execute(object, input, payload, view, context));
+            return this.circuitBreaker.executeCallable(() -> executeStep(object, input, payload, view, context));
         }
-        catch (StepException e) {
-            throw e;
+        catch (StepWrapperException e) {
+            throw (Exception) e.getCause();
         }
         catch (Exception e) {
             throw new CircuitBreakerException(e.getMessage(), e);
+        }
+    }
+
+    @SuppressWarnings("IllegalCatch")
+    private Result executeStep(T object, I input, P payload, ResultView view, Context<P> context) throws StepWrapperException
+    {
+        try {
+            return this.step.execute(object, input, payload, view, context);
+        }
+        catch (Exception e) {
+            throw new StepWrapperException(e);
         }
     }
 

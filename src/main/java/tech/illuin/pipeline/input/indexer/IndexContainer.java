@@ -25,7 +25,7 @@ public class IndexContainer
 
     public boolean contains(Indexable indexable)
     {
-        return this.index.containsKey(indexable.uid());
+        return this.contains(indexable.uid());
     }
 
     public Optional<Object> get(String uid)

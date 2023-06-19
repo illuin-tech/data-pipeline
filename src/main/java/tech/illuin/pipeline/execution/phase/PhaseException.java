@@ -2,7 +2,9 @@ package tech.illuin.pipeline.execution.phase;
 
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
+ * @deprecated slated for removal by 0.12
  */
+@Deprecated
 public class PhaseException extends Exception
 {
     public PhaseException(String message)

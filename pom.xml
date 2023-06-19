@@ -41,6 +41,7 @@
         <resilience4j.version>2.0.2</resilience4j.version>
         <micrometer.version>1.10.4</micrometer.version>
         <slf4j.version>1.7.36</slf4j.version>
+        <loki4j.version>1.4.1</loki4j.version>
         <junit.version>5.9.3</junit.version>
         <jacoco.version>0.8.10</jacoco.version>
         <checkstyle.version>10.12.0</checkstyle.version>
@@ -107,6 +108,12 @@
             <artifactId>junit-jupiter</artifactId>
             <version>${junit.version}</version>
             <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.loki4j</groupId>
+            <artifactId>loki-logback-appender</artifactId>
+            <version>${loki4j.version}</version>
         </dependency>
     </dependencies>
 

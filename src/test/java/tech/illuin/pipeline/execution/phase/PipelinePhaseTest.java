@@ -36,7 +36,7 @@ public class PipelinePhaseTest
     public void testPipeline__stop()
     {
         Counters counters = new Counters();
-        Pipeline<Object, ?> pipeline = createPipeline("test-exit", (res, obj, in, ctx) -> StepStrategy.STOP, counters);
+        Pipeline<Object, ?> pipeline = createPipeline("test-stop", (res, obj, in, ctx) -> StepStrategy.STOP, counters);
 
         Assertions.assertDoesNotThrow(() -> pipeline.run());
         Assertions.assertDoesNotThrow(pipeline::close);
@@ -80,7 +80,7 @@ public class PipelinePhaseTest
         Assertions.assertEquals(0, counters.sink_async.get());
     }
 
-    private static Pipeline<Object, VoidPayload> createPipeline(String name, ResultEvaluator evaluator, Counters counters)
+    public static Pipeline<Object, VoidPayload> createPipeline(String name, ResultEvaluator evaluator, Counters counters)
     {
         return Assertions.assertDoesNotThrow(() -> Pipeline.ofSimple(name)
             .registerStep(builder -> builder
@@ -112,10 +112,10 @@ public class PipelinePhaseTest
 
     public static class Counters
     {
-        AtomicInteger step_evaluated = new AtomicInteger(0);
-        AtomicInteger step_standard = new AtomicInteger(0);
-        AtomicInteger step_pinned = new AtomicInteger(0);
-        AtomicInteger sink_sync = new AtomicInteger(0);
-        AtomicInteger sink_async = new AtomicInteger(0);
+        public final AtomicInteger step_evaluated = new AtomicInteger(0);
+        public final AtomicInteger step_standard = new AtomicInteger(0);
+        public final AtomicInteger step_pinned = new AtomicInteger(0);
+        public final AtomicInteger sink_sync = new AtomicInteger(0);
+        public final AtomicInteger sink_async = new AtomicInteger(0);
     }
 }

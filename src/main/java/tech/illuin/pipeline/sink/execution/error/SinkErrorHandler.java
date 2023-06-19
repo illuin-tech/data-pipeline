@@ -2,7 +2,6 @@ package tech.illuin.pipeline.sink.execution.error;
 
 import tech.illuin.pipeline.context.Context;
 import tech.illuin.pipeline.output.Output;
-import tech.illuin.pipeline.sink.SinkException;
 
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
@@ -10,16 +9,22 @@ import tech.illuin.pipeline.sink.SinkException;
 @FunctionalInterface
 public interface SinkErrorHandler
 {
-    void handle(Exception exception, Output<?> output, Context<?> context) throws SinkException;
+    void handle(Exception exception, Output<?> output, Context<?> context) throws Exception;
 
-    SinkErrorHandler RETHROW_ALL = SinkErrorHandler::rethrowAll;
+    SinkErrorHandler RETHROW_ALL = (Exception ex, Output<?> output, Context<?> ctx) -> {
+        throw ex;
+    };
 
-    private static void rethrowAll(Exception ex, Output<?> output, Context<?> ctx) throws SinkException
+    @SuppressWarnings("IllegalCatch")
+    default SinkErrorHandler andThen(SinkErrorHandler nextErrorHandler)
     {
-        if (ex instanceof SinkException sinkEx)
-            throw sinkEx;
-        if (ex instanceof RuntimeException runEx)
-            throw runEx;
-        throw new RuntimeException("Unexpected error type found in handler: " + ex.getClass().getName() + " with message " + ex.getMessage());
+        return (Exception exception, Output<?> output, Context<?> context) -> {
+            try {
+                handle(exception, output, context);
+            }
+            catch (Exception e) {
+                nextErrorHandler.handle(e, output, context);
+            }
+        };
     }
 }

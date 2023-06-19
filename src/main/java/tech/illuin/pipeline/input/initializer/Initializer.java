@@ -14,7 +14,7 @@ import java.util.function.Supplier;
 @FunctionalInterface
 public interface Initializer<I, P>
 {
-    P initialize(I input, Context<P> context, UIDGenerator generator) throws InitializerException;
+    P initialize(I input, Context<P> context, UIDGenerator generator) throws Exception;
 
     static <I, P> P initializeFromParent(I input, Context<P> context)
     {

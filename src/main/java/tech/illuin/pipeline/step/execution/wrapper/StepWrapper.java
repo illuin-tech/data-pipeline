@@ -15,4 +15,9 @@ public interface StepWrapper<T extends Indexable, I, P>
     {
         return step;
     }
+
+    default StepWrapper<T, I, P> andThen(StepWrapper<T, I, P> nextWrapper)
+    {
+        return step -> nextWrapper.wrap(this.wrap(step));
+    }
 }

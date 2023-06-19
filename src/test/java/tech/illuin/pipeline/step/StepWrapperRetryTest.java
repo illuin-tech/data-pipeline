@@ -20,12 +20,12 @@ import static tech.illuin.pipeline.generic.Tests.getResultTypes;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public class WrapperRetryTest
+public class StepWrapperRetryTest
 {
     @Test
     public void testPipeline_shouldRetryException()
     {
-        Pipeline<Void, A> pipeline = Assertions.assertDoesNotThrow(WrapperRetryTest::createErrorRetryPipeline);
+        Pipeline<Void, A> pipeline = Assertions.assertDoesNotThrow(StepWrapperRetryTest::createErrorRetryPipeline);
         Output<A> output = Assertions.assertDoesNotThrow(() -> pipeline.run());
         Assertions.assertDoesNotThrow(pipeline::close);
 

@@ -22,12 +22,12 @@ import static tech.illuin.pipeline.generic.Tests.sleep;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public class WrapperTimeLimitTest
+public class StepWrapperTimeLimitTest
 {
     @Test
     public void testPipeline_shouldTimeout()
     {
-        Pipeline<?, VoidPayload> pipeline = Assertions.assertDoesNotThrow(() -> createTimeoutPipeline(WrapperTimeLimitTest::addTimeLimitedStep));
+        Pipeline<?, VoidPayload> pipeline = Assertions.assertDoesNotThrow(() -> createTimeoutPipeline(StepWrapperTimeLimitTest::addTimeLimitedStep));
 
         var ex = Assertions.assertThrows(RuntimeException.class, pipeline::run);
         Assertions.assertDoesNotThrow(pipeline::close);
@@ -38,7 +38,7 @@ public class WrapperTimeLimitTest
     @Test
     public void testPipeline_shouldTimeoutThenBeHandled()
     {
-        Pipeline<?, VoidPayload> pipeline = Assertions.assertDoesNotThrow(() -> createTimeoutPipeline(WrapperTimeLimitTest::addTimeLimitedStepWithErrorHandler));
+        Pipeline<?, VoidPayload> pipeline = Assertions.assertDoesNotThrow(() -> createTimeoutPipeline(StepWrapperTimeLimitTest::addTimeLimitedStepWithErrorHandler));
         Output<?> output = Assertions.assertDoesNotThrow(() -> pipeline.run());
         Assertions.assertDoesNotThrow(pipeline::close);
 

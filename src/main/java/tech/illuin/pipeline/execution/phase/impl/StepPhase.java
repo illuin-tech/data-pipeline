@@ -117,6 +117,7 @@ public class StepPhase<I, P> implements PipelinePhase<I, P>
             Result result = step.execute(indexed, input, output);
 
             metrics.successCounter().increment();
+            metrics.resultCounter(result).increment();
             return result;
         }
         catch (Exception e) {

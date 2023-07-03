@@ -7,6 +7,7 @@ import io.micrometer.core.instrument.Timer;
 import tech.illuin.pipeline.Pipeline;
 import tech.illuin.pipeline.output.PipelineTag;
 import tech.illuin.pipeline.step.builder.StepDescriptor;
+import tech.illuin.pipeline.step.result.Result;
 
 import java.util.Map;
 
@@ -54,9 +55,14 @@ public class PipelineStepMetrics
         return this.failureCounter;
     }
 
+    public Counter resultCounter(Result result)
+    {
+        return this.meterRegistry.counter(MeterRegistryKeys.PIPELINE_STEP_RESULT_TOTAL_KEY, "pipeline", this.pipeline.id(), "step", this.stepId, "result", result.name());
+    }
+
     public Counter errorCounter(Exception exception)
     {
-        return meterRegistry.counter(MeterRegistryKeys.PIPELINE_STEP_ERROR_TOTAL_KEY, "pipeline", this.pipeline.id(), "step", this.stepId, "error", exception.getClass().getName());
+        return this.meterRegistry.counter(MeterRegistryKeys.PIPELINE_STEP_ERROR_TOTAL_KEY, "pipeline", this.pipeline.id(), "step", this.stepId, "error", exception.getClass().getName());
     }
 
     public LabelMarker marker(PipelineTag tag)

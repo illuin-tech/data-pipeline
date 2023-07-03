@@ -24,7 +24,8 @@ public final class MeterRegistryKeys
     public static final String PIPELINE_STEP_RUN_TOTAL_KEY = "pipeline.step.run.total";
     public static final String PIPELINE_STEP_RUN_SUCCESS_KEY = "pipeline.step.run.success";
     public static final String PIPELINE_STEP_RUN_FAILURE_KEY = "pipeline.step.run.failure";
-    public static final String PIPELINE_STEP_ERROR_TOTAL_KEY = "pipeline.initialization.error.total";
+    public static final String PIPELINE_STEP_RESULT_TOTAL_KEY = "pipeline.step.result.total";
+    public static final String PIPELINE_STEP_ERROR_TOTAL_KEY = "pipeline.step.error.total";
     /* Sink Metrics */
     public static final String PIPELINE_SINK_RUN_KEY = "pipeline.sink.run";
     public static final String PIPELINE_SINK_RUN_TOTAL_KEY = "pipeline.sink.run.total";

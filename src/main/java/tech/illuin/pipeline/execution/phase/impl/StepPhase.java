@@ -69,6 +69,7 @@ public class StepPhase<I, P> implements PipelinePhase<I, P>
                 for (Indexable indexed : arguments)
                 {
                     Result result = this.runStep(step, indexed, input, output, context, metrics);
+                    metrics.resultCounter(result).increment();
 
                     StepStrategy strategy = step.postEvaluation(result, indexed, input, context);
                     logger.trace(metrics.marker(output.tag()), "{}#{} received {} signal after step {} over argument {}", this.pipeline.id(), output.tag().uid(), strategy, name, indexed.uid());
@@ -117,7 +118,6 @@ public class StepPhase<I, P> implements PipelinePhase<I, P>
             Result result = step.execute(indexed, input, output);
 
             metrics.successCounter().increment();
-            metrics.resultCounter(result).increment();
             return result;
         }
         catch (Exception e) {

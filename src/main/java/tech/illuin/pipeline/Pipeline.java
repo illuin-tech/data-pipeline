@@ -150,4 +150,14 @@ public interface Pipeline<I, P> extends AutoCloseable
             .setInitializer(initializer)
         ;
     }
+
+    default Context<P> newContext()
+    {
+        return new SimpleContext<>();
+    }
+
+    default Context<P> newContext(Output<P> parent)
+    {
+        return new SimpleContext<>(parent);
+    }
 }

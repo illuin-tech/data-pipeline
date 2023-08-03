@@ -11,7 +11,9 @@ import tech.illuin.pipeline.context.LocalContext;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.sink.Sink;
 import tech.illuin.pipeline.sink.annotation.SinkConfig;
+import tech.illuin.pipeline.step.runner.StepRunnerException;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 
@@ -41,23 +43,40 @@ public class SinkRunner<P> implements Sink<P>
 
         logger.trace("{}#{} launching sink over target {}#{}", localContext.pipelineTag().pipeline(), localContext.pipelineTag().uid(), this.target.getClass().getName(), Reflection.getMethodSignature(this.method));
 
-        MethodArguments<Object, Object, P> originalArguments = new MethodArguments<>(
-            null,
-            localContext.input(),
-            output.payload(),
-            output,
-            null,
-            output.results(),
-            localContext,
-            localContext.pipelineTag(),
-            localContext.componentTag(),
-            localContext.uidGenerator()
-        );
-        Object[] arguments = this.argumentMappers.stream()
-            .map(mapper -> mapper.map(originalArguments))
-            .toArray()
-        ;
-        this.method.invoke(this.target, arguments);
+        try {
+            MethodArguments<Object, Object, P> originalArguments = new MethodArguments<>(
+                null,
+                localContext.input(),
+                output.payload(),
+                output,
+                null,
+                output.results(),
+                localContext,
+                localContext.pipelineTag(),
+                localContext.componentTag(),
+                localContext.uidGenerator()
+            );
+            Object[] arguments = this.argumentMappers.stream()
+                .map(mapper -> mapper.map(originalArguments))
+                .toArray()
+            ;
+            this.method.invoke(this.target, arguments);
+        }
+        catch (InvocationTargetException e) {
+            if (e.getTargetException() instanceof Exception)
+                throw (Exception) e.getTargetException();
+
+            throw new StepRunnerException(
+                "The target method " + this.method.getName() + " of sink runner " + localContext.pipelineTag().pipeline() + "#" + localContext.componentTag().id()
+                    + " has thrown an unexpected exception of type " + e.getTargetException().getClass().getName(), e.getTargetException()
+            );
+        }
+        catch (IllegalAccessException e) {
+            throw new StepRunnerException(
+                "The target method " + this.method.getName() + " of sink runner " + localContext.pipelineTag().pipeline() + "#" + localContext.componentTag().id()
+                    + " unexpectedly has illegal access", e
+            );
+        }
     }
 
     @Override

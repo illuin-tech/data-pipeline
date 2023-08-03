@@ -3,11 +3,13 @@ package tech.illuin.pipeline.sink.annotation;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import tech.illuin.pipeline.Pipeline;
+import tech.illuin.pipeline.PipelineException;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.input.initializer.Initializer;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.sink.Sink;
 import tech.illuin.pipeline.sink.annotation.sink.*;
+import tech.illuin.pipeline.sink.annotation.sink.SinkWithException.SinkWithExceptionException;
 import tech.illuin.pipeline.step.annotation.step.StepWithInput;
 
 /**
@@ -49,6 +51,17 @@ public class PipelineSinkAnnotationTest
         Assertions.assertDoesNotThrow(pipeline::close);
 
         Assertions.assertEquals("input", collector.get());
+    }
+
+    @Test
+    public void testPipeline__shouldCompile_input_exception()
+    {
+        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_input_exception("test-input"));
+
+        PipelineException exception = Assertions.assertThrows(PipelineException.class, () -> pipeline.run("input"));
+        Assertions.assertDoesNotThrow(pipeline::close);
+
+        Assertions.assertTrue(exception.getCause() instanceof SinkWithExceptionException);
     }
 
     @Test
@@ -242,6 +255,14 @@ public class PipelineSinkAnnotationTest
     {
         return Pipeline.ofSimple(name)
             .registerSink(Sink.of(new SinkWithInput<>(collector)))
+            .build()
+        ;
+    }
+
+    public static Pipeline<Object, ?> createPipeline_input_exception(String name)
+    {
+        return Pipeline.ofSimple(name)
+            .registerSink(Sink.of(new SinkWithException<>()))
             .build()
         ;
     }

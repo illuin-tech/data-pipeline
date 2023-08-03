@@ -3,9 +3,12 @@ package tech.illuin.pipeline.input.initializer.annotation;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import tech.illuin.pipeline.Pipeline;
+import tech.illuin.pipeline.PipelineException;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.input.initializer.Initializer;
 import tech.illuin.pipeline.input.initializer.annotation.initializer.InitializerWithContext;
+import tech.illuin.pipeline.input.initializer.annotation.initializer.InitializerWithException;
+import tech.illuin.pipeline.input.initializer.annotation.initializer.InitializerWithException.InitializerWithExceptionException;
 import tech.illuin.pipeline.input.initializer.annotation.initializer.InitializerWithInput;
 import tech.illuin.pipeline.input.initializer.annotation.initializer.InitializerWithTags;
 import tech.illuin.pipeline.output.Output;
@@ -46,6 +49,18 @@ public class PipelineInitializerAnnotationTest
         Assertions.assertDoesNotThrow(pipeline::close);
 
         Assertions.assertEquals("input", output.payload().object().value());
+    }
+
+
+    @Test
+    public void testPipeline__shouldCompile_input_exception()
+    {
+        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_input_exception("test-input"));
+
+        PipelineException exception = Assertions.assertThrows(PipelineException.class, () -> pipeline.run("input"));
+        Assertions.assertDoesNotThrow(pipeline::close);
+
+        Assertions.assertTrue(exception.getCause() instanceof InitializerWithExceptionException);
     }
 
     @Test
@@ -98,6 +113,15 @@ public class PipelineInitializerAnnotationTest
     {
         return Pipeline.<Object, TestPayload>ofPayload(name)
             .setInitializer(Initializer.of(new InitializerWithInput<>()))
+            .registerIndexer(TestPayload::object)
+            .build()
+        ;
+    }
+
+    public static Pipeline<Object, TestPayload> createPipeline_input_exception(String name)
+    {
+        return Pipeline.<Object, TestPayload>ofPayload(name)
+            .setInitializer(new InitializerWithException<>())
             .registerIndexer(TestPayload::object)
             .build()
         ;

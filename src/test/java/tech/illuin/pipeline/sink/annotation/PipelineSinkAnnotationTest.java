@@ -6,6 +6,7 @@ import tech.illuin.pipeline.Pipeline;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.input.initializer.Initializer;
 import tech.illuin.pipeline.output.Output;
+import tech.illuin.pipeline.sink.Sink;
 import tech.illuin.pipeline.sink.annotation.sink.*;
 import tech.illuin.pipeline.step.annotation.step.StepWithInput;
 
@@ -19,6 +20,30 @@ public class PipelineSinkAnnotationTest
     {
         StringCollector collector = new StringCollector();
         Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_input("test-input", collector));
+
+        Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
+        Assertions.assertDoesNotThrow(pipeline::close);
+
+        Assertions.assertEquals("input", collector.get());
+    }
+
+    @Test
+    public void testPipeline__shouldCompile_input_assembler()
+    {
+        StringCollector collector = new StringCollector();
+        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_input_assembler("test-input", collector));
+
+        Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
+        Assertions.assertDoesNotThrow(pipeline::close);
+
+        Assertions.assertEquals("input", collector.get());
+    }
+
+    @Test
+    public void testPipeline__shouldCompile_input_of()
+    {
+        StringCollector collector = new StringCollector();
+        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_input_of("test-input", collector));
 
         Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
@@ -201,6 +226,22 @@ public class PipelineSinkAnnotationTest
     {
         return Pipeline.ofSimple(name)
             .registerSink(new SinkWithInput<>(collector))
+            .build()
+        ;
+    }
+
+    public static Pipeline<Object, ?> createPipeline_input_assembler(String name, StringCollector collector)
+    {
+        return Pipeline.ofSimple(name)
+            .registerSink(builder -> builder.sink(new SinkWithInput<>(collector)))
+            .build()
+        ;
+    }
+
+    public static Pipeline<Object, ?> createPipeline_input_of(String name, StringCollector collector)
+    {
+        return Pipeline.ofSimple(name)
+            .registerSink(Sink.of(new SinkWithInput<>(collector)))
             .build()
         ;
     }

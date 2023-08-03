@@ -3,6 +3,7 @@ package tech.illuin.pipeline.input.initializer;
 
 import tech.illuin.pipeline.commons.Reflection;
 import tech.illuin.pipeline.context.Context;
+import tech.illuin.pipeline.input.initializer.runner.InitializerRunner;
 import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
 import tech.illuin.pipeline.output.Output;
 
@@ -29,5 +30,14 @@ public interface Initializer<I, P>
     default String defaultId()
     {
         return Reflection.isAnonymousImplementation(this.getClass()) ? "anonymous-init" : this.getClass().getName();
+    }
+
+    /**
+     * Create an {@link Initializer} out of a non-specific instance (i.e. not an {@link Initializer} implementation).
+     * The resulting initializer will leverage reflection-based method introspection mechanisms for resolving execution configuration.
+     */
+    static <I, P> Initializer<I, P> of(Object target)
+    {
+        return new InitializerRunner<>(target);
     }
 }

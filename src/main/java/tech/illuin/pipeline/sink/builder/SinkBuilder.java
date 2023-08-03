@@ -64,7 +64,7 @@ public class SinkBuilder<P> extends ComponentBuilder<Object, Object, P, SinkDesc
 
     public SinkBuilder<P> sink(Object target)
     {
-        this.sink = new SinkRunner<>(target);
+        this.sink = Sink.of(target);
         return this;
     }
 

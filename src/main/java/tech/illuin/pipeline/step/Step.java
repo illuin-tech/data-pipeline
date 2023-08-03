@@ -6,6 +6,7 @@ import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.step.result.Result;
 import tech.illuin.pipeline.step.result.ResultView;
+import tech.illuin.pipeline.step.runner.StepRunner;
 
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
@@ -22,5 +23,14 @@ public interface Step<T extends Indexable, I, P>
     default String defaultId()
     {
         return Reflection.isAnonymousImplementation(this.getClass()) ? "anonymous-step" : this.getClass().getName();
+    }
+
+    /**
+     * Create a {@link Step} out of a non-specific instance (i.e. not a {@link Step} implementation).
+     * The resulting step will leverage reflection-based method introspection mechanisms for resolving execution configuration.
+     */
+    static <T extends Indexable, I, P> Step<T, I, P> of(Object target)
+    {
+        return new StepRunner<>(target);
     }
 }

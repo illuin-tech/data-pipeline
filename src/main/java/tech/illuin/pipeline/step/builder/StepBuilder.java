@@ -107,7 +107,7 @@ public class StepBuilder<T extends Indexable, I, P> extends ComponentBuilder<T, 
 
     public StepBuilder<T, I, P> step(Object target)
     {
-        this.step = new StepRunner<>(target);
+        this.step = Step.of(target);
         return this;
     }
 

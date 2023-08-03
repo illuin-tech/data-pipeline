@@ -22,7 +22,7 @@ public class ComponentTagMapperFactory<T, I, P> implements MethodArgumentMapperF
         Class<?> parameterType = parameter.getType();
         return args -> {
             if (!parameterType.isAssignableFrom(args.componentTag().getClass()))
-                throw new IllegalArgumentException("This component expects the component tag to be a subtype of " + parameterType.getSimpleName() + " actual generator is of type " + args.componentTag().getClass().getSimpleName());
+                throw new IllegalArgumentException("This component expects the component tag to be a subtype of " + parameterType.getSimpleName() + " actual tag is of type " + args.componentTag().getClass().getSimpleName());
             return args.componentTag();
         };
     }

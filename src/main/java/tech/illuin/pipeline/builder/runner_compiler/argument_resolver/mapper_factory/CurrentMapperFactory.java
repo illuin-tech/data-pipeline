@@ -24,7 +24,7 @@ public class CurrentMapperFactory<T, I, P> implements MethodArgumentMapperFactor
     public MethodArgumentMapper<T, I, P> produce(Annotation category, Parameter parameter)
     {
         if (Result.class.isAssignableFrom(parameter.getType()))
-            return args -> args.results().current((Class<Result>) parameter.getType()).get();
+            return args -> args.results().current((Class<Result>) parameter.getType()).orElseThrow();
 
         Optional<Class<? extends Result>> optionalArg = Reflection.getOptionalParameter(parameter, Result.class);
         if (optionalArg.isPresent())

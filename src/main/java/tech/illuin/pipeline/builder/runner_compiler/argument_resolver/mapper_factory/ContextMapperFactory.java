@@ -22,7 +22,7 @@ public class ContextMapperFactory<T, I, P> implements MethodArgumentMapperFactor
         Class<?> parameterType = parameter.getType();
         return args -> {
             if (!parameterType.isAssignableFrom(args.context().getClass()))
-                throw new IllegalArgumentException("This component expects the context to be a subtype of " + parameterType.getSimpleName() + " actual tag is of type " + args.context().getClass().getSimpleName());
+                throw new IllegalArgumentException("This component expects the context to be a subtype of " + parameterType.getSimpleName() + " actual context is of type " + args.context().getClass().getSimpleName());
             return args.context();
         };
     }

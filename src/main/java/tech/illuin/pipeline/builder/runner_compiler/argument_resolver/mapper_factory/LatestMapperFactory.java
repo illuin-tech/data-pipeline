@@ -24,7 +24,7 @@ public class LatestMapperFactory<T, I, P> implements MethodArgumentMapperFactory
     public MethodArgumentMapper<T, I, P> produce(Annotation category, Parameter parameter)
     {
         if (Result.class.isAssignableFrom(parameter.getType()))
-            return args -> args.results().latest((Class<Result>) parameter.getType()).get();
+            return args -> args.results().latest((Class<Result>) parameter.getType()).orElseThrow();
 
         Optional<Class<? extends Result>> optionalArg = Reflection.getOptionalParameter(parameter, Result.class);
         if (optionalArg.isPresent())

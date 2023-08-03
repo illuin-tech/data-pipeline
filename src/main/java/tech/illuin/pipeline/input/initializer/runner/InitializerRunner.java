@@ -11,7 +11,9 @@ import tech.illuin.pipeline.context.LocalContext;
 import tech.illuin.pipeline.input.initializer.Initializer;
 import tech.illuin.pipeline.input.initializer.annotation.InitializerConfig;
 import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
+import tech.illuin.pipeline.step.runner.StepRunnerException;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 
@@ -41,25 +43,42 @@ public class InitializerRunner<I, P> implements Initializer<I, P>
 
         logger.trace("{}#{} launching initializer over target {}#{}", localContext.pipelineTag().pipeline(), localContext.pipelineTag().uid(), this.target.getClass().getName(), Reflection.getMethodSignature(this.method));
 
-        MethodArguments<Object, I, P> originalArguments = new MethodArguments<>(
-            null,
-            input,
-            null,
-            null,
-            null,
-            null,
-            localContext,
-            localContext.pipelineTag(),
-            localContext.componentTag(),
-            generator
-        );
-        Object[] arguments = this.argumentMappers.stream()
-            .map(mapper -> mapper.map(originalArguments))
-            .toArray()
-        ;
+        try {
+            MethodArguments<Object, I, P> originalArguments = new MethodArguments<>(
+                null,
+                input,
+                null,
+                null,
+                null,
+                null,
+                localContext,
+                localContext.pipelineTag(),
+                localContext.componentTag(),
+                generator
+            );
+            Object[] arguments = this.argumentMappers.stream()
+                .map(mapper -> mapper.map(originalArguments))
+                .toArray()
+            ;
 
-        //noinspection unchecked
-        return (P) this.method.invoke(this.target, arguments);
+            //noinspection unchecked
+            return (P) this.method.invoke(this.target, arguments);
+        }
+        catch (InvocationTargetException e) {
+            if (e.getTargetException() instanceof Exception)
+                throw (Exception) e.getTargetException();
+
+            throw new StepRunnerException(
+                "The target method " + this.method.getName() + " of initializer runner " + localContext.pipelineTag().pipeline() + "#" + localContext.componentTag().id()
+                    + " has thrown an unexpected exception of type " + e.getTargetException().getClass().getName(), e.getTargetException()
+            );
+        }
+        catch (IllegalAccessException e) {
+            throw new StepRunnerException(
+                "The target method " + this.method.getName() + " of initializer runner " + localContext.pipelineTag().pipeline() + "#" + localContext.componentTag().id()
+                    + " unexpectedly has illegal access", e
+            );
+        }
     }
 
     @Override

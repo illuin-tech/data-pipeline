@@ -14,6 +14,7 @@ import tech.illuin.pipeline.step.annotation.StepConfig;
 import tech.illuin.pipeline.step.result.Result;
 import tech.illuin.pipeline.step.result.ResultView;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 
@@ -43,23 +44,42 @@ public class StepRunner<T extends Indexable, I, P> implements Step<T, I, P>
 
         logger.trace("{}#{} launching step over target {}#{}", localContext.pipelineTag().pipeline(), localContext.pipelineTag().uid(), this.target.getClass().getName(), Reflection.getMethodSignature(this.method));
 
-        MethodArguments<T, I, P> originalArguments = new MethodArguments<>(
-            object,
-            input,
-            payload,
-            null,
-            results,
-            results,
-            context,
-            localContext.pipelineTag(),
-            localContext.componentTag(),
-            localContext.uidGenerator()
-        );
-        java.lang.Object[] arguments = this.argumentMappers.stream()
-            .map(mapper -> mapper.map(originalArguments))
-            .toArray()
-        ;
-        return (Result) this.method.invoke(this.target, arguments);
+        try {
+            MethodArguments<T, I, P> originalArguments = new MethodArguments<>(
+                object,
+                input,
+                payload,
+                null,
+                results,
+                results,
+                context,
+                localContext.pipelineTag(),
+                localContext.componentTag(),
+                localContext.uidGenerator()
+            );
+            java.lang.Object[] arguments = this.argumentMappers.stream()
+                .map(mapper -> mapper.map(originalArguments))
+                .toArray()
+            ;
+            return (Result) this.method.invoke(this.target, arguments);
+        }
+        catch (InvocationTargetException e) {
+            if (e.getTargetException() instanceof Exception)
+                throw (Exception) e.getTargetException();
+
+            throw new StepRunnerException(
+                "The target method " + this.method.getName() + " of step runner " + localContext.pipelineTag().pipeline() + "#" + localContext.componentTag().id()
+                    + " has thrown an unexpected exception of type " + e.getTargetException().getClass().getName(),
+                e.getTargetException()
+            );
+        }
+        catch (IllegalAccessException e) {
+            throw new StepRunnerException(
+                "The target method " + this.method.getName() + " of step runner " + localContext.pipelineTag().pipeline() + "#" + localContext.componentTag().id()
+                    + " unexpectedly has illegal access",
+                e
+            );
+        }
     }
 
     @Override

@@ -3,12 +3,14 @@ package tech.illuin.pipeline.step.annotation;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import tech.illuin.pipeline.Pipeline;
+import tech.illuin.pipeline.PipelineException;
 import tech.illuin.pipeline.generic.pipeline.TestResult;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.input.initializer.Initializer;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.step.Step;
 import tech.illuin.pipeline.step.annotation.step.*;
+import tech.illuin.pipeline.step.annotation.step.StepWithException.StepWithExceptionException;
 
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
@@ -55,6 +57,17 @@ public class PipelineStepAnnotationTest
             "input",
             output.results().current(TestResult.class).map(TestResult::status).orElse(null)
         );
+    }
+
+    @Test
+    public void testPipeline__shouldCompile_input_exception()
+    {
+        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_input_exception("test-input"));
+
+        PipelineException exception = Assertions.assertThrows(PipelineException.class, () -> pipeline.run("input"));
+        Assertions.assertDoesNotThrow(pipeline::close);
+
+        Assertions.assertTrue(exception.getCause() instanceof StepWithExceptionException);
     }
 
     @Test
@@ -194,6 +207,14 @@ public class PipelineStepAnnotationTest
     {
         return Pipeline.ofSimple(name)
             .registerStep(Step.of(new StepWithInput<>()))
+            .build()
+        ;
+    }
+
+    public static Pipeline<Object, ?> createPipeline_input_exception(String name)
+    {
+        return Pipeline.ofSimple(name)
+            .registerStep(new StepWithException<>())
             .build()
         ;
     }

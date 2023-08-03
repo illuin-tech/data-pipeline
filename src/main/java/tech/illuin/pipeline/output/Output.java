@@ -59,7 +59,7 @@ public class Output<T> implements Comparable<Output<T>>
 
     public Optional<Instant> finishedAt()
     {
-        return Optional.ofNullable(this.createdAt);
+        return Optional.ofNullable(this.finishedAt);
     }
 
     public T payload()

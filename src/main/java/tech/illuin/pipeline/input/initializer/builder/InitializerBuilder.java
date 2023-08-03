@@ -1,30 +1,34 @@
 package tech.illuin.pipeline.input.initializer.builder;
 
+import tech.illuin.pipeline.builder.ComponentBuilder;
+import tech.illuin.pipeline.builder.runner_compiler.CompiledMethod;
 import tech.illuin.pipeline.input.initializer.Initializer;
 import tech.illuin.pipeline.input.initializer.annotation.InitializerConfig;
 import tech.illuin.pipeline.input.initializer.execution.error.InitializerErrorHandler;
+import tech.illuin.pipeline.input.initializer.runner.InitializerRunner;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Optional;
 
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public class InitializerBuilder<I, P>
+public class InitializerBuilder<I, P> extends ComponentBuilder<Object, I, P, InitializerDescriptor<I, P>, InitializerConfig>
 {
     private String id;
     private Initializer<I, P> initializer;
     private InitializerErrorHandler<P> errorHandler;
 
+    public InitializerBuilder()
+    {
+        super(InitializerConfig.class, new InitializerMethodArgumentResolver<>(), InitializerMethodValidators.validators);
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
-    private void checkAnnotation()
+    protected void fillFromAnnotation(InitializerConfig annotation)
     {
         try {
-            var type = this.initializer.getClass();
-            if (!type.isAnnotationPresent(InitializerConfig.class))
-                return;
-
-            var annotation = type.getAnnotation(InitializerConfig.class);
-
             if (annotation.id() != null && !annotation.id().isBlank())
                 this.id = annotation.id();
             if (this.errorHandler == null && annotation.errorHandler() != null && annotation.errorHandler() != InitializerErrorHandler.class)
@@ -35,8 +39,9 @@ public class InitializerBuilder<I, P>
         }
     }
 
+    @Override
     @SuppressWarnings("unchecked")
-    private void fillDefaults()
+    protected void fillDefaults()
     {
         if (this.id == null)
             this.id = this.initializer.defaultId();
@@ -62,12 +67,24 @@ public class InitializerBuilder<I, P>
         return this;
     }
 
-    InitializerDescriptor<I, P> build()
+    @Override
+    protected InitializerDescriptor<I, P> build()
     {
         if (this.initializer == null)
             throw new IllegalStateException("An InitializerDescriptor cannot be built from a null initializer");
 
-        this.checkAnnotation();
+        Optional<InitializerConfig> config;
+        if (this.initializer instanceof InitializerRunner<I, P> initializerRunner)
+        {
+            CompiledMethod<InitializerConfig, Object, I, P> compiled = this.compiler.compile(initializerRunner.target());
+            initializerRunner.build(compiled);
+            config = Optional.of(compiled.config());
+        }
+        else
+            config = this.checkAnnotation(this.initializer);
+
+        config.ifPresent(this::fillFromAnnotation);
+
         this.fillDefaults();
 
         return new InitializerDescriptor<>(

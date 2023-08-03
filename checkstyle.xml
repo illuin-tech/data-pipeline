@@ -34,7 +34,7 @@
     </module>
     <module name="LineLength">
         <property name="fileExtensions" value="java"/>
-        <property name="max" value="200"/>
+        <property name="max" value="250"/>
         <property name="ignorePattern" value="^ *\* .*$"/>
     </module>
 

@@ -1,0 +1,93 @@
+package tech.illuin.pipeline.builder.runner_compiler;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import tech.illuin.pipeline.builder.runner_compiler.argument_resolver.MethodArgumentResolver;
+import tech.illuin.pipeline.builder.runner_compiler.argument_resolver.mapper_factory.MethodArgumentMapper;
+import tech.illuin.pipeline.commons.Reflection;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+/**
+ * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
+ */
+public class GenericRunnerCompiler<C extends Annotation, T, I, P> implements RunnerCompiler<C, T, I, P>
+{
+    private final Class<C> configType;
+    private final MethodArgumentResolver<T, I, P> argumentResolver;
+    private final List<MethodValidator> methodValidators;
+
+    private static final Logger logger = LoggerFactory.getLogger(GenericRunnerCompiler.class);
+
+    public GenericRunnerCompiler(Class<C> configType, MethodArgumentResolver<T, I, P> argumentResolver)
+    {
+        this(configType, argumentResolver, Collections.emptyList());
+    }
+
+    public GenericRunnerCompiler(Class<C> configType, MethodArgumentResolver<T, I, P> argumentResolver, List<MethodValidator> additionalValidators)
+    {
+        this.configType = configType;
+        this.argumentResolver = argumentResolver;
+        this.methodValidators = additionalValidators;
+    }
+
+    @Override
+    public CompiledMethod<C, T, I, P> compile(Object target)
+    {
+        logger.trace("{}: Compiling runner-based " + this.configType.getSimpleName() + " with target type " + target.getClass().getName(), this);
+
+        Class<?> c = target.getClass();
+        List<MethodCandidate<C>> candidates = this.lookupStepMethods(c);
+
+        if (candidates.isEmpty())
+            throw new IllegalStateException("No candidate " + this.configType.getSimpleName() + " method could be found in target class " + c.getSimpleName());
+        if (candidates.size() > 1)
+            throw new IllegalStateException("There can only be one " + this.configType.getSimpleName() + " method per class.");
+
+        MethodCandidate<C> candidate = candidates.get(0);
+        logger.trace("{}: Found method candidate {}", this, Reflection.getMethodSignature(candidate.method()));
+
+        for (MethodValidator validator : this.methodValidators)
+            validator.validate(candidate.method());
+
+        return new CompiledMethod<>(
+            candidate.method(),
+            this.compileArguments(candidate),
+            candidate.config()
+        );
+    }
+
+    private List<MethodCandidate<C>> lookupStepMethods(Class<?> c)
+    {
+        List<MethodCandidate<C>> candidates = new ArrayList<>();
+        for (Method method : c.getDeclaredMethods())
+        {
+            C[] configs = method.getDeclaredAnnotationsByType(this.configType);
+            if (configs.length > 0)
+                candidates.add(new MethodCandidate<>(method, configs[0]));
+        }
+        return candidates;
+    }
+
+    private List<MethodArgumentMapper<T, I, P>> compileArguments(MethodCandidate<C> candidate)
+    {
+        List<MethodArgumentMapper<T, I, P>> mappers = new ArrayList<>();
+        Parameter[] parameters = candidate.method().getParameters();
+        for (Parameter parameter : parameters)
+        {
+            MethodArgumentMapper<T, I, P> mapper = this.argumentResolver.resolveMapper(parameter);
+            mappers.add(mapper);
+        }
+        return mappers;
+    }
+
+    public record MethodCandidate<C extends Annotation>(
+        Method method,
+        C config
+    ) {}
+}

@@ -55,6 +55,12 @@ public class InitializerBuilder<I, P> extends ComponentBuilder<Object, I, P, Ini
         return this;
     }
 
+    public InitializerBuilder<I, P> initializer(Object target)
+    {
+        this.initializer = Initializer.of(target);
+        return this;
+    }
+
     public InitializerBuilder<I, P> withId(String id)
     {
         this.id = id;

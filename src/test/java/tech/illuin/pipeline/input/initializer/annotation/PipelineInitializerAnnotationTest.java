@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import tech.illuin.pipeline.Pipeline;
 import tech.illuin.pipeline.input.indexer.Indexable;
+import tech.illuin.pipeline.input.initializer.Initializer;
 import tech.illuin.pipeline.input.initializer.annotation.initializer.InitializerWithContext;
 import tech.illuin.pipeline.input.initializer.annotation.initializer.InitializerWithInput;
 import tech.illuin.pipeline.input.initializer.annotation.initializer.InitializerWithTags;
@@ -18,6 +19,28 @@ public class PipelineInitializerAnnotationTest
     public void testPipeline__shouldCompile_input()
     {
         Pipeline<Object, TestPayload> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_input("test-input"));
+
+        Output<TestPayload> output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
+        Assertions.assertDoesNotThrow(pipeline::close);
+
+        Assertions.assertEquals("input", output.payload().object().value());
+    }
+
+    @Test
+    public void testPipeline__shouldCompile_input_assembler()
+    {
+        Pipeline<Object, TestPayload> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_input_assembler("test-input"));
+
+        Output<TestPayload> output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
+        Assertions.assertDoesNotThrow(pipeline::close);
+
+        Assertions.assertEquals("input", output.payload().object().value());
+    }
+
+    @Test
+    public void testPipeline__shouldCompile_input_of()
+    {
+        Pipeline<Object, TestPayload> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_input_of("test-input"));
 
         Output<TestPayload> output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
@@ -57,6 +80,24 @@ public class PipelineInitializerAnnotationTest
     {
         return Pipeline.<Object, TestPayload>ofPayload(name)
             .setInitializer(new InitializerWithInput<>())
+            .registerIndexer(TestPayload::object)
+            .build()
+        ;
+    }
+
+    public static Pipeline<Object, TestPayload> createPipeline_input_assembler(String name)
+    {
+        return Pipeline.<Object, TestPayload>ofPayload(name)
+            .setInitializer(builder -> builder.initializer(new InitializerWithInput<>()))
+            .registerIndexer(TestPayload::object)
+            .build()
+        ;
+    }
+
+    public static Pipeline<Object, TestPayload> createPipeline_input_of(String name)
+    {
+        return Pipeline.<Object, TestPayload>ofPayload(name)
+            .setInitializer(Initializer.of(new InitializerWithInput<>()))
             .registerIndexer(TestPayload::object)
             .build()
         ;

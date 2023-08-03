@@ -7,6 +7,7 @@ import tech.illuin.pipeline.generic.pipeline.TestResult;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.input.initializer.Initializer;
 import tech.illuin.pipeline.output.Output;
+import tech.illuin.pipeline.step.Step;
 import tech.illuin.pipeline.step.annotation.step.*;
 
 /**
@@ -18,6 +19,34 @@ public class PipelineStepAnnotationTest
     public void testPipeline__shouldCompile_input()
     {
         Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_input("test-input"));
+
+        Output<?> output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
+        Assertions.assertDoesNotThrow(pipeline::close);
+
+        Assertions.assertEquals(
+            "input",
+            output.results().current(TestResult.class).map(TestResult::status).orElse(null)
+        );
+    }
+
+    @Test
+    public void testPipeline__shouldCompile_input_assembler()
+    {
+        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_input_assembler("test-input"));
+
+        Output<?> output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
+        Assertions.assertDoesNotThrow(pipeline::close);
+
+        Assertions.assertEquals(
+            "input",
+            output.results().current(TestResult.class).map(TestResult::status).orElse(null)
+        );
+    }
+
+    @Test
+    public void testPipeline__shouldCompile_input_of()
+    {
+        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_input_of("test-input"));
 
         Output<?> output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
@@ -149,6 +178,22 @@ public class PipelineStepAnnotationTest
     {
         return Pipeline.ofSimple(name)
             .registerStep(new StepWithInput<>())
+            .build()
+        ;
+    }
+
+    public static Pipeline<Object, ?> createPipeline_input_assembler(String name)
+    {
+        return Pipeline.ofSimple(name)
+            .registerStep(builder -> builder.step(new StepWithInput<>()))
+            .build()
+        ;
+    }
+
+    public static Pipeline<Object, ?> createPipeline_input_of(String name)
+    {
+        return Pipeline.ofSimple(name)
+            .registerStep(Step.of(new StepWithInput<>()))
             .build()
         ;
     }

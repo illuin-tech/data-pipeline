@@ -14,9 +14,9 @@ public interface Step<T extends Indexable, I, P>
 {
     Result execute(T object, I input, P payload, ResultView results, Context<P> context) throws Exception;
 
-    default Result execute(T object, I input, Output<P> output) throws Exception
+    default Result execute(T object, I input, Output<P> output, Context<P> context) throws Exception
     {
-        return this.execute(object, input, output.payload(), output.results().view(object), output.context());
+        return this.execute(object, input, output.payload(), output.results().view(object), context);
     }
 
     default String defaultId()

@@ -1,5 +1,7 @@
 package tech.illuin.pipeline.step.builder;
 
+import tech.illuin.pipeline.builder.ComponentBuilder;
+import tech.illuin.pipeline.builder.runner_compiler.CompiledMethod;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.step.Step;
 import tech.illuin.pipeline.step.annotation.StepConfig;
@@ -7,16 +9,18 @@ import tech.illuin.pipeline.step.execution.condition.StepCondition;
 import tech.illuin.pipeline.step.execution.error.StepErrorHandler;
 import tech.illuin.pipeline.step.execution.evaluator.ResultEvaluator;
 import tech.illuin.pipeline.step.execution.wrapper.StepWrapper;
+import tech.illuin.pipeline.step.runner.StepRunner;
 import tech.illuin.pipeline.step.variant.IndexableStep;
 import tech.illuin.pipeline.step.variant.InputStep;
 import tech.illuin.pipeline.step.variant.PayloadStep;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Optional;
 
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public class StepBuilder<T extends Indexable, I, P>
+public class StepBuilder<T extends Indexable, I, P> extends ComponentBuilder<T, I, P, StepDescriptor<T, I, P>, StepConfig>
 {
     private String id;
     private Step<T, I, P> step;
@@ -26,15 +30,15 @@ public class StepBuilder<T extends Indexable, I, P>
     private ResultEvaluator resultEvaluator;
     private StepErrorHandler errorHandler;
 
-    private void checkAnnotation()
+    public StepBuilder()
+    {
+        super(StepConfig.class, new StepMethodArgumentResolver<>(), StepMethodValidators.validators);
+    }
+
+    @Override
+    protected void fillFromAnnotation(StepConfig annotation)
     {
         try {
-            var type = this.step.getClass();
-            if (!type.isAnnotationPresent(StepConfig.class))
-                return;
-
-            var annotation = type.getAnnotation(StepConfig.class);
-
             if (this.executionWrapper == null && annotation.id() != null && !annotation.id().isBlank())
                 this.id = annotation.id();
             if (this.pinned == null)
@@ -56,7 +60,8 @@ public class StepBuilder<T extends Indexable, I, P>
         }
     }
 
-    private void fillDefaults()
+    @Override
+    protected void fillDefaults()
     {
         if (this.id == null)
             this.id = this.step.defaultId();
@@ -97,6 +102,12 @@ public class StepBuilder<T extends Indexable, I, P>
     public StepBuilder<T, I, P> step(PayloadStep<P> step)
     {
         this.step = (Step<T, I, P>) step;
+        return this;
+    }
+
+    public StepBuilder<T, I, P> step(Object target)
+    {
+        this.step = new StepRunner<>(target);
         return this;
     }
 
@@ -142,12 +153,24 @@ public class StepBuilder<T extends Indexable, I, P>
         return this;
     }
 
-    StepDescriptor<T, I, P> build()
+    @Override
+    protected StepDescriptor<T, I, P> build()
     {
         if (this.step == null)
             throw new IllegalStateException("A StepDescriptor cannot be built from a null step");
 
-        this.checkAnnotation();
+        Optional<StepConfig> config;
+        if (this.step instanceof StepRunner<T, I, P> stepRunner)
+        {
+            CompiledMethod<StepConfig, T, I, P> compiled = this.compiler.compile(stepRunner.target());
+            stepRunner.build(compiled);
+            config = Optional.of(compiled.config());
+        }
+        else
+            config = this.checkAnnotation(this.step);
+
+        config.ifPresent(this::fillFromAnnotation);
+
         this.fillDefaults();
 
         return new StepDescriptor<>(

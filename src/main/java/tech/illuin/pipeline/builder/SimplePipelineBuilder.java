@@ -20,12 +20,14 @@ import tech.illuin.pipeline.sink.builder.SinkAssembler;
 import tech.illuin.pipeline.sink.builder.SinkBuilder;
 import tech.illuin.pipeline.sink.builder.SinkDescriptor;
 import tech.illuin.pipeline.sink.execution.error.SinkErrorHandler;
+import tech.illuin.pipeline.sink.runner.SinkRunner;
 import tech.illuin.pipeline.step.Step;
 import tech.illuin.pipeline.step.builder.StepAssembler;
 import tech.illuin.pipeline.step.builder.StepBuilder;
 import tech.illuin.pipeline.step.builder.StepDescriptor;
 import tech.illuin.pipeline.step.execution.error.StepErrorHandler;
 import tech.illuin.pipeline.step.execution.evaluator.ResultEvaluator;
+import tech.illuin.pipeline.step.runner.StepRunner;
 import tech.illuin.pipeline.step.variant.InputStep;
 
 import java.util.ArrayList;
@@ -152,6 +154,11 @@ public final class SimplePipelineBuilder<I>
         return this.registerStep((Step<Indexable, I, ?>) step);
     }
 
+    public SimplePipelineBuilder<I> registerStep(Object target)
+    {
+        return this.registerStep(new StepRunner<>(target));
+    }
+
     @SuppressWarnings("unchecked")
     public SimplePipelineBuilder<I> registerStep(StepAssembler<?, I, ?> builder)
     {
@@ -194,6 +201,11 @@ public final class SimplePipelineBuilder<I>
             .sink((Sink<Object>) sink)
             .setAsync(async)
         );
+    }
+
+    public SimplePipelineBuilder<I> registerSink(Object target)
+    {
+        return this.registerSink(new SinkRunner<>(target));
     }
 
     @SuppressWarnings("unchecked")

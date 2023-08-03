@@ -31,7 +31,6 @@ public class SimpleContext<P> implements Context<P>
         return Optional.ofNullable(this.parent);
     }
 
-
     @Override
     public Context<P> set(String key, Object value)
     {

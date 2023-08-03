@@ -43,9 +43,9 @@ public final class StepDescriptor<T extends Indexable, I, P>
         this.errorHandler = errorHandler;
     }
 
-    public Result execute(T data, I input, Output<P> output) throws Exception
+    public Result execute(T data, I input, Output<P> output, Context<P> ctx) throws Exception
     {
-        return this.executionWrapper.wrap(this.step).execute(data, input, output);
+        return this.executionWrapper.wrap(this.step).execute(data, input, output, ctx);
     }
 
     public boolean canExecute(Indexable indexable, Context<P> ctx)

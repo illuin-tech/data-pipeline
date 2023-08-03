@@ -14,6 +14,7 @@ import tech.illuin.pipeline.input.initializer.Initializer;
 import tech.illuin.pipeline.input.initializer.builder.InitializerAssembler;
 import tech.illuin.pipeline.input.initializer.builder.InitializerBuilder;
 import tech.illuin.pipeline.input.initializer.builder.InitializerDescriptor;
+import tech.illuin.pipeline.input.initializer.runner.InitializerRunner;
 import tech.illuin.pipeline.input.uid_generator.KSUIDGenerator;
 import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
 import tech.illuin.pipeline.output.factory.DefaultOutputFactory;
@@ -23,12 +24,14 @@ import tech.illuin.pipeline.sink.builder.SinkAssembler;
 import tech.illuin.pipeline.sink.builder.SinkBuilder;
 import tech.illuin.pipeline.sink.builder.SinkDescriptor;
 import tech.illuin.pipeline.sink.execution.error.SinkErrorHandler;
+import tech.illuin.pipeline.sink.runner.SinkRunner;
 import tech.illuin.pipeline.step.Step;
 import tech.illuin.pipeline.step.builder.StepAssembler;
 import tech.illuin.pipeline.step.builder.StepBuilder;
 import tech.illuin.pipeline.step.builder.StepDescriptor;
 import tech.illuin.pipeline.step.execution.error.StepErrorHandler;
 import tech.illuin.pipeline.step.execution.evaluator.ResultEvaluator;
+import tech.illuin.pipeline.step.runner.StepRunner;
 import tech.illuin.pipeline.step.variant.IndexableStep;
 import tech.illuin.pipeline.step.variant.InputStep;
 import tech.illuin.pipeline.step.variant.PayloadStep;
@@ -178,6 +181,11 @@ public final class PayloadPipelineBuilder<I, P>
         return this.registerStep((Step<Indexable, I, P>) step);
     }
 
+    public PayloadPipelineBuilder<I, P> registerStep(Object target)
+    {
+        return this.registerStep(new StepRunner<>(target));
+    }
+
     @SuppressWarnings("unchecked")
     public PayloadPipelineBuilder<I, P> registerStep(StepAssembler<? extends Indexable, I, ? extends P> assembler)
     {
@@ -203,6 +211,11 @@ public final class PayloadPipelineBuilder<I, P>
     public PayloadPipelineBuilder<I, P> registerSink(Sink<? extends P> sink)
     {
         return this.registerSink(sink, false);
+    }
+
+    public PayloadPipelineBuilder<I, P> registerSink(Object target)
+    {
+        return this.registerSink(new SinkRunner<>(target));
     }
 
     @SuppressWarnings("unchecked")
@@ -336,6 +349,11 @@ public final class PayloadPipelineBuilder<I, P>
     public PayloadPipelineBuilder<I, P> setInitializer(Initializer<I, ? extends P> initializer)
     {
         return this.setInitializer(builder -> builder.initializer((Initializer<I, P>) initializer));
+    }
+
+    public PayloadPipelineBuilder<I, P> setInitializer(Object target)
+    {
+        return this.setInitializer(new InitializerRunner<>(target));
     }
 
     @SuppressWarnings("unchecked")

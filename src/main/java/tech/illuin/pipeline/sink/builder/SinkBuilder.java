@@ -1,16 +1,20 @@
 package tech.illuin.pipeline.sink.builder;
 
+import tech.illuin.pipeline.builder.ComponentBuilder;
+import tech.illuin.pipeline.builder.runner_compiler.CompiledMethod;
 import tech.illuin.pipeline.sink.Sink;
 import tech.illuin.pipeline.sink.annotation.SinkConfig;
 import tech.illuin.pipeline.sink.execution.error.SinkErrorHandler;
 import tech.illuin.pipeline.sink.execution.wrapper.SinkWrapper;
+import tech.illuin.pipeline.sink.runner.SinkRunner;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Optional;
 
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public class SinkBuilder<P>
+public class SinkBuilder<P> extends ComponentBuilder<Object, Object, P, SinkDescriptor<P>, SinkConfig>
 {
     private String id;
     private Sink<P> sink;
@@ -18,15 +22,15 @@ public class SinkBuilder<P>
     private SinkErrorHandler errorHandler;
     private Boolean async;
 
-    private void checkAnnotation()
+    public SinkBuilder()
+    {
+        super(SinkConfig.class, new SinkMethodArgumentResolver<>(), SinkMethodValidators.validators);
+    }
+
+    @Override
+    protected void fillFromAnnotation(SinkConfig annotation)
     {
         try {
-            var type = this.sink.getClass();
-            if (!type.isAnnotationPresent(SinkConfig.class))
-                return;
-
-            var annotation = type.getAnnotation(SinkConfig.class);
-
             if (this.executionWrapper == null && annotation.id() != null && !annotation.id().isBlank())
                 this.id = annotation.id();
             if (this.async == null)
@@ -39,7 +43,8 @@ public class SinkBuilder<P>
         }
     }
 
-    private void fillDefaults()
+    @Override
+    protected void fillDefaults()
     {
         if (this.id == null)
             this.id = this.sink.defaultId();
@@ -54,6 +59,12 @@ public class SinkBuilder<P>
     public SinkBuilder<P> sink(Sink<P> sink)
     {
         this.sink = sink;
+        return this;
+    }
+
+    public SinkBuilder<P> sink(Object target)
+    {
+        this.sink = new SinkRunner<>(target);
         return this;
     }
 
@@ -81,13 +92,24 @@ public class SinkBuilder<P>
         return this;
     }
 
-
-    SinkDescriptor<P> build()
+    @Override
+    protected SinkDescriptor<P> build()
     {
         if (this.sink == null)
             throw new IllegalStateException("A SinkDescriptor cannot be built from a null sink");
 
-        this.checkAnnotation();
+        Optional<SinkConfig> config;
+        if (this.sink instanceof SinkRunner<P> sinkRunner)
+        {
+            CompiledMethod<SinkConfig, Object, Object, P> compiled = this.compiler.compile(sinkRunner.target());
+            sinkRunner.build(compiled);
+            config = Optional.of(compiled.config());
+        }
+        else
+            config = this.checkAnnotation(this.sink);
+
+        config.ifPresent(this::fillFromAnnotation);
+
         this.fillDefaults();
 
         return new SinkDescriptor<>(

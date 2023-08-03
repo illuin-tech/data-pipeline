@@ -5,6 +5,7 @@ import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tech.illuin.pipeline.close.OnCloseHandler;
+import tech.illuin.pipeline.context.ComponentContext;
 import tech.illuin.pipeline.context.Context;
 import tech.illuin.pipeline.execution.phase.PipelinePhase;
 import tech.illuin.pipeline.execution.phase.PipelineStrategy;
@@ -17,6 +18,8 @@ import tech.illuin.pipeline.input.initializer.builder.InitializerDescriptor;
 import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
 import tech.illuin.pipeline.metering.PipelineInitializationMetrics;
 import tech.illuin.pipeline.metering.PipelineMetrics;
+import tech.illuin.pipeline.output.ComponentFamily;
+import tech.illuin.pipeline.output.ComponentTag;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.output.PipelineTag;
 import tech.illuin.pipeline.output.factory.OutputFactory;
@@ -80,7 +83,7 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
         this.meterRegistry = meterRegistry;
         this.phases = List.of(
             new StepPhase<>(this, steps, uidGenerator, meterRegistry),
-            new SinkPhase<>(this, sinks, sinkExecutor, closeTimeout, meterRegistry)
+            new SinkPhase<>(this, sinks, sinkExecutor, closeTimeout, uidGenerator, meterRegistry)
         );
     }
 
@@ -137,17 +140,21 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
         if (context == null)
             throw new IllegalArgumentException("Runtime context cannot be null");
 
-        PipelineInitializationMetrics metrics = new PipelineInitializationMetrics(this.meterRegistry, this, this.initializer);
+        PipelineInitializationMetrics metrics = null;
+
         long start = System.nanoTime();
         try {
             PipelineTag tag = new PipelineTag(this.uidGenerator.generate(), this.id(), this.authorResolver.resolve(input, context));
+            ComponentTag componentTag = this.createTag(tag, this.initializer);
 
-            P payload = this.runInitializer(input, tag, context, metrics);
+            metrics = new PipelineInitializationMetrics(this.meterRegistry, componentTag);
+
+            P payload = this.runInitializer(input, componentTag, context, metrics);
             Output<P> output = this.outputFactory.create(tag, input, payload, context);
 
             for (Indexer<P> indexer : this.indexers)
             {
-                logger.trace(metrics.marker(tag), "{}#{} launching indexer {}", this.id(), tag.uid(), indexer.getClass().getName());
+                logger.trace(metrics.marker(), "{}#{} launching indexer {}", this.id(), tag.uid(), indexer.getClass().getName());
                 indexer.index(payload, output.index());
             }
 
@@ -155,27 +162,33 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
             return output;
         }
         catch (Exception e) {
-            metrics.failureCounter().increment();
-            metrics.errorCounter(e).increment();
+            if (metrics != null)
+            {
+                metrics.failureCounter().increment();
+                metrics.errorCounter(e).increment();
+            }
             throw e;
         }
         finally {
-            metrics.runTimer().record(System.nanoTime() - start, TimeUnit.NANOSECONDS);
-            metrics.totalCounter().increment();
+            if (metrics != null)
+            {
+                metrics.runTimer().record(System.nanoTime() - start, TimeUnit.NANOSECONDS);
+                metrics.totalCounter().increment();
+            }
         }
     }
 
     @SuppressWarnings("IllegalCatch")
-    private P runInitializer(I input, PipelineTag tag, Context<P> context, PipelineInitializationMetrics metrics) throws Exception
+    private P runInitializer(I input, ComponentTag tag, Context<P> context, PipelineInitializationMetrics metrics) throws Exception
     {
-        String name = getPrintableName(this.initializer);
+        ComponentContext<P> componentContext = wrapContext(input, context, tag.pipelineTag(), tag);
         try {
-            logger.trace(metrics.marker(tag), "{}#{} initializing payload", this.id(), tag.uid());
-            return this.initializer.execute(input, context, this.uidGenerator);
+            logger.trace(metrics.marker(), "{}#{} initializing payload", tag.pipelineTag().pipeline(), tag.pipelineTag().uid());
+            return this.initializer.execute(input, componentContext, this.uidGenerator);
         }
         catch (Exception e) {
-            logger.trace(metrics.marker(tag, e), "{}#{} initializer {} threw an {}: {}", this.id(), tag.uid(), name, e.getClass().getName(), e.getMessage());
-            return this.initializer.handleException(e, context, this.uidGenerator);
+            logger.trace(metrics.marker(e), "{}#{} initializer {} threw an {}: {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), tag.id(), e.getClass().getName(), e.getMessage());
+            return this.initializer.handleException(e, componentContext, this.uidGenerator);
         }
     }
 
@@ -191,8 +204,13 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
             phase.close();
     }
 
-    private static String getPrintableName(InitializerDescriptor<?, ?> initializer)
+    private ComponentTag createTag(PipelineTag pipelineTag, InitializerDescriptor<?, ?> initializer)
     {
-        return initializer.id();
+        return new ComponentTag(this.uidGenerator.generate(), pipelineTag, initializer.id(), ComponentFamily.INITIALIZER);
+    }
+
+    private ComponentContext<P> wrapContext(I input, Context<P> context, PipelineTag pipelineTag, ComponentTag componentTag)
+    {
+        return new ComponentContext<>(context, input, pipelineTag, componentTag, this.uidGenerator);
     }
 }

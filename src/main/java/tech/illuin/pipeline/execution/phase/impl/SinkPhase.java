@@ -10,6 +10,9 @@ import tech.illuin.pipeline.execution.phase.PipelinePhase;
 import tech.illuin.pipeline.execution.phase.PipelineStrategy;
 import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
 import tech.illuin.pipeline.metering.PipelineSinkMetrics;
+import tech.illuin.pipeline.metering.marker.LogMarker;
+import tech.illuin.pipeline.metering.tag.MetricTags;
+import tech.illuin.pipeline.metering.tag.TagResolver;
 import tech.illuin.pipeline.output.ComponentFamily;
 import tech.illuin.pipeline.output.ComponentTag;
 import tech.illuin.pipeline.output.Output;
@@ -33,17 +36,26 @@ public class SinkPhase<I, P> implements PipelinePhase<I, P>
     private final int closeTimeout;
     private final UIDGenerator uidGenerator;
     private final MeterRegistry meterRegistry;
+    private final TagResolver<I> tagResolver;
 
     private static final Logger logger = LoggerFactory.getLogger(SinkPhase.class);
 
-    public SinkPhase(Pipeline<I, P> pipeline, List<SinkDescriptor<P>> sinks, ExecutorService sinkExecutor, int closeTimeout, UIDGenerator uidGenerator, MeterRegistry meterRegistry)
-    {
+    public SinkPhase(
+        Pipeline<I, P> pipeline,
+        List<SinkDescriptor<P>> sinks,
+        ExecutorService sinkExecutor,
+        int closeTimeout,
+        UIDGenerator uidGenerator,
+        MeterRegistry meterRegistry,
+        TagResolver<I> tagResolver
+    ) {
         this.pipeline = pipeline;
         this.sinks = sinks;
         this.sinkExecutor = sinkExecutor;
         this.closeTimeout = closeTimeout;
         this.uidGenerator = uidGenerator;
         this.meterRegistry = meterRegistry;
+        this.tagResolver = tagResolver;
     }
 
     @Override
@@ -52,7 +64,8 @@ public class SinkPhase<I, P> implements PipelinePhase<I, P>
         for (SinkDescriptor<P> descriptor : this.sinks)
         {
             ComponentTag tag = this.createTag(output.tag(), descriptor);
-            PipelineSinkMetrics metrics = new PipelineSinkMetrics(this.meterRegistry, tag);
+            MetricTags metricTags = this.tagResolver.resolve(input, context);
+            PipelineSinkMetrics metrics = new PipelineSinkMetrics(this.meterRegistry, tag, metricTags);
 
             if (descriptor.isAsync())
                 this.runSinkAsynchronously(descriptor, tag, input, output, context, metrics);
@@ -66,16 +79,16 @@ public class SinkPhase<I, P> implements PipelinePhase<I, P>
     @SuppressWarnings("IllegalCatch")
     private void runSinkSynchronously(SinkDescriptor<P> sink, ComponentTag tag, I input, Output<P> output, Context<P> context, PipelineSinkMetrics metrics) throws Exception
     {
-        ComponentContext<P> componentContext = wrapContext(input, context, tag.pipelineTag(), tag);
+        ComponentContext<P> componentContext = wrapContext(input, context, tag.pipelineTag(), tag, metrics);
 
         long start = System.nanoTime();
         try {
-            logger.trace(metrics.marker(), "{}#{} launching sink {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), tag.id());
+            logger.trace(metrics.mark(), "{}#{} launching sink {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), tag.id());
             sink.execute(output, componentContext);
             metrics.successCounter().increment();
         }
         catch (Exception e) {
-            logger.error(metrics.marker(e), "{}#{} sink {} threw an {}: {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), tag.id(), e.getClass().getName(), e.getMessage());
+            logger.error(metrics.mark(e), "{}#{} sink {} threw an {}: {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), tag.id(), e.getClass().getName(), e.getMessage());
             metrics.failureCounter().increment();
             metrics.errorCounter(e).increment();
             sink.handleException(e, output, context);
@@ -89,18 +102,18 @@ public class SinkPhase<I, P> implements PipelinePhase<I, P>
     @SuppressWarnings("IllegalCatch")
     private void runSinkAsynchronously(SinkDescriptor<P> sink, ComponentTag tag, I input, Output<P> output, Context<P> context, PipelineSinkMetrics metrics)
     {
-        ComponentContext<P> componentContext = wrapContext(input, context, tag.pipelineTag(), tag);
+        ComponentContext<P> componentContext = wrapContext(input, context, tag.pipelineTag(), tag, metrics);
 
-        logger.trace(metrics.marker(), "{}#{} queuing sink {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), tag.id());
+        logger.trace(metrics.mark(), "{}#{} queuing sink {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), tag.id());
         CompletableFuture.runAsync(() -> {
             long start = System.nanoTime();
             try {
-                logger.trace(metrics.marker(), "{}#{} launching sink {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), tag.id());
+                logger.trace(metrics.mark(), "{}#{} launching sink {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), tag.id());
                 sink.execute(output, componentContext);
                 metrics.successCounter().increment();
             }
             catch (Exception e) {
-                logger.error(metrics.marker(e), "{}#{} sink {} threw an {}: {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), tag.id(), e.getClass().getName(), e.getMessage());
+                logger.error(metrics.mark(e), "{}#{} sink {} threw an {}: {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), tag.id(), e.getClass().getName(), e.getMessage());
                 metrics.failureCounter().increment();
                 metrics.errorCounter(e).increment();
                 sink.handleExceptionThenSwallow(e, output, componentContext);
@@ -117,9 +130,9 @@ public class SinkPhase<I, P> implements PipelinePhase<I, P>
         return new ComponentTag(this.uidGenerator.generate(), pipelineTag, sink.id(), ComponentFamily.SINK);
     }
 
-    private ComponentContext<P> wrapContext(I input, Context<P> context, PipelineTag pipelineTag, ComponentTag componentTag)
+    private ComponentContext<P> wrapContext(I input, Context<P> context, PipelineTag pipelineTag, ComponentTag componentTag, LogMarker marker)
     {
-        return new ComponentContext<>(context, input, pipelineTag, componentTag, this.uidGenerator);
+        return new ComponentContext<>(context, input, pipelineTag, componentTag, this.uidGenerator, marker);
     }
 
     @Override

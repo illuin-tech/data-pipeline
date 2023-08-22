@@ -30,6 +30,7 @@ public class StepMethodArgumentResolver<T, I, P> implements MethodArgumentResolv
             new ResultsMapperFactory<>(),
             new ResultViewMapperFactory<>(),
             new UIDGeneratorMapperFactory<>(),
+            new LogMarkerMapperFactory<>(),
             new PipelineTagMapperFactory<>(),
             new ComponentTagMapperFactory<>()
         );

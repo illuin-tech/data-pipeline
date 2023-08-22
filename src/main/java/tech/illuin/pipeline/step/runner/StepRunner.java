@@ -55,7 +55,8 @@ public class StepRunner<T extends Indexable, I, P> implements Step<T, I, P>
                 context,
                 localContext.pipelineTag(),
                 localContext.componentTag(),
-                localContext.uidGenerator()
+                localContext.uidGenerator(),
+                localContext.logMarker()
             );
             java.lang.Object[] arguments = this.argumentMappers.stream()
                 .map(mapper -> mapper.map(originalArguments))

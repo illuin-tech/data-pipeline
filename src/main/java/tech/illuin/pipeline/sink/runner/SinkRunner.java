@@ -54,7 +54,8 @@ public class SinkRunner<P> implements Sink<P>
                 localContext,
                 localContext.pipelineTag(),
                 localContext.componentTag(),
-                localContext.uidGenerator()
+                localContext.uidGenerator(),
+                localContext.logMarker()
             );
             Object[] arguments = this.argumentMappers.stream()
                 .map(mapper -> mapper.map(originalArguments))

@@ -187,6 +187,34 @@ public class PipelineStepAnnotationTest
         );
     }
 
+    @Test
+    public void testPipeline__shouldCompile_uidGenerator()
+    {
+        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_uidGenerator("test-uid-generator"));
+
+        Output<?> output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
+        Assertions.assertDoesNotThrow(pipeline::close);
+
+        Assertions.assertEquals(
+            "KSUIDGenerator",
+            output.results().current(TestResult.class).map(TestResult::status).orElse(null)
+        );
+    }
+
+    @Test
+    public void testPipeline__shouldCompile_logMarker()
+    {
+        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_logMarker("test-log-marker"));
+
+        Output<?> output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
+        Assertions.assertDoesNotThrow(pipeline::close);
+
+        Assertions.assertEquals(
+            "step-with_log-marker",
+            output.results().current(TestResult.class).map(TestResult::status).orElse(null)
+        );
+    }
+
     public static Pipeline<Object, ?> createPipeline_input(String name)
     {
         return Pipeline.ofSimple(name)
@@ -290,6 +318,22 @@ public class PipelineStepAnnotationTest
     {
         return Pipeline.ofSimple(name)
             .registerStep(new StepWithContext(metadataKey))
+            .build()
+        ;
+    }
+
+    public static Pipeline<Object, ?> createPipeline_uidGenerator(String name)
+    {
+        return Pipeline.ofSimple(name)
+            .registerStep(new StepWithUIDGenerator())
+            .build()
+        ;
+    }
+
+    public static Pipeline<Object, ?> createPipeline_logMarker(String name)
+    {
+        return Pipeline.ofSimple(name)
+            .registerStep(new StepWithLogMarker())
             .build()
         ;
     }

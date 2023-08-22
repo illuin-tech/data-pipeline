@@ -27,6 +27,7 @@ class InitializerMethodArgumentResolver<T, I, P> implements MethodArgumentResolv
             new InputMapperFactory<>(),
             new ContextMapperFactory<>(),
             new UIDGeneratorMapperFactory<>(),
+            new LogMarkerMapperFactory<>(),
             new PipelineTagMapperFactory<>(),
             new ComponentTagMapperFactory<>()
         );

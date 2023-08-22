@@ -14,6 +14,8 @@ import tech.illuin.pipeline.input.initializer.builder.InitializerBuilder;
 import tech.illuin.pipeline.input.initializer.builder.InitializerDescriptor;
 import tech.illuin.pipeline.input.uid_generator.KSUIDGenerator;
 import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
+import tech.illuin.pipeline.metering.tag.MetricTags;
+import tech.illuin.pipeline.metering.tag.TagResolver;
 import tech.illuin.pipeline.output.factory.DefaultOutputFactory;
 import tech.illuin.pipeline.sink.Sink;
 import tech.illuin.pipeline.sink.builder.SinkAssembler;
@@ -54,6 +56,7 @@ public final class SimplePipelineBuilder<I>
     private StepErrorHandler defaultStepErrorHandler;
     private SinkErrorHandler defaultSinkErrorHandler;
     private MeterRegistry meterRegistry;
+    private TagResolver<I> tagResolver;
 
     public SimplePipelineBuilder()
     {
@@ -81,7 +84,8 @@ public final class SimplePipelineBuilder<I>
             this.sinkExecutorProvider().get(),
             this.closeTimeout(),
             this.onCloseHandlers(),
-            this.meterRegistry() == null ? new SimpleMeterRegistry() : this.meterRegistry()
+            this.meterRegistry() == null ? new SimpleMeterRegistry() : this.meterRegistry(),
+            this.tagResolver() == null ? (in, ctx) -> new MetricTags() : this.tagResolver()
         );
     }
 
@@ -322,6 +326,17 @@ public final class SimplePipelineBuilder<I>
     public SimplePipelineBuilder<I> setMeterRegistry(MeterRegistry meterRegistry)
     {
         this.meterRegistry = meterRegistry;
+        return this;
+    }
+
+    public TagResolver<I> tagResolver()
+    {
+        return tagResolver;
+    }
+
+    public SimplePipelineBuilder<I> setTagResolver(TagResolver<I> tagResolver)
+    {
+        this.tagResolver = tagResolver;
         return this;
     }
 

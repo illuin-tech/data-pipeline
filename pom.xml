@@ -6,7 +6,7 @@
 
     <groupId>tech.illuin</groupId>
     <artifactId>data-pipeline</artifactId>
-    <version>0.11</version>
+    <version>0.11.1</version>
     <packaging>jar</packaging>
 
     <name>Data Pipeline</name>

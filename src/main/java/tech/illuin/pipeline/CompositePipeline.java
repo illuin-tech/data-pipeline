@@ -19,7 +19,6 @@ import tech.illuin.pipeline.metering.PipelineInitializationMetrics;
 import tech.illuin.pipeline.metering.PipelineMetrics;
 import tech.illuin.pipeline.metering.marker.LogMarker;
 import tech.illuin.pipeline.metering.tag.MetricTags;
-import tech.illuin.pipeline.metering.tag.StatefulTagResolver;
 import tech.illuin.pipeline.metering.tag.TagResolver;
 import tech.illuin.pipeline.output.ComponentFamily;
 import tech.illuin.pipeline.output.ComponentTag;
@@ -86,10 +85,10 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
         this.outputFactory = outputFactory;
         this.onCloseHandlers = onCloseHandlers;
         this.meterRegistry = meterRegistry;
-        this.tagResolver = new StatefulTagResolver<>(tagResolver);
+        this.tagResolver = tagResolver;
         this.phases = List.of(
-            new StepPhase<>(steps, uidGenerator, meterRegistry, this.tagResolver),
-            new SinkPhase<>(this, sinks, sinkExecutor, closeTimeout, uidGenerator, meterRegistry, this.tagResolver)
+            new StepPhase<>(steps, uidGenerator, meterRegistry),
+            new SinkPhase<>(this, sinks, sinkExecutor, closeTimeout, uidGenerator, meterRegistry)
         );
     }
 
@@ -116,7 +115,7 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
             /* We will go iteratively through each phase, if one requires a pipeline exit we will skip remaining phases */
             for (PipelinePhase<I, P> phase : this.phases)
             {
-                PipelineStrategy strategy = phase.run(input, output, context);
+                PipelineStrategy strategy = phase.run(input, output, context, metricTags);
                 if (strategy == PipelineStrategy.EXIT)
                     break;
             }

@@ -13,7 +13,6 @@ import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
 import tech.illuin.pipeline.metering.PipelineStepMetrics;
 import tech.illuin.pipeline.metering.marker.LogMarker;
 import tech.illuin.pipeline.metering.tag.MetricTags;
-import tech.illuin.pipeline.metering.tag.TagResolver;
 import tech.illuin.pipeline.output.ComponentFamily;
 import tech.illuin.pipeline.output.ComponentTag;
 import tech.illuin.pipeline.output.Output;
@@ -39,27 +38,24 @@ public class StepPhase<I, P> implements PipelinePhase<I, P>
     private final List<StepDescriptor<Indexable, I, P>> steps;
     private final UIDGenerator uidGenerator;
     private final MeterRegistry meterRegistry;
-    private final TagResolver<I> tagResolver;
     
     private static final Logger logger = LoggerFactory.getLogger(StepPhase.class);
 
-    public StepPhase(List<StepDescriptor<Indexable, I, P>> steps, UIDGenerator uidGenerator, MeterRegistry meterRegistry, TagResolver<I> tagResolver)
+    public StepPhase(List<StepDescriptor<Indexable, I, P>> steps, UIDGenerator uidGenerator, MeterRegistry meterRegistry)
     {
         this.steps = steps;
         this.uidGenerator = uidGenerator;
         this.meterRegistry = meterRegistry;
-        this.tagResolver = tagResolver;
     }
 
     @Override
-    public PipelineStrategy run(I input, Output<P> output, Context<P> context) throws Exception
+    public PipelineStrategy run(I input, Output<P> output, Context<P> context, MetricTags metricTags) throws Exception
     {
         try {
             Set<Indexable> discarded = new HashSet<>();
             STEP_LOOP: for (StepDescriptor<Indexable, I, P> step : this.steps)
             {
                 ComponentTag tag = this.createTag(output.tag(), step);
-                MetricTags metricTags = this.tagResolver.resolve(input, context);
                 PipelineStepMetrics metrics = new PipelineStepMetrics(this.meterRegistry, tag, metricTags);
 
                 /* Arguments are a list of Indexable which satisfy the step's execution predicate */

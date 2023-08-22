@@ -12,7 +12,6 @@ import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
 import tech.illuin.pipeline.metering.PipelineSinkMetrics;
 import tech.illuin.pipeline.metering.marker.LogMarker;
 import tech.illuin.pipeline.metering.tag.MetricTags;
-import tech.illuin.pipeline.metering.tag.TagResolver;
 import tech.illuin.pipeline.output.ComponentFamily;
 import tech.illuin.pipeline.output.ComponentTag;
 import tech.illuin.pipeline.output.Output;
@@ -36,7 +35,6 @@ public class SinkPhase<I, P> implements PipelinePhase<I, P>
     private final int closeTimeout;
     private final UIDGenerator uidGenerator;
     private final MeterRegistry meterRegistry;
-    private final TagResolver<I> tagResolver;
 
     private static final Logger logger = LoggerFactory.getLogger(SinkPhase.class);
 
@@ -46,8 +44,7 @@ public class SinkPhase<I, P> implements PipelinePhase<I, P>
         ExecutorService sinkExecutor,
         int closeTimeout,
         UIDGenerator uidGenerator,
-        MeterRegistry meterRegistry,
-        TagResolver<I> tagResolver
+        MeterRegistry meterRegistry
     ) {
         this.pipeline = pipeline;
         this.sinks = sinks;
@@ -55,16 +52,14 @@ public class SinkPhase<I, P> implements PipelinePhase<I, P>
         this.closeTimeout = closeTimeout;
         this.uidGenerator = uidGenerator;
         this.meterRegistry = meterRegistry;
-        this.tagResolver = tagResolver;
     }
 
     @Override
-    public PipelineStrategy run(I input, Output<P> output, Context<P> context) throws Exception
+    public PipelineStrategy run(I input, Output<P> output, Context<P> context, MetricTags metricTags) throws Exception
     {
         for (SinkDescriptor<P> descriptor : this.sinks)
         {
             ComponentTag tag = this.createTag(output.tag(), descriptor);
-            MetricTags metricTags = this.tagResolver.resolve(input, context);
             PipelineSinkMetrics metrics = new PipelineSinkMetrics(this.meterRegistry, tag, metricTags);
 
             if (descriptor.isAsync())

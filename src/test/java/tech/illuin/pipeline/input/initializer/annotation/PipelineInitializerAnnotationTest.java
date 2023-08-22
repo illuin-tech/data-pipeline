@@ -6,11 +6,8 @@ import tech.illuin.pipeline.Pipeline;
 import tech.illuin.pipeline.PipelineException;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.input.initializer.Initializer;
-import tech.illuin.pipeline.input.initializer.annotation.initializer.InitializerWithContext;
-import tech.illuin.pipeline.input.initializer.annotation.initializer.InitializerWithException;
+import tech.illuin.pipeline.input.initializer.annotation.initializer.*;
 import tech.illuin.pipeline.input.initializer.annotation.initializer.InitializerWithException.InitializerWithExceptionException;
-import tech.illuin.pipeline.input.initializer.annotation.initializer.InitializerWithInput;
-import tech.illuin.pipeline.input.initializer.annotation.initializer.InitializerWithTags;
 import tech.illuin.pipeline.output.Output;
 
 /**
@@ -91,6 +88,20 @@ public class PipelineInitializerAnnotationTest
         Assertions.assertEquals(value, output.payload().object().value());
     }
 
+    @Test
+    public void testPipeline__shouldCompile_logMarker()
+    {
+        Pipeline<Object, TestPayload> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_logMarker("test-log-marker"));
+
+        Output<TestPayload> output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
+        Assertions.assertDoesNotThrow(pipeline::close);
+
+        Assertions.assertEquals(
+            "init-with_log-marker",
+            output.payload().object().value()
+        );
+    }
+
     public static Pipeline<Object, TestPayload> createPipeline_input(String name)
     {
         return Pipeline.<Object, TestPayload>ofPayload(name)
@@ -140,6 +151,15 @@ public class PipelineInitializerAnnotationTest
     {
         return Pipeline.<Object, TestPayload>ofPayload(name)
             .setInitializer(new InitializerWithContext(metadataKey))
+            .registerIndexer(TestPayload::object)
+            .build()
+        ;
+    }
+
+    public static Pipeline<Object, TestPayload> createPipeline_logMarker(String name)
+    {
+        return Pipeline.<Object, TestPayload>ofPayload(name)
+            .setInitializer(new InitializerWithLogMarker())
             .registerIndexer(TestPayload::object)
             .build()
         ;

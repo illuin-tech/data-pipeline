@@ -17,6 +17,8 @@ import tech.illuin.pipeline.input.initializer.builder.InitializerDescriptor;
 import tech.illuin.pipeline.input.initializer.runner.InitializerRunner;
 import tech.illuin.pipeline.input.uid_generator.KSUIDGenerator;
 import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
+import tech.illuin.pipeline.metering.tag.MetricTags;
+import tech.illuin.pipeline.metering.tag.TagResolver;
 import tech.illuin.pipeline.output.factory.DefaultOutputFactory;
 import tech.illuin.pipeline.output.factory.OutputFactory;
 import tech.illuin.pipeline.sink.Sink;
@@ -60,6 +62,7 @@ public final class PayloadPipelineBuilder<I, P>
     private StepErrorHandler defaultStepErrorHandler;
     private SinkErrorHandler defaultSinkErrorHandler;
     private MeterRegistry meterRegistry;
+    private TagResolver<I> tagResolver;
     private InitializerAssembler<I, P> initializer;
     private final List<Indexer<P>> indexers;
 
@@ -98,7 +101,8 @@ public final class PayloadPipelineBuilder<I, P>
             this.sinkExecutorProvider().get(),
             this.closeTimeout(),
             this.onCloseHandlers(),
-            this.meterRegistry() == null ? new SimpleMeterRegistry() : this.meterRegistry()
+            this.meterRegistry() == null ? new SimpleMeterRegistry() : this.meterRegistry(),
+            this.tagResolver() == null ? (in, ctx) -> new MetricTags() : this.tagResolver()
         );
     }
 
@@ -342,6 +346,17 @@ public final class PayloadPipelineBuilder<I, P>
     public PayloadPipelineBuilder<I, P> setMeterRegistry(MeterRegistry meterRegistry)
     {
         this.meterRegistry = meterRegistry;
+        return this;
+    }
+
+    public TagResolver<I> tagResolver()
+    {
+        return tagResolver;
+    }
+
+    public PayloadPipelineBuilder<I, P> setTagResolver(TagResolver<I> tagResolver)
+    {
+        this.tagResolver = tagResolver;
         return this;
     }
 

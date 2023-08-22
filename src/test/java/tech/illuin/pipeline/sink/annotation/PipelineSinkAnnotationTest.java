@@ -109,10 +109,7 @@ public class PipelineSinkAnnotationTest
         Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
 
-        Assertions.assertEquals(
-            "input->input",
-            collector.get()
-        );
+        Assertions.assertEquals("input->input", collector.get());
     }
 
     @Test
@@ -124,10 +121,7 @@ public class PipelineSinkAnnotationTest
         Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
 
-        Assertions.assertEquals(
-            "input->input",
-            collector.get()
-        );
+        Assertions.assertEquals("input->input", collector.get());
     }
 
     @Test
@@ -139,10 +133,7 @@ public class PipelineSinkAnnotationTest
         Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
 
-        Assertions.assertEquals(
-            "input->input",
-            collector.get()
-        );
+        Assertions.assertEquals("input->input", collector.get());
     }
 
     @Test
@@ -154,10 +145,7 @@ public class PipelineSinkAnnotationTest
         Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
 
-        Assertions.assertEquals(
-            "input->input",
-            collector.get()
-        );
+        Assertions.assertEquals("input->input", collector.get());
     }
 
     @Test
@@ -169,10 +157,7 @@ public class PipelineSinkAnnotationTest
         Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
 
-        Assertions.assertEquals(
-            "input->input",
-            collector.get()
-        );
+        Assertions.assertEquals("input->input", collector.get());
     }
 
     @Test
@@ -184,10 +169,7 @@ public class PipelineSinkAnnotationTest
         Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
 
-        Assertions.assertEquals(
-            "input->input",
-            collector.get()
-        );
+        Assertions.assertEquals("input->input", collector.get());
     }
 
     @Test
@@ -199,10 +181,7 @@ public class PipelineSinkAnnotationTest
         Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
 
-        Assertions.assertEquals(
-            "test-tags#sink-with_tags",
-            collector.get()
-        );
+        Assertions.assertEquals("test-tags#sink-with_tags", collector.get());
     }
 
     @Test
@@ -214,10 +193,7 @@ public class PipelineSinkAnnotationTest
         Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
 
-        Assertions.assertEquals(
-            "input",
-            collector.get()
-        );
+        Assertions.assertEquals("input", collector.get());
     }
 
     @Test
@@ -233,6 +209,30 @@ public class PipelineSinkAnnotationTest
         Assertions.assertDoesNotThrow(pipeline::close);
 
         Assertions.assertEquals(value, collector.get());
+    }
+
+    @Test
+    public void testPipeline__shouldCompile_uidGenerator()
+    {
+        StringCollector collector = new StringCollector();
+        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_uidGenerator("test-generator", collector));
+
+        Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
+        Assertions.assertDoesNotThrow(pipeline::close);
+
+        Assertions.assertEquals("KSUIDGenerator", collector.get());
+    }
+
+    @Test
+    public void testPipeline__shouldCompile_logMarker()
+    {
+        StringCollector collector = new StringCollector();
+        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_logMarker("test-log-marker", collector));
+
+        Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
+        Assertions.assertDoesNotThrow(pipeline::close);
+
+        Assertions.assertEquals("sink-with_log-marker", collector.get());
     }
 
     public static Pipeline<Object, ?> createPipeline_input(String name, StringCollector collector)
@@ -370,6 +370,22 @@ public class PipelineSinkAnnotationTest
     {
         return Pipeline.ofSimple(name)
             .registerSink(new SinkWithContext(metadataKey, collector))
+            .build()
+        ;
+    }
+
+    public static Pipeline<Object, ?> createPipeline_uidGenerator(String name, StringCollector collector)
+    {
+        return Pipeline.ofSimple(name)
+            .registerSink(new SinkWithUIDGenerator(collector))
+            .build()
+        ;
+    }
+
+    public static Pipeline<Object, ?> createPipeline_logMarker(String name, StringCollector collector)
+    {
+        return Pipeline.ofSimple(name)
+            .registerSink(new SinkWithLogMarker(collector))
             .build()
         ;
     }

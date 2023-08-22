@@ -35,6 +35,7 @@ class SinkMethodArgumentResolver<T, I, P> implements MethodArgumentResolver<T, I
             new ContextMapperFactory<>(),
             new ResultsMapperFactory<>(),
             new UIDGeneratorMapperFactory<>(),
+            new LogMarkerMapperFactory<>(),
             new PipelineTagMapperFactory<>(),
             new ComponentTagMapperFactory<>()
         );

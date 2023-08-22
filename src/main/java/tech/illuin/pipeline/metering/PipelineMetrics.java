@@ -3,32 +3,39 @@ package tech.illuin.pipeline.metering;
 import com.github.loki4j.slf4j.marker.LabelMarker;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Timer;
-import tech.illuin.pipeline.Pipeline;
+import tech.illuin.pipeline.metering.marker.LogMarker;
+import tech.illuin.pipeline.metering.tag.MetricTags;
 import tech.illuin.pipeline.output.PipelineTag;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public class PipelineMetrics
+public class PipelineMetrics implements LogMarker
 {
     private final MeterRegistry meterRegistry;
-    private final Pipeline<?, ?> pipeline;
+    private final PipelineTag tag;
+    private final MetricTags metricTags;
     private final Timer runTimer;
     private final Counter totalCounter;
     private final Counter successCounter;
     private final Counter failureCounter;
 
-    public PipelineMetrics(MeterRegistry meterRegistry, Pipeline<?, ?> pipeline)
+    public PipelineMetrics(MeterRegistry meterRegistry, PipelineTag tag, MetricTags metricTags)
     {
         this.meterRegistry = meterRegistry;
-        this.pipeline = pipeline;
-        this.runTimer = meterRegistry.timer(MeterRegistryKeys.PIPELINE_RUN_KEY, "pipeline", pipeline.id());
-        this.totalCounter = meterRegistry.counter(MeterRegistryKeys.PIPELINE_RUN_TOTAL_KEY, "pipeline", pipeline.id());
-        this.successCounter = meterRegistry.counter(MeterRegistryKeys.PIPELINE_RUN_SUCCESS_KEY, "pipeline", pipeline.id());
-        this.failureCounter = meterRegistry.counter(MeterRegistryKeys.PIPELINE_RUN_FAILURE_KEY, "pipeline", pipeline.id());
+        this.tag = tag;
+        this.metricTags = metricTags;
+        Collection<Tag> meterTags = this.compileTags(Tag.of("pipeline", tag.pipeline()));
+        this.runTimer = meterRegistry.timer(MeterRegistryKeys.PIPELINE_RUN_KEY, meterTags);
+        this.totalCounter = meterRegistry.counter(MeterRegistryKeys.PIPELINE_RUN_TOTAL_KEY, meterTags);
+        this.successCounter = meterRegistry.counter(MeterRegistryKeys.PIPELINE_RUN_SUCCESS_KEY, meterTags);
+        this.failureCounter = meterRegistry.counter(MeterRegistryKeys.PIPELINE_RUN_FAILURE_KEY, meterTags);
     }
 
     public Timer runTimer()
@@ -53,36 +60,41 @@ public class PipelineMetrics
 
     public Counter errorCounter(Exception exception)
     {
-        return this.meterRegistry.counter(MeterRegistryKeys.PIPELINE_RUN_ERROR_TOTAL_KEY, "pipeline", this.pipeline.id(), "error", exception.getClass().getName());
+        return this.meterRegistry.counter(
+            MeterRegistryKeys.PIPELINE_RUN_ERROR_TOTAL_KEY,
+            this.compileTags(
+                Tag.of("pipeline", this.tag.pipeline()),
+                Tag.of("error", exception.getClass().getName())
+            )
+        );
     }
 
-    public LabelMarker marker()
+    @Override
+    public LabelMarker mark()
     {
-        return LabelMarker.of("pipeline", this.pipeline::id);
+        return LabelMarker.of(() -> this.compileMarkers(Map.of(
+            "pipeline", this.tag.pipeline(),
+            "author", this.tag.author()
+        )));
     }
 
-    public LabelMarker marker(PipelineTag tag)
+    @Override
+    public LabelMarker mark(Exception exception)
     {
-        return LabelMarker.of(() -> Map.of(
-            "pipeline", tag.pipeline(),
-            "author", tag.author()
-        ));
-    }
-
-    public LabelMarker marker(Exception exception)
-    {
-        return LabelMarker.of(() -> Map.of(
-            "pipeline", this.pipeline.id(),
+        return LabelMarker.of(() -> this.compileMarkers(Map.of(
+            "pipeline", this.tag.pipeline(),
+            "author", this.tag.author(),
             "error", exception.getClass().getName()
-        ));
+        )));
     }
 
-    public LabelMarker marker(PipelineTag tag, Exception exception)
+    private Collection<Tag> compileTags(Tag... mainstayTags)
     {
-        return LabelMarker.of(() -> Map.of(
-            "pipeline", tag.pipeline(),
-            "author", tag.author(),
-            "error", exception.getClass().getName()
-        ));
+        return MetricFunctions.combine(List.of(mainstayTags), this.metricTags.asTags());
+    }
+
+    private Map<String, String> compileMarkers(Map<String, String> mainstayMarkers)
+    {
+        return MetricFunctions.combine(mainstayMarkers, this.metricTags.asMap());
     }
 }

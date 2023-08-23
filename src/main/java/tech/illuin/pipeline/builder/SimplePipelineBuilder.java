@@ -29,8 +29,8 @@ import tech.illuin.pipeline.step.builder.StepBuilder;
 import tech.illuin.pipeline.step.builder.StepDescriptor;
 import tech.illuin.pipeline.step.execution.error.StepErrorHandler;
 import tech.illuin.pipeline.step.execution.evaluator.ResultEvaluator;
-import tech.illuin.pipeline.step.runner.StepRunner;
 import tech.illuin.pipeline.step.variant.InputStep;
+import tech.illuin.pipeline.step.variant.PipelineStep;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -160,7 +160,10 @@ public final class SimplePipelineBuilder<I>
 
     public SimplePipelineBuilder<I> registerStep(Object target)
     {
-        return this.registerStep(new StepRunner<>(target));
+        if (target instanceof PipelineStep<?, ?> pipelineStep)
+            //noinspection unchecked
+            return this.registerStep((Step<?, I, ?>) pipelineStep);
+        return this.registerStep(Step.of(target));
     }
 
     @SuppressWarnings("unchecked")

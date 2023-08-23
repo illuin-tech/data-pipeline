@@ -7,6 +7,7 @@ import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.output.PipelineTag;
 
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
@@ -79,9 +80,21 @@ public class ComponentContext<P> implements LocalContext<P>
     }
 
     @Override
+    public Context<P> copyFrom(Context<P> other)
+    {
+        return this.globalContext.copyFrom(other);
+    }
+
+    @Override
     public boolean has(String key)
     {
         return this.globalContext.has(key);
+    }
+
+    @Override
+    public Set<String> keys()
+    {
+        return this.globalContext.keys();
     }
 
     @Override

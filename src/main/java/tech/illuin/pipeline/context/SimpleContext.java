@@ -5,6 +5,7 @@ import tech.illuin.pipeline.output.Output;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
@@ -39,9 +40,23 @@ public class SimpleContext<P> implements Context<P>
     }
 
     @Override
+    public Context<P> copyFrom(Context<P> other)
+    {
+        for (String key : other.keys())
+            this.set(key, other.get(key).orElse(null));
+        return this;
+    }
+
+    @Override
     public boolean has(String key)
     {
         return this.metadata.containsKey(key);
+    }
+
+    @Override
+    public Set<String> keys()
+    {
+        return this.metadata.keySet();
     }
 
     @Override

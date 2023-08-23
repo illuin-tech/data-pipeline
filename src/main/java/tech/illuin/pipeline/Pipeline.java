@@ -3,7 +3,6 @@ package tech.illuin.pipeline;
 import tech.illuin.pipeline.annotation.Experimental;
 import tech.illuin.pipeline.builder.PayloadPipelineBuilder;
 import tech.illuin.pipeline.builder.SimplePipelineBuilder;
-import tech.illuin.pipeline.builder.VoidPayload;
 import tech.illuin.pipeline.context.Context;
 import tech.illuin.pipeline.context.SimpleContext;
 import tech.illuin.pipeline.input.initializer.Initializer;
@@ -84,7 +83,7 @@ public interface Pipeline<I, P> extends AutoCloseable
      * @see #asStep(Function)
      */
     @Experimental
-    default Step<?, I, VoidPayload> asStep()
+    default Step<?, I, ?> asStep()
     {
         return this.asStep(PipelineResult::new);
     }
@@ -97,7 +96,7 @@ public interface Pipeline<I, P> extends AutoCloseable
      * @return a {@link Step} instance usable within another Pipeline
      */
     @Experimental
-    default Step<?, I, VoidPayload> asStep(Function<Output<P>, Result> resultMapper)
+    default Step<?, I, ?> asStep(Function<Output<P>, Result> resultMapper)
     {
         return new PipelineStep<>(this, resultMapper);
     }

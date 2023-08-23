@@ -13,6 +13,7 @@ import tech.illuin.pipeline.step.runner.StepRunner;
 import tech.illuin.pipeline.step.variant.IndexableStep;
 import tech.illuin.pipeline.step.variant.InputStep;
 import tech.illuin.pipeline.step.variant.PayloadStep;
+import tech.illuin.pipeline.step.variant.PipelineStep;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Optional;
@@ -107,7 +108,11 @@ public class StepBuilder<T extends Indexable, I, P> extends ComponentBuilder<T, 
 
     public StepBuilder<T, I, P> step(Object target)
     {
-        this.step = Step.of(target);
+        if (target instanceof PipelineStep<?, ?> pipelineStep)
+            //noinspection unchecked
+            this.step = (Step<T, I, P>) pipelineStep;
+        else
+            this.step = Step.of(target);
         return this;
     }
 

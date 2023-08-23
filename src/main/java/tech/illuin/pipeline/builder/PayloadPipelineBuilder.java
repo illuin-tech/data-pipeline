@@ -33,10 +33,10 @@ import tech.illuin.pipeline.step.builder.StepBuilder;
 import tech.illuin.pipeline.step.builder.StepDescriptor;
 import tech.illuin.pipeline.step.execution.error.StepErrorHandler;
 import tech.illuin.pipeline.step.execution.evaluator.ResultEvaluator;
-import tech.illuin.pipeline.step.runner.StepRunner;
 import tech.illuin.pipeline.step.variant.IndexableStep;
 import tech.illuin.pipeline.step.variant.InputStep;
 import tech.illuin.pipeline.step.variant.PayloadStep;
+import tech.illuin.pipeline.step.variant.PipelineStep;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -187,7 +187,9 @@ public final class PayloadPipelineBuilder<I, P>
 
     public PayloadPipelineBuilder<I, P> registerStep(Object target)
     {
-        return this.registerStep(new StepRunner<>(target));
+        if (target instanceof PipelineStep<?, ?> pipelineStep)
+            return this.registerStep(pipelineStep);
+        return this.registerStep(Step.of(target));
     }
 
     @SuppressWarnings("unchecked")

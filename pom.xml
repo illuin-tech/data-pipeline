@@ -24,11 +24,17 @@
             <organization>Illuin Technology</organization>
             <organizationUrl>https://www.illuin.tech</organizationUrl>
         </developer>
+        <developer>
+            <name>Théo Malka</name>
+            <email>theo.malka@illuin.tech</email>
+            <organization>Illuin Technology</organization>
+            <organizationUrl>https://www.illuin.tech</organizationUrl>
+        </developer>
     </developers>
 
     <issueManagement>
         <system>GitLab</system>
-        <url>https://gitlab.illuin.tech/dpd/commons/data-pipeline/-/issues</url>
+        <url>https://gitlab.illuin.tech/illuin-team/data-pipeline/-/issues</url>
     </issueManagement>
 
     <properties>

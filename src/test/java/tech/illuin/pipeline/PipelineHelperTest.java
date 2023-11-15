@@ -12,14 +12,14 @@ public class PipelineHelperTest {
 
     @Test
     public void newContext() {
-        Pipeline pipeline = Pipeline.ofSimple("my-test").build();
+        Pipeline pipeline = Pipeline.of("my-test").build();
         Context<?> context = pipeline.newContext();
         assertTrue(context.parent().isEmpty());
     }
 
     @Test
     public void newContextWithParent() throws PipelineException {
-        Pipeline pipeline = Pipeline.ofSimple("my-test").build();
+        Pipeline pipeline = Pipeline.of("my-test").build();
         Output<A> output = pipeline.run();
         Context<A> context = pipeline.newContext(output);
         assertEquals(output, context.parent().get());

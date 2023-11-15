@@ -82,7 +82,7 @@ public class PipelinePhaseTest
 
     public static Pipeline<Object, VoidPayload> createPipeline(String name, ResultEvaluator evaluator, Counters counters)
     {
-        return Assertions.assertDoesNotThrow(() -> Pipeline.ofSimple(name)
+        return Assertions.assertDoesNotThrow(() -> Pipeline.of(name)
             .registerStep(builder -> builder
                 .step((InputStep<Object>) (in, res, ctx) -> {
                     counters.step_evaluated.incrementAndGet();

@@ -46,7 +46,7 @@ public class SinkWrapperTest
             .build()
         );
 
-        return Pipeline.ofPayload("test-wrapper-combined", TestFactory::initializerOfEmpty)
+        return Pipeline.of("test-wrapper-combined", TestFactory::initializerOfEmpty)
             .registerIndexer(SingleIndexer.auto())
             .registerSink(builder -> builder
                 .sink((output, context) -> {

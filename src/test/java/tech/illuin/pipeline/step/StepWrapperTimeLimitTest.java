@@ -54,7 +54,7 @@ public class StepWrapperTimeLimitTest
 
     public static Pipeline<?, VoidPayload> createTimeoutPipeline(StepAssembler<?, Object, VoidPayload> timeLimitedAssembler)
     {
-        return Pipeline.ofSimple("test-error-timelimit")
+        return Pipeline.of("test-error-timelimit")
             .registerStep(new TestStep<>("1", "ok"))
             .registerStep(timeLimitedAssembler)
             .registerStep(new TestStep<>("3", "ok"))

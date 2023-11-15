@@ -26,7 +26,7 @@ public class AnnotationTest
 
     public static Pipeline<Void, ?> createAnnotatedPipeline(AtomicInteger counter)
     {
-        return Pipeline.<Void>ofSimple("test-annotated")
+        return Pipeline.<Void>of("test-annotated")
             .registerSink(new TestAnnotatedSinks.ErrorHandler<>("1", in -> { throw new RuntimeException("Some error"); }))
             .registerSink(new TestAnnotatedSinks.Async<>("2", in -> counter.incrementAndGet()))
             .build()

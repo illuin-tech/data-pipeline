@@ -44,7 +44,7 @@ public class PipelineBuilderTest
     @Test
     public void test__simple()
     {
-        var builder = Assertions.assertDoesNotThrow(() -> Pipeline.ofSimple("test-simple")
+        var builder = Assertions.assertDoesNotThrow(() -> Pipeline.of("test-simple")
             .setAuthorResolver(authorResolver)
             .setDefaultStepErrorHandler(stepErrorHandler)
             .setDefaultSinkErrorHandler(sinkErrorHandler)
@@ -76,7 +76,7 @@ public class PipelineBuilderTest
     @Test
     public void test__payload()
     {
-        var builder = Assertions.assertDoesNotThrow(() -> Pipeline.ofPayload(
+        var builder = Assertions.assertDoesNotThrow(() -> Pipeline.of(
                 "test-payload",
                 (Initializer<Object, TestIndexable>) (input, context, generator) -> new TestIndexable(generator.generate())
             )
@@ -118,7 +118,7 @@ public class PipelineBuilderTest
             .initializer((input, context, generator) -> new TestIndexable(generator.generate()))
         ;
 
-        var builder = Assertions.assertDoesNotThrow(() -> Pipeline.ofPayload("test-payload", initializer)
+        var builder = Assertions.assertDoesNotThrow(() -> Pipeline.of("test-payload", initializer)
             .setAuthorResolver(authorResolver)
             .setDefaultStepErrorHandler(stepErrorHandler)
             .setDefaultSinkErrorHandler(sinkErrorHandler)
@@ -156,7 +156,7 @@ public class PipelineBuilderTest
     @Test
     public void test__withDefaultEvaluator()
     {
-        var builder = Assertions.assertDoesNotThrow(() -> Pipeline.ofSimple("test-with-default-evaluator")
+        var builder = Assertions.assertDoesNotThrow(() -> Pipeline.of("test-with-default-evaluator")
             .registerStep(step1)
             .registerStep(step2)
             .setDefaultEvaluator((res, obj, in, ctx) -> StepStrategy.EXIT)
@@ -174,7 +174,7 @@ public class PipelineBuilderTest
     @Test
     public void test__withDefaultStepErrorHandler()
     {
-        var builder = Assertions.assertDoesNotThrow(() -> Pipeline.ofSimple("test-with-default-step-error-handler")
+        var builder = Assertions.assertDoesNotThrow(() -> Pipeline.of("test-with-default-step-error-handler")
             .registerStep((input, results, context) -> { throw new Exception("interrupted"); })
             .registerStep(step2)
             .setDefaultStepErrorHandler(stepErrorHandler)
@@ -192,7 +192,7 @@ public class PipelineBuilderTest
     @Test
     public void test__withDefaultSinkErrorHandler()
     {
-        var builder = Assertions.assertDoesNotThrow(() -> Pipeline.ofSimple("test-with-default-sink-error-handler")
+        var builder = Assertions.assertDoesNotThrow(() -> Pipeline.of("test-with-default-sink-error-handler")
                 .registerStep(step1)
                 .registerStep(step2)
                 .registerSink((output, context) -> { throw new Exception("interrupted"); })

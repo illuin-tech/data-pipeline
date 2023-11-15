@@ -29,7 +29,7 @@ public class AnnotationTest
     public static Pipeline<Void, A> createAnnotatedPipeline(AtomicInteger counter)
     {
         Initializer<Void, A> initializer = new TestAnnotatedInitializers.ErrorHandler<>("0", (gen, in) -> new A("a", Collections.emptyList()));
-        return Pipeline.ofPayload("test-annotated", initializer)
+        return Pipeline.of("test-annotated", initializer)
             .registerSink(((output, context) -> {
                 if (output.payload().uid().equals("a"))
                     counter.incrementAndGet();

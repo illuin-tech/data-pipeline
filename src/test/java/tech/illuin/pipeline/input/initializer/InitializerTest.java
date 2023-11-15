@@ -42,7 +42,7 @@ public class InitializerTest
     public static Pipeline<String, B> createPipelineWithInitializer(AtomicInteger counter)
     {
         Initializer<String, B> init = (input, context, generator) -> new B(generator.generate(), input);
-        return Pipeline.ofPayload("test-init", init)
+        return Pipeline.of("test-init", init)
             .registerIndexer(SingleIndexer.auto())
             .registerSink((o, ctx) -> {
                 if (o.payload().name().equals("my_input"))
@@ -55,7 +55,7 @@ public class InitializerTest
     public static Pipeline<String, B> createPipelineWithInitializer_exception(AtomicInteger counter)
     {
         Initializer<String, B> init = (input, context, generator) -> { throw new Exception(input); };
-        return Pipeline.ofPayload("test-init-error", init)
+        return Pipeline.of("test-init-error", init)
             .registerIndexer(SingleIndexer.auto())
             .registerSink((o, ctx) -> counter.incrementAndGet())
             .build()

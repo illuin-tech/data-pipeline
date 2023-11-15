@@ -95,7 +95,7 @@ public class UIDGeneratorTest
 
     private static Pipeline<Object, VoidPayload> createPipeline(String name, UIDGenerator generator, Consumer<String> uidTest, AtomicInteger counter)
     {
-        return Assertions.assertDoesNotThrow(() -> Pipeline.ofSimple(name)
+        return Assertions.assertDoesNotThrow(() -> Pipeline.of(name)
             .setUidGenerator(generator)
             .registerStep((input, results, context) -> new TestResult("0", "ok"))
             .registerStep((input, results, context) -> new TestResult("1", "ok"))

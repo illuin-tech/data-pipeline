@@ -110,7 +110,7 @@ public interface Pipeline<I, P> extends AutoCloseable
      * @return the builder instance
      * @param <I> the Pipeline's input type
      */
-    static <I> SimplePipelineBuilder<I> ofSimple(String id)
+    static <I> SimplePipelineBuilder<I> of(String id)
     {
         return new SimplePipelineBuilder<I>().setId(id);
     }
@@ -123,15 +123,15 @@ public interface Pipeline<I, P> extends AutoCloseable
      * @param <I> the Pipeline's input type
      * @param <P> the Pipeline's payload type
      */
-    static <I, P> PayloadPipelineBuilder<I, P> ofPayload(String id)
+    static <I, P> PayloadPipelineBuilder<I, P> of(String id, Class<P> payloadType)
     {
         return new PayloadPipelineBuilder<I, P>().setId(id);
     }
 
     /**
-     * @see #ofPayload(String)
+     * @see #of(String)
      */
-    static <I, P> PayloadPipelineBuilder<I, P> ofPayload(String id, Initializer<I, P> initializer)
+    static <I, P> PayloadPipelineBuilder<I, P> of(String id, Initializer<I, P> initializer)
     {
         return new PayloadPipelineBuilder<I, P>()
             .setId(id)
@@ -140,9 +140,9 @@ public interface Pipeline<I, P> extends AutoCloseable
     }
 
     /**
-     * @see #ofPayload(String)
+     * @see #of(String, Initializer)
      */
-    static <I, P> PayloadPipelineBuilder<I, P> ofPayload(String id, InitializerAssembler<I, ? extends P> initializer)
+    static <I, P> PayloadPipelineBuilder<I, P> of(String id, InitializerAssembler<I, ? extends P> initializer)
     {
         return new PayloadPipelineBuilder<I, P>()
             .setId(id)

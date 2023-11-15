@@ -237,7 +237,7 @@ public class PipelineSinkAnnotationTest
 
     public static Pipeline<Object, ?> createPipeline_input(String name, StringCollector collector)
     {
-        return Pipeline.ofSimple(name)
+        return Pipeline.of(name)
             .registerSink(new SinkWithInput<>(collector))
             .build()
         ;
@@ -245,7 +245,7 @@ public class PipelineSinkAnnotationTest
 
     public static Pipeline<Object, ?> createPipeline_input_assembler(String name, StringCollector collector)
     {
-        return Pipeline.ofSimple(name)
+        return Pipeline.of(name)
             .registerSink(builder -> builder.sink(new SinkWithInput<>(collector)))
             .build()
         ;
@@ -253,7 +253,7 @@ public class PipelineSinkAnnotationTest
 
     public static Pipeline<Object, ?> createPipeline_input_of(String name, StringCollector collector)
     {
-        return Pipeline.ofSimple(name)
+        return Pipeline.of(name)
             .registerSink(Sink.of(new SinkWithInput<>(collector)))
             .build()
         ;
@@ -261,7 +261,7 @@ public class PipelineSinkAnnotationTest
 
     public static Pipeline<Object, ?> createPipeline_input_exception(String name)
     {
-        return Pipeline.ofSimple(name)
+        return Pipeline.of(name)
             .registerSink(Sink.of(new SinkWithException<>()))
             .build()
         ;
@@ -269,7 +269,7 @@ public class PipelineSinkAnnotationTest
 
     public static Pipeline<Object, ?> createPipeline_input_returnValue(String name, StringCollector collector)
     {
-        return Pipeline.ofSimple(name)
+        return Pipeline.of(name)
             .registerSink(new SinkWithInputAndReturnValue<>(collector))
             .build()
         ;
@@ -277,7 +277,7 @@ public class PipelineSinkAnnotationTest
 
     public static Pipeline<String, TestPayload> createPipeline_payload(String name, StringCollector collector)
     {
-        return Pipeline.ofPayload(name, (Initializer<String, TestPayload>) (input, context, generator) -> new TestPayload(new TestObject(generator.generate())))
+        return Pipeline.of(name, (Initializer<String, TestPayload>) (input, context, generator) -> new TestPayload(new TestObject(generator.generate())))
             .registerIndexer(TestPayload::object)
             .registerSink(new SinkWithPayload(collector))
             .build()
@@ -286,7 +286,7 @@ public class PipelineSinkAnnotationTest
 
     public static Pipeline<String, TestPayload> createPipeline_output(String name, StringCollector collector)
     {
-        return Pipeline.ofPayload(name, (Initializer<String, TestPayload>) (input, context, generator) -> new TestPayload(new TestObject(generator.generate())))
+        return Pipeline.of(name, (Initializer<String, TestPayload>) (input, context, generator) -> new TestPayload(new TestObject(generator.generate())))
             .registerIndexer(TestPayload::object)
             .registerSink(new SinkWithOutput(collector))
             .build()
@@ -295,7 +295,7 @@ public class PipelineSinkAnnotationTest
 
     public static Pipeline<Object, ?> createPipeline_current(String name, StringCollector collector)
     {
-        return Pipeline.ofSimple(name)
+        return Pipeline.of(name)
             .registerStep(new StepWithInput<>())
             .registerSink(new SinkWithInputAndCurrent<>(collector))
             .build()
@@ -304,7 +304,7 @@ public class PipelineSinkAnnotationTest
 
     public static Pipeline<Object, ?> createPipeline_currentOptional(String name, StringCollector collector)
     {
-        return Pipeline.ofSimple(name)
+        return Pipeline.of(name)
             .registerStep(new StepWithInput<>())
             .registerSink(new SinkWithInputAndCurrentOptional<>(collector))
             .build()
@@ -313,7 +313,7 @@ public class PipelineSinkAnnotationTest
 
     public static Pipeline<Object, ?> createPipeline_currentStream(String name, StringCollector collector)
     {
-        return Pipeline.ofSimple(name)
+        return Pipeline.of(name)
             .registerStep(new StepWithInput<>())
             .registerSink(new SinkWithInputAndCurrentStream<>(collector))
             .build()
@@ -322,7 +322,7 @@ public class PipelineSinkAnnotationTest
 
     public static Pipeline<Object, ?> createPipeline_latest(String name, StringCollector collector)
     {
-        return Pipeline.ofSimple(name)
+        return Pipeline.of(name)
             .registerStep(new StepWithInput<>())
             .registerSink(new SinkWithInputAndLatest<>(collector))
             .registerSink(new SinkWithInputAndLatestOptional<>(collector))
@@ -333,7 +333,7 @@ public class PipelineSinkAnnotationTest
 
     public static Pipeline<Object, ?> createPipeline_latestOptional(String name, StringCollector collector)
     {
-        return Pipeline.ofSimple(name)
+        return Pipeline.of(name)
             .registerStep(new StepWithInput<>())
             .registerSink(new SinkWithInputAndLatestOptional<>(collector))
             .build()
@@ -342,7 +342,7 @@ public class PipelineSinkAnnotationTest
 
     public static Pipeline<Object, ?> createPipeline_latestStream(String name, StringCollector collector)
     {
-        return Pipeline.ofSimple(name)
+        return Pipeline.of(name)
             .registerStep(new StepWithInput<>())
             .registerSink(new SinkWithInputAndLatestStream<>(collector))
             .build()
@@ -351,7 +351,7 @@ public class PipelineSinkAnnotationTest
 
     public static Pipeline<Object, ?> createPipeline_tags(String name, StringCollector collector)
     {
-        return Pipeline.ofSimple(name)
+        return Pipeline.of(name)
             .registerSink(new SinkWithTags(collector))
             .build()
         ;
@@ -359,7 +359,7 @@ public class PipelineSinkAnnotationTest
 
     public static Pipeline<Object, ?> createPipeline_results(String name, StringCollector collector)
     {
-        return Pipeline.ofSimple(name)
+        return Pipeline.of(name)
             .registerStep(new StepWithInput<>())
             .registerSink(new SinkWithResults(collector))
             .build()
@@ -368,7 +368,7 @@ public class PipelineSinkAnnotationTest
 
     public static Pipeline<Object, ?> createPipeline_context(String name, String metadataKey, StringCollector collector)
     {
-        return Pipeline.ofSimple(name)
+        return Pipeline.of(name)
             .registerSink(new SinkWithContext(metadataKey, collector))
             .build()
         ;
@@ -376,7 +376,7 @@ public class PipelineSinkAnnotationTest
 
     public static Pipeline<Object, ?> createPipeline_uidGenerator(String name, StringCollector collector)
     {
-        return Pipeline.ofSimple(name)
+        return Pipeline.of(name)
             .registerSink(new SinkWithUIDGenerator(collector))
             .build()
         ;
@@ -384,7 +384,7 @@ public class PipelineSinkAnnotationTest
 
     public static Pipeline<Object, ?> createPipeline_logMarker(String name, StringCollector collector)
     {
-        return Pipeline.ofSimple(name)
+        return Pipeline.of(name)
             .registerSink(new SinkWithLogMarker(collector))
             .build()
         ;

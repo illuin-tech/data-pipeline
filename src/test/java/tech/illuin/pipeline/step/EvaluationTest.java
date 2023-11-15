@@ -50,7 +50,7 @@ public class EvaluationTest
     {
         AtomicInteger counter = new AtomicInteger(0);
 
-        Pipeline<?, VoidPayload> pipeline = Assertions.assertDoesNotThrow(() -> Pipeline.ofSimple("test-evaluation-skip")
+        Pipeline<?, VoidPayload> pipeline = Assertions.assertDoesNotThrow(() -> Pipeline.of("test-evaluation-skip")
             .registerStep(builder -> builder
                 .step(new TestStep<>("1", in -> {
                     counter.incrementAndGet();
@@ -70,7 +70,7 @@ public class EvaluationTest
 
     public static Pipeline<Void, A> createAbortingPipeline()
     {
-        return Pipeline.ofPayload("test-abort", TestFactory::initializer)
+        return Pipeline.of("test-abort", TestFactory::initializer)
            .registerIndexer(SingleIndexer.auto())
            .registerIndexer(A::bs)
            .registerStep(builder -> builder

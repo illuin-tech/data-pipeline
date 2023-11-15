@@ -40,7 +40,7 @@ public class AnnotationTest
 
     public static Pipeline<Void, A> createAnnotatedPipeline()
     {
-        return Pipeline.ofPayload("test-annotated", TestFactory::initializerOfEmpty)
+        return Pipeline.of("test-annotated", TestFactory::initializerOfEmpty)
            .registerIndexer(SingleIndexer.auto())
            .registerStep(new TestAnnotatedSteps.ClassActivation<>("1", "ok"))
            .registerStep(new TestAnnotatedSteps.ConditionActivation<>("2", "ok"))

@@ -21,7 +21,7 @@ public class OutputFactoryTest
     {
         AtomicInteger counter = new AtomicInteger(0);
 
-        var pipeline = Assertions.assertDoesNotThrow(() -> Pipeline.ofPayload("test-output-factory", new Default<Void, B>("b-init", (gen, v) -> new B(gen.generate(), "b")))
+        var pipeline = Assertions.assertDoesNotThrow(() -> Pipeline.of("test-output-factory", new Default<Void, B>("b-init", (gen, v) -> new B(gen.generate(), "b")))
             .setOutputFactory(CustomOutput::new)
             .registerSink((out, ctx) -> {
                 if (out instanceof CustomOutput)

@@ -58,7 +58,7 @@ public class PipelineSinkIllegalAnnotationTest
 
     public static Pipeline<Object, ?> createNonCompilingPipeline(String name, Object illegalSink)
     {
-        return Pipeline.ofSimple(name)
+        return Pipeline.of(name)
            .registerStep(builder -> builder.step(new StepWithInput<>()))
            .registerSink(builder -> builder.sink(illegalSink))
            .build()

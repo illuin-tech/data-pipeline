@@ -93,7 +93,7 @@ public class PipelineInitializerIllegalAnnotationTest
 
     public static Pipeline<Object, ?> createNonCompilingPipeline(String name, Object illegalInitializer)
     {
-        return Pipeline.ofPayload(name)
+        return Pipeline.of(name, Object.class)
             .setInitializer(illegalInitializer)
             .build()
         ;

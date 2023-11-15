@@ -49,7 +49,7 @@ public class PinTest
 
     public static Pipeline<Void, A> createErrorHandledWithPinnedPipeline(ResultEvaluator evaluator)
     {
-        return Pipeline.ofPayload("test-error-handled-with-pinned", TestFactory::initializer)
+        return Pipeline.of("test-error-handled-with-pinned", TestFactory::initializer)
            .registerIndexer(SingleIndexer.auto())
            .registerIndexer(A::bs)
            .registerStep(builder -> builder

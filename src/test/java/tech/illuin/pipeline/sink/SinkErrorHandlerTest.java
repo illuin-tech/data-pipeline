@@ -45,7 +45,7 @@ public class SinkErrorHandlerTest
 
     public static Pipeline<?, VoidPayload> createSinkErrorHandledPipeline(AtomicInteger successfulSinkCounter, AtomicInteger failedSinkCounter)
     {
-        return Pipeline.ofSimple("test-sink-sync-exception")
+        return Pipeline.of("test-sink-sync-exception")
             .registerSink((o, ctx) -> successfulSinkCounter.incrementAndGet())
             .registerSink(builder -> builder
                 .sink((o, ctx) -> { throw new Exception("Interrupted"); })
@@ -64,7 +64,7 @@ public class SinkErrorHandlerTest
         };
         SinkErrorHandler secondErrorHandler = (ex, output, ctx) -> failedSinkCounter.incrementAndGet();
 
-        return Pipeline.ofSimple("test-sink-sync-exception")
+        return Pipeline.of("test-sink-sync-exception")
             .registerSink((o, ctx) -> successfulSinkCounter.incrementAndGet())
             .registerSink(builder -> builder
                 .sink((o, ctx) -> { throw new Exception("Interrupted"); })

@@ -57,7 +57,7 @@ public class PipelineStepIllegalAnnotationTest
 
     public static Pipeline<Object, ?> createNonCompilingPipeline(String name, Object illegalStep)
     {
-        return Pipeline.ofSimple(name)
+        return Pipeline.of(name)
            .registerStep(builder -> builder.step(new StepWithInput<>()))
            .registerStep(builder -> builder.step(illegalStep))
            .build()

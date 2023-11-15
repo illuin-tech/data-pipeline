@@ -18,7 +18,7 @@ public class PipelineStepTest
     {
         Counters counters = new Counters();
         Pipeline<Object, ?> subPipeline = createPipeline("test-continue", (res, obj, in, ctx) -> StepStrategy.CONTINUE, counters);
-        Pipeline<Object, ?> pipeline = Pipeline.ofSimple("test-enclosing-continue").registerStep(subPipeline.asStep()).build();
+        Pipeline<Object, ?> pipeline = Pipeline.of("test-enclosing-continue").registerStep(subPipeline.asStep()).build();
 
         Assertions.assertDoesNotThrow(() -> pipeline.run());
         Assertions.assertDoesNotThrow(pipeline::close);
@@ -36,7 +36,7 @@ public class PipelineStepTest
     {
         Counters counters = new Counters();
         Pipeline<Object, ?> subPipeline = createPipeline("test-stop", (res, obj, in, ctx) -> StepStrategy.STOP, counters);
-        Pipeline<Object, ?> pipeline = Pipeline.ofSimple("test-enclosing-stop").registerStep(subPipeline.asStep()).build();
+        Pipeline<Object, ?> pipeline = Pipeline.of("test-enclosing-stop").registerStep(subPipeline.asStep()).build();
 
         Assertions.assertDoesNotThrow(() -> pipeline.run());
         Assertions.assertDoesNotThrow(pipeline::close);
@@ -54,7 +54,7 @@ public class PipelineStepTest
     {
         Counters counters = new Counters();
         Pipeline<Object, ?> subPipeline = createPipeline("test-abort", (res, obj, in, ctx) -> StepStrategy.ABORT, counters);
-        Pipeline<Object, ?> pipeline = Pipeline.ofSimple("test-enclosing-abort").registerStep(subPipeline.asStep()).build();
+        Pipeline<Object, ?> pipeline = Pipeline.of("test-enclosing-abort").registerStep(subPipeline.asStep()).build();
 
         Assertions.assertDoesNotThrow(() -> pipeline.run());
         Assertions.assertDoesNotThrow(pipeline::close);
@@ -72,7 +72,7 @@ public class PipelineStepTest
     {
         Counters counters = new Counters();
         Pipeline<Object, ?> subPipeline = createPipeline("test-exit", (res, obj, in, ctx) -> StepStrategy.EXIT, counters);
-        Pipeline<Object, ?> pipeline = Pipeline.ofSimple("test-enclosing-exit").registerStep(subPipeline.asStep()).build();
+        Pipeline<Object, ?> pipeline = Pipeline.of("test-enclosing-exit").registerStep(subPipeline.asStep()).build();
 
         Assertions.assertDoesNotThrow(() -> pipeline.run());
         Assertions.assertDoesNotThrow(pipeline::close);

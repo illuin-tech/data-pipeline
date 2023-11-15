@@ -104,7 +104,7 @@ public class PipelineInitializerAnnotationTest
 
     public static Pipeline<Object, TestPayload> createPipeline_input(String name)
     {
-        return Pipeline.<Object, TestPayload>ofPayload(name)
+        return Pipeline.of(name, TestPayload.class)
             .setInitializer(new InitializerWithInput<>())
             .registerIndexer(TestPayload::object)
             .build()
@@ -113,7 +113,7 @@ public class PipelineInitializerAnnotationTest
 
     public static Pipeline<Object, TestPayload> createPipeline_input_assembler(String name)
     {
-        return Pipeline.<Object, TestPayload>ofPayload(name)
+        return Pipeline.of(name, TestPayload.class)
             .setInitializer(builder -> builder.initializer(new InitializerWithInput<>()))
             .registerIndexer(TestPayload::object)
             .build()
@@ -122,7 +122,7 @@ public class PipelineInitializerAnnotationTest
 
     public static Pipeline<Object, TestPayload> createPipeline_input_of(String name)
     {
-        return Pipeline.<Object, TestPayload>ofPayload(name)
+        return Pipeline.of(name, TestPayload.class)
             .setInitializer(Initializer.of(new InitializerWithInput<>()))
             .registerIndexer(TestPayload::object)
             .build()
@@ -131,7 +131,7 @@ public class PipelineInitializerAnnotationTest
 
     public static Pipeline<Object, TestPayload> createPipeline_input_exception(String name)
     {
-        return Pipeline.<Object, TestPayload>ofPayload(name)
+        return Pipeline.of(name, TestPayload.class)
             .setInitializer(new InitializerWithException<>())
             .registerIndexer(TestPayload::object)
             .build()
@@ -140,7 +140,7 @@ public class PipelineInitializerAnnotationTest
 
     public static Pipeline<Object, TestPayload> createPipeline_tags(String name)
     {
-        return Pipeline.<Object, TestPayload>ofPayload(name)
+        return Pipeline.of(name, TestPayload.class)
             .setInitializer(new InitializerWithTags())
             .registerIndexer(TestPayload::object)
             .build()
@@ -149,7 +149,7 @@ public class PipelineInitializerAnnotationTest
 
     public static Pipeline<Object, TestPayload> createPipeline_context(String name, String metadataKey)
     {
-        return Pipeline.<Object, TestPayload>ofPayload(name)
+        return Pipeline.of(name, TestPayload.class)
             .setInitializer(new InitializerWithContext(metadataKey))
             .registerIndexer(TestPayload::object)
             .build()
@@ -158,7 +158,7 @@ public class PipelineInitializerAnnotationTest
 
     public static Pipeline<Object, TestPayload> createPipeline_logMarker(String name)
     {
-        return Pipeline.<Object, TestPayload>ofPayload(name)
+        return Pipeline.of(name, TestPayload.class)
             .setInitializer(new InitializerWithLogMarker())
             .registerIndexer(TestPayload::object)
             .build()

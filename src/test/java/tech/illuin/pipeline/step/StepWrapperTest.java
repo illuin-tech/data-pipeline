@@ -57,7 +57,7 @@ public class StepWrapperTest
         );
 
         var counter = new AtomicInteger(0);
-        return Pipeline.ofPayload("test-wrapper-combined", TestFactory::initializerOfEmpty)
+        return Pipeline.of("test-wrapper-combined", TestFactory::initializerOfEmpty)
             .registerIndexer(SingleIndexer.auto())
             .registerStep(new TestStep<>("1", "ok"))
             .registerStep(builder -> builder

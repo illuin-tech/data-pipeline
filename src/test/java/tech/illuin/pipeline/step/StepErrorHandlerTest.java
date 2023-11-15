@@ -80,7 +80,7 @@ public class StepErrorHandlerTest
 
     public static Pipeline<Void, A> createErrorHandledPipeline()
     {
-        return Pipeline.ofPayload("test-error-handled", TestFactory::initializer)
+        return Pipeline.of("test-error-handled", TestFactory::initializer)
            .registerIndexer(SingleIndexer.auto())
            .registerIndexer(A::bs)
            .registerStep(builder -> builder
@@ -110,7 +110,7 @@ public class StepErrorHandlerTest
         };
         StepErrorHandler secondErrorhandler = (ex, in, payload, res, ctx) -> new TestResult("error", "ko");
 
-        return Pipeline.ofPayload("test-composite-error-handled", TestFactory::initializer)
+        return Pipeline.of("test-composite-error-handled", TestFactory::initializer)
             .registerIndexer(SingleIndexer.auto())
             .registerIndexer(A::bs)
             .registerStep(builder -> builder
@@ -134,7 +134,7 @@ public class StepErrorHandlerTest
 
     public static Pipeline<Void, A> createErrorThrownPipeline()
     {
-        return Pipeline.ofPayload("test-error-thrown", TestFactory::initializerOfEmpty)
+        return Pipeline.of("test-error-thrown", TestFactory::initializerOfEmpty)
            .registerIndexer(SingleIndexer.auto())
            .registerStep(builder -> builder
                .step(new TestStep<>("1", "ok"))

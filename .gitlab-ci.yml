@@ -1,14 +1,15 @@
 variables:
   MAVEN_OPTS: "-Dhttps.protocols=TLSv1.2 -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN -Dorg.slf4j.simpleLogger.showDateTime=true -Djava.awt.headless=true"
   MAVEN_CLI_OPTS: "--batch-mode --errors --fail-at-end --show-version -DinstallAtEnd=true -DdeployAtEnd=true"
-
-image: maven:3.8.5-openjdk-17
+  JDK17_IMAGE: "maven:3.9.5-eclipse-temurin-17"
+  JDK21_IMAGE: "maven:3.9.5-eclipse-temurin-21"
 
 cache:
   paths:
     - .m2/repository
 
 test:jdk17:
+  image: $JDK17_IMAGE
   stage: test
   script:
     - 'mvn $MAVEN_CLI_OPTS clean org.jacoco:jacoco-maven-plugin:prepare-agent test jacoco:report'
@@ -21,6 +22,14 @@ test:jdk17:
       junit:
         - target/surefire-reports/TEST-*.xml
         - target/failsafe-reports/TEST-*.xml
+  only:
+    - branches
+
+test:jdk21:
+  image: $JDK21_IMAGE
+  stage: test
+  script:
+    - 'mvn $MAVEN_CLI_OPTS clean test'
   only:
     - branches
 
@@ -44,6 +53,7 @@ coverage:jdk17:
     - tags
 
 lint:jdk17:
+  image: $JDK17_IMAGE
   stage: test
   script:
     - 'mvn $MAVEN_CLI_OPTS clean checkstyle:check'
@@ -51,6 +61,7 @@ lint:jdk17:
     - branches
 
 deploy:jdk17:
+  image: $JDK17_IMAGE
   stage: deploy
   script:
     - 'cp $SETTINGS_XML ~/.m2/settings.xml'

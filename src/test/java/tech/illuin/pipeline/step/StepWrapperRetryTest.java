@@ -42,7 +42,7 @@ public class StepWrapperRetryTest
     public static Pipeline<Void, A> createErrorRetryPipeline()
     {
         var counter = new AtomicInteger(0);
-        return Pipeline.ofPayload("test-error-retry", TestFactory::initializerOfEmpty)
+        return Pipeline.of("test-error-retry", TestFactory::initializerOfEmpty)
             .registerIndexer(SingleIndexer.auto())
             .registerStep(new TestStep<>("1", "ok"))
             .registerStep(builder -> builder

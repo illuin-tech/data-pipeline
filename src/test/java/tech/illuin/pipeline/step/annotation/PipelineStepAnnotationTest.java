@@ -217,7 +217,7 @@ public class PipelineStepAnnotationTest
 
     public static Pipeline<Object, ?> createPipeline_input(String name)
     {
-        return Pipeline.ofSimple(name)
+        return Pipeline.of(name)
             .registerStep(new StepWithInput<>())
             .build()
         ;
@@ -225,7 +225,7 @@ public class PipelineStepAnnotationTest
 
     public static Pipeline<Object, ?> createPipeline_input_assembler(String name)
     {
-        return Pipeline.ofSimple(name)
+        return Pipeline.of(name)
             .registerStep(builder -> builder.step(new StepWithInput<>()))
             .build()
         ;
@@ -233,7 +233,7 @@ public class PipelineStepAnnotationTest
 
     public static Pipeline<Object, ?> createPipeline_input_of(String name)
     {
-        return Pipeline.ofSimple(name)
+        return Pipeline.of(name)
             .registerStep(Step.of(new StepWithInput<>()))
             .build()
         ;
@@ -241,7 +241,7 @@ public class PipelineStepAnnotationTest
 
     public static Pipeline<Object, ?> createPipeline_input_exception(String name)
     {
-        return Pipeline.ofSimple(name)
+        return Pipeline.of(name)
             .registerStep(new StepWithException<>())
             .build()
         ;
@@ -249,7 +249,7 @@ public class PipelineStepAnnotationTest
 
     public static Pipeline<String, TestPayload> createPipeline_object(String name)
     {
-        return Pipeline.ofPayload(name, (Initializer<String, TestPayload>) (input, context, generator) -> new TestPayload(new TestObject(generator.generate())))
+        return Pipeline.of(name, (Initializer<String, TestPayload>) (input, context, generator) -> new TestPayload(new TestObject(generator.generate())))
             .registerIndexer(TestPayload::object)
             .registerStep(new StepWithObject())
             .build()
@@ -258,7 +258,7 @@ public class PipelineStepAnnotationTest
 
     public static Pipeline<String, TestPayload> createPipeline_payload(String name)
     {
-        return Pipeline.ofPayload(name, (Initializer<String, TestPayload>) (input, context, generator) -> new TestPayload(new TestObject(generator.generate())))
+        return Pipeline.of(name, (Initializer<String, TestPayload>) (input, context, generator) -> new TestPayload(new TestObject(generator.generate())))
             .registerIndexer(TestPayload::object)
             .registerStep(new StepWithPayload())
             .build()
@@ -267,7 +267,7 @@ public class PipelineStepAnnotationTest
 
     public static Pipeline<Object, ?> createPipeline_current(String name)
     {
-        return Pipeline.ofSimple(name)
+        return Pipeline.of(name)
             .registerStep(new StepWithInput<>())
             .registerStep(new StepWithInputAndCurrent<>())
             .registerStep(new StepWithInputAndCurrentOptional<>())
@@ -278,7 +278,7 @@ public class PipelineStepAnnotationTest
 
     public static Pipeline<Object, ?> createPipeline_latest(String name)
     {
-        return Pipeline.ofSimple(name)
+        return Pipeline.of(name)
             .registerStep(new StepWithInput<>())
             .registerStep(new StepWithInputAndLatest<>())
             .registerStep(new StepWithInputAndLatestOptional<>())
@@ -289,7 +289,7 @@ public class PipelineStepAnnotationTest
 
     public static Pipeline<Object, ?> createPipeline_tags(String name)
     {
-        return Pipeline.ofSimple(name)
+        return Pipeline.of(name)
             .registerStep(new StepWithTags())
             .build()
         ;
@@ -297,7 +297,7 @@ public class PipelineStepAnnotationTest
 
     public static Pipeline<Object, ?> createPipeline_results(String name)
     {
-        return Pipeline.ofSimple(name)
+        return Pipeline.of(name)
             .registerStep(new StepWithInput<>())
             .registerStep(new StepWithResults())
             .build()
@@ -307,7 +307,7 @@ public class PipelineStepAnnotationTest
 
     public static Pipeline<Object, ?> createPipeline_resultView(String name)
     {
-        return Pipeline.ofSimple(name)
+        return Pipeline.of(name)
             .registerStep(new StepWithInput<>())
             .registerStep(new StepWithResultView())
             .build()
@@ -316,7 +316,7 @@ public class PipelineStepAnnotationTest
 
     public static Pipeline<Object, ?> createPipeline_context(String name, String metadataKey)
     {
-        return Pipeline.ofSimple(name)
+        return Pipeline.of(name)
             .registerStep(new StepWithContext(metadataKey))
             .build()
         ;
@@ -324,7 +324,7 @@ public class PipelineStepAnnotationTest
 
     public static Pipeline<Object, ?> createPipeline_uidGenerator(String name)
     {
-        return Pipeline.ofSimple(name)
+        return Pipeline.of(name)
             .registerStep(new StepWithUIDGenerator())
             .build()
         ;
@@ -332,7 +332,7 @@ public class PipelineStepAnnotationTest
 
     public static Pipeline<Object, ?> createPipeline_logMarker(String name)
     {
-        return Pipeline.ofSimple(name)
+        return Pipeline.of(name)
             .registerStep(new StepWithLogMarker())
             .build()
         ;

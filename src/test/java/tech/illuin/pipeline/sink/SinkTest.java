@@ -50,7 +50,7 @@ public class SinkTest
 
     public static Pipeline<?, VoidPayload> createPipelineWithSinks(AtomicInteger counter)
     {
-        return Pipeline.ofSimple("test-sink")
+        return Pipeline.of("test-sink")
            .registerSink((o, ctx) -> counter.incrementAndGet())
            .registerSink((o, ctx) -> counter.incrementAndGet())
            .registerSink((o, ctx) -> counter.incrementAndGet(), true)
@@ -61,7 +61,7 @@ public class SinkTest
 
     public static Pipeline<?, VoidPayload> createPipelineWithSinks_syncException(AtomicInteger counter)
     {
-        return Pipeline.ofSimple("test-sink-sync-exception")
+        return Pipeline.of("test-sink-sync-exception")
             .registerSink((o, ctx) -> counter.incrementAndGet())
             .registerSink((o, ctx) -> { throw new Exception("Interrupted"); })
             .registerSink((o, ctx) -> counter.incrementAndGet(), true)
@@ -71,7 +71,7 @@ public class SinkTest
 
     public static Pipeline<?, VoidPayload> createPipelineWithSinks_asyncException(AtomicInteger counter)
     {
-        return Pipeline.ofSimple("test-sink-async-exception")
+        return Pipeline.of("test-sink-async-exception")
             .registerSink((o, ctx) -> counter.incrementAndGet())
             .registerSink((o, ctx) -> counter.incrementAndGet())
             .registerSink((o, ctx) -> { throw new Exception("Interrupted"); }, true)

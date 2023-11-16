@@ -13,7 +13,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import static tech.illuin.pipeline.commons.Maps.merge;
+import static java.util.Collections.emptyMap;
 
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
@@ -75,12 +75,12 @@ public class PipelineSinkMetrics implements LogMarker
     @Override
     public LabelMarker mark(Map<String, String> labels)
     {
-        return LabelMarker.of(() -> merge(
-                this.compileMarkers(Map.of(
+        return LabelMarker.of(() -> this.compileMarkers(
+            Map.of(
                 "pipeline", this.tag.pipelineTag().pipeline(),
                 "author", this.tag.pipelineTag().author(),
                 "sink", this.tag.id()
-            )),
+            ),
             labels
         ));
     }
@@ -93,7 +93,7 @@ public class PipelineSinkMetrics implements LogMarker
             "author", this.tag.pipelineTag().author(),
             "error", exception.getClass().getName(),
             "sink", this.tag.id()
-        )));
+        ), emptyMap()));
     }
 
     private Collection<Tag> compileTags(Tag... mainstayTags)
@@ -101,8 +101,8 @@ public class PipelineSinkMetrics implements LogMarker
         return MetricFunctions.combine(List.of(mainstayTags), this.metricTags.asTags());
     }
 
-    private Map<String, String> compileMarkers(Map<String, String> mainstayMarkers)
+    private Map<String, String> compileMarkers(Map<String, String> mainstayMarkers, Map<String, String> dynamicMarkers)
     {
-        return MetricFunctions.combine(mainstayMarkers, this.metricTags.asMap());
+        return MetricFunctions.combine(mainstayMarkers, this.metricTags.asMap(), dynamicMarkers);
     }
 }

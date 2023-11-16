@@ -14,6 +14,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import static tech.illuin.pipeline.commons.Maps.merge;
+
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
@@ -84,13 +86,16 @@ public class PipelineStepMetrics implements LogMarker
     }
 
     @Override
-    public LabelMarker mark()
+    public LabelMarker mark(Map<String, String> labels)
     {
-        return LabelMarker.of(() -> this.compileMarkers(Map.of(
-            "pipeline", this.tag.pipelineTag().pipeline(),
-            "author", this.tag.pipelineTag().author(),
-            "step", this.tag.id()
-        )));
+        return LabelMarker.of(() -> merge(
+            this.compileMarkers(Map.of(
+                "pipeline", this.tag.pipelineTag().pipeline(),
+                "author", this.tag.pipelineTag().author(),
+                "step", this.tag.id()
+            )),
+            labels
+        ));
     }
 
     @Override

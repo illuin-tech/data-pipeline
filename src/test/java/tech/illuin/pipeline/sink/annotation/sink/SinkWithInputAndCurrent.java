@@ -28,4 +28,21 @@ public class SinkWithInputAndCurrent<T>
         logger.info("input: {} current: {}", data, result.status());
         this.collector.update(result.status() + "->" + data);
     }
+
+    public static class Named<T>
+    {
+        private final StringCollector collector;
+
+        public Named(StringCollector collector)
+        {
+            this.collector = collector;
+        }
+
+        @SinkConfig(id = "sink-with_input+current")
+        public void execute(@Input T data, @Current(name = "annotation-named") TestResult result)
+        {
+            logger.info("input: {} current: {}", data, result.status());
+            this.collector.update(result.status() + "->single(" + data + ")");
+        }
+    }
 }

@@ -24,4 +24,15 @@ public class StepWithInputAndCurrentOptional<T>
         logger.info("input: {} current: {}", data, status);
         return new TestResult("annotation-test", status + "->" + data);
     }
+
+    public static class Named<T>
+    {
+        @StepConfig(id = "step-with_input+current-optional")
+        public Result execute(@Input T data, @Current(name = "annotation-named") Optional<TestResult> result)
+        {
+            String status = result.map(TestResult::status).orElse(null);
+            logger.info("input: {} current: {}", data, status);
+            return new TestResult("annotation-test", status + "->optional(" + data + ")");
+        }
+    }
 }

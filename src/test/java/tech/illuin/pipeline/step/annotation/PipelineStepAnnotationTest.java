@@ -12,6 +12,8 @@ import tech.illuin.pipeline.step.Step;
 import tech.illuin.pipeline.step.annotation.step.*;
 import tech.illuin.pipeline.step.annotation.step.StepWithException.StepWithExceptionException;
 
+import java.util.List;
+
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
@@ -113,6 +115,29 @@ public class PipelineStepAnnotationTest
     }
 
     @Test
+    public void testPipeline__shouldCompile_currentNamed()
+    {
+        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_currentNamed("test-current-named"));
+
+        Output<?> output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
+        Assertions.assertDoesNotThrow(pipeline::close);
+
+        List<String> statuses = output.results().stream(TestResult.class)
+            .map(TestResult::status)
+            .sorted()
+            .toList()
+        ;
+
+        Assertions.assertEquals(4, statuses.size());
+        Assertions.assertLinesMatch(List.of(
+            "input",
+            "input->optional(input)",
+            "input->single(input)",
+            "input->stream(input)"
+        ), statuses);
+    }
+
+    @Test
     public void testPipeline__shouldCompile_latest()
     {
         Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_latest("test-latest"));
@@ -124,6 +149,29 @@ public class PipelineStepAnnotationTest
             "input+input->input+input->input->input->input",
             output.results().current(TestResult.class).map(TestResult::status).orElse(null)
         );
+    }
+
+    @Test
+    public void testPipeline__shouldCompile_latestNamed()
+    {
+        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_latestNamed("test-latest-named"));
+
+        Output<?> output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
+        Assertions.assertDoesNotThrow(pipeline::close);
+
+        List<String> statuses = output.results().stream(TestResult.class)
+            .map(TestResult::status)
+            .sorted()
+            .toList()
+        ;
+
+        Assertions.assertEquals(4, statuses.size());
+        Assertions.assertLinesMatch(List.of(
+            "input",
+            "input->optional(input)",
+            "input->single(input)",
+            "input->stream(input)"
+        ), statuses);
     }
 
     @Test
@@ -276,6 +324,17 @@ public class PipelineStepAnnotationTest
         ;
     }
 
+    public static Pipeline<Object, ?> createPipeline_currentNamed(String name)
+    {
+        return Pipeline.of(name)
+            .registerStep(new StepWithInput<>("annotation-named"))
+            .registerStep(new StepWithInputAndCurrent.Named<>())
+            .registerStep(new StepWithInputAndCurrentOptional.Named<>())
+            .registerStep(new StepWithInputAndCurrentStream.Named<>())
+            .build()
+        ;
+    }
+
     public static Pipeline<Object, ?> createPipeline_latest(String name)
     {
         return Pipeline.of(name)
@@ -283,6 +342,17 @@ public class PipelineStepAnnotationTest
             .registerStep(new StepWithInputAndLatest<>())
             .registerStep(new StepWithInputAndLatestOptional<>())
             .registerStep(new StepWithInputAndLatestStream<>())
+            .build()
+        ;
+    }
+
+    public static Pipeline<Object, ?> createPipeline_latestNamed(String name)
+    {
+        return Pipeline.of(name)
+            .registerStep(new StepWithInput<>("annotation-named"))
+            .registerStep(new StepWithInputAndLatest.Named<>())
+            .registerStep(new StepWithInputAndLatestOptional.Named<>())
+            .registerStep(new StepWithInputAndLatestStream.Named<>())
             .build()
         ;
     }

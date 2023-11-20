@@ -137,6 +137,42 @@ public class PipelineSinkAnnotationTest
     }
 
     @Test
+    public void testPipeline__shouldCompile_currentNamed()
+    {
+        StringCollector collector = new StringCollector();
+        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_currentNamed("test-current-named", collector));
+
+        Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
+        Assertions.assertDoesNotThrow(pipeline::close);
+
+        Assertions.assertEquals("input->single(input)", collector.get());
+    }
+
+    @Test
+    public void testPipeline__shouldCompile_currentOptionalNamed()
+    {
+        StringCollector collector = new StringCollector();
+        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_currentOptionalNamed("test-current-optional-named", collector));
+
+        Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
+        Assertions.assertDoesNotThrow(pipeline::close);
+
+        Assertions.assertEquals("input->optional(input)", collector.get());
+    }
+
+    @Test
+    public void testPipeline__shouldCompile_currentStreamNamed()
+    {
+        StringCollector collector = new StringCollector();
+        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_currentStreamNamed("test-current-stream-named", collector));
+
+        Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
+        Assertions.assertDoesNotThrow(pipeline::close);
+
+        Assertions.assertEquals("input->stream(input)", collector.get());
+    }
+
+    @Test
     public void testPipeline__shouldCompile_latest()
     {
         StringCollector collector = new StringCollector();
@@ -170,6 +206,42 @@ public class PipelineSinkAnnotationTest
         Assertions.assertDoesNotThrow(pipeline::close);
 
         Assertions.assertEquals("input->input", collector.get());
+    }
+
+    @Test
+    public void testPipeline__shouldCompile_latestNamed()
+    {
+        StringCollector collector = new StringCollector();
+        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_latestNamed("test-latest-named", collector));
+
+        Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
+        Assertions.assertDoesNotThrow(pipeline::close);
+
+        Assertions.assertEquals("input->single(input)", collector.get());
+    }
+
+    @Test
+    public void testPipeline__shouldCompile_latestOptionalNamed()
+    {
+        StringCollector collector = new StringCollector();
+        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_latestOptionalNamed("test-latest-optional-named", collector));
+
+        Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
+        Assertions.assertDoesNotThrow(pipeline::close);
+
+        Assertions.assertEquals("input->optional(input)", collector.get());
+    }
+
+    @Test
+    public void testPipeline__shouldCompile_latestStreamNamed()
+    {
+        StringCollector collector = new StringCollector();
+        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_latestStreamNamed("test-latest-stream-named", collector));
+
+        Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
+        Assertions.assertDoesNotThrow(pipeline::close);
+
+        Assertions.assertEquals("input->stream(input)", collector.get());
     }
 
     @Test
@@ -320,13 +392,38 @@ public class PipelineSinkAnnotationTest
         ;
     }
 
+    public static Pipeline<Object, ?> createPipeline_currentNamed(String name, StringCollector collector)
+    {
+        return Pipeline.of(name)
+            .registerStep(new StepWithInput<>("annotation-named"))
+            .registerSink(new SinkWithInputAndCurrent.Named<>(collector))
+            .build()
+        ;
+    }
+
+    public static Pipeline<Object, ?> createPipeline_currentOptionalNamed(String name, StringCollector collector)
+    {
+        return Pipeline.of(name)
+            .registerStep(new StepWithInput<>("annotation-named"))
+            .registerSink(new SinkWithInputAndCurrentOptional.Named<>(collector))
+            .build()
+        ;
+    }
+
+    public static Pipeline<Object, ?> createPipeline_currentStreamNamed(String name, StringCollector collector)
+    {
+        return Pipeline.of(name)
+            .registerStep(new StepWithInput<>("annotation-named"))
+            .registerSink(new SinkWithInputAndCurrentStream.Named<>(collector))
+            .build()
+        ;
+    }
+
     public static Pipeline<Object, ?> createPipeline_latest(String name, StringCollector collector)
     {
         return Pipeline.of(name)
             .registerStep(new StepWithInput<>())
             .registerSink(new SinkWithInputAndLatest<>(collector))
-            .registerSink(new SinkWithInputAndLatestOptional<>(collector))
-            .registerSink(new SinkWithInputAndLatestStream<>(collector))
             .build()
         ;
     }
@@ -345,6 +442,33 @@ public class PipelineSinkAnnotationTest
         return Pipeline.of(name)
             .registerStep(new StepWithInput<>())
             .registerSink(new SinkWithInputAndLatestStream<>(collector))
+            .build()
+        ;
+    }
+
+    public static Pipeline<Object, ?> createPipeline_latestNamed(String name, StringCollector collector)
+    {
+        return Pipeline.of(name)
+            .registerStep(new StepWithInput<>("annotation-named"))
+            .registerSink(new SinkWithInputAndLatest.Named<>(collector))
+            .build()
+        ;
+    }
+
+    public static Pipeline<Object, ?> createPipeline_latestOptionalNamed(String name, StringCollector collector)
+    {
+        return Pipeline.of(name)
+            .registerStep(new StepWithInput<>("annotation-named"))
+            .registerSink(new SinkWithInputAndLatestOptional.Named<>(collector))
+            .build()
+        ;
+    }
+
+    public static Pipeline<Object, ?> createPipeline_latestStreamNamed(String name, StringCollector collector)
+    {
+        return Pipeline.of(name)
+            .registerStep(new StepWithInput<>("annotation-named"))
+            .registerSink(new SinkWithInputAndLatestStream.Named<>(collector))
             .build()
         ;
     }

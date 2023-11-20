@@ -25,4 +25,15 @@ public class StepWithInputAndCurrentStream<T>
         logger.info("input: {} currents: {}", data, statuses);
         return new TestResult("annotation-test", statuses + "->" + data);
     }
+
+    public static class Named<T>
+    {
+        @StepConfig(id = "step-with_input+current-stream")
+        public Result execute(@Input T data, @Current(name = "annotation-named") Stream<TestResult> result)
+        {
+            String statuses = result.map(TestResult::status).collect(Collectors.joining("+"));
+            logger.info("input: {} currents: {}", data, statuses);
+            return new TestResult("annotation-test", statuses + "->stream(" + data + ")");
+        }
+    }
 }

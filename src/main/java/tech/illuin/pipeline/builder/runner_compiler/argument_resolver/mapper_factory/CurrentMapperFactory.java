@@ -23,16 +23,37 @@ public class CurrentMapperFactory<T, I, P> implements MethodArgumentMapperFactor
     @SuppressWarnings("unchecked")
     public MethodArgumentMapper<T, I, P> produce(Annotation category, Parameter parameter)
     {
+        Current current = (Current) category;
+        boolean filterByName = current.name() != null && !current.name().isBlank();
+
         if (Result.class.isAssignableFrom(parameter.getType()))
+        {
+            /* If a name was specified, we rely on it for filtering */
+            if (filterByName)
+                return args -> args.results().current(current.name()).orElseThrow();
+            /* Otherwise, we filter by argument type */
             return args -> args.results().current((Class<Result>) parameter.getType()).orElseThrow();
+        }
 
         Optional<Class<? extends Result>> optionalArg = Reflection.getOptionalParameter(parameter, Result.class);
         if (optionalArg.isPresent())
+        {
+            /* If a name was specified, we rely on it for filtering */
+            if (filterByName)
+                return args -> args.results().current(current.name());
+            /* Otherwise, we filter by argument type */
             return args -> args.results().current(optionalArg.get());
+        }
 
         Optional<Class<? extends Result>> streamArg = Reflection.getStreamParameter(parameter, Result.class);
         if (streamArg.isPresent())
+        {
+            /* If a name was specified, we rely on it for filtering */
+            if (filterByName)
+                return args -> args.results().current().filter(r -> current.name().equals(r.name()));
+            /* Otherwise, we filter by argument type */
             return args -> args.results().current().filter(r -> streamArg.get().isInstance(r));
+        }
 
         throw new IllegalStateException("@Current can only be assigned to a Result subtype or an Optional or Stream of a Result subtype");
     }

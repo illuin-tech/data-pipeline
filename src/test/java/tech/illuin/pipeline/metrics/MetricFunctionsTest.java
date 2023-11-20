@@ -56,4 +56,64 @@ public class MetricFunctionsTest
 
         Assertions.assertThrows(IllegalArgumentException.class, () -> MetricFunctions.combine(mapA, mapB));
     }
+
+    @Test
+    public void testCombineMarkersTriple__shouldSucceed()
+    {
+        Map<String, String> mainstay = Map.of("a", "first", "b", "second");
+        Map<String, String> globalDynamic = Map.of("c", "third");
+        Map<String, String> localDynamic = Map.of("d", "fourth");
+
+        Map<String, String> combined = Assertions.assertDoesNotThrow(() -> MetricFunctions.combine(mainstay, globalDynamic, localDynamic));
+
+        Assertions.assertEquals(4, combined.size());
+        Assertions.assertTrue(combined.containsKey("c"));
+        Assertions.assertEquals("third", combined.get("c"));
+        Assertions.assertTrue(combined.containsKey("d"));
+        Assertions.assertEquals("fourth", combined.get("d"));
+    }
+
+    @Test
+    public void testCombineMarkersTriple__overrideGlobalWithLocal_shouldSucceed()
+    {
+        Map<String, String> mainstay = Map.of("a", "first", "b", "second");
+        Map<String, String> globalDynamic = Map.of("c", "third");
+        Map<String, String> localDynamic = Map.of("c", "override");
+
+        Map<String, String> combined = Assertions.assertDoesNotThrow(() -> MetricFunctions.combine(mainstay, globalDynamic, localDynamic));
+
+        Assertions.assertEquals(3, combined.size());
+        Assertions.assertTrue(combined.containsKey("c"));
+        Assertions.assertEquals("override", combined.get("c"));
+    }
+
+    @Test
+    public void testCombineMarkersTriple__overrideMainstayWithGlobal_shouldFail()
+    {
+        Map<String, String> mainstay = Map.of("a", "first", "b", "second");
+        Map<String, String> globalDynamic = Map.of("b", "override");
+        Map<String, String> localDynamic = Map.of("c", "third");
+
+        Assertions.assertThrows(IllegalArgumentException.class, () -> MetricFunctions.combine(mainstay, globalDynamic, localDynamic));
+    }
+
+    @Test
+    public void testCombineMarkersTriple__overrideMainstayWithLocal_shouldFail()
+    {
+        Map<String, String> mainstay = Map.of("a", "first", "b", "second");
+        Map<String, String> globalDynamic = Map.of("c", "third");
+        Map<String, String> localDynamic = Map.of("b", "override");
+
+        Assertions.assertThrows(IllegalArgumentException.class, () -> MetricFunctions.combine(mainstay, globalDynamic, localDynamic));
+    }
+
+    @Test
+    public void testCombineMarkersTriple__overrideGlobalWithGlobalAndLocal_shouldFail()
+    {
+        Map<String, String> mainstay = Map.of("a", "first", "b", "second");
+        Map<String, String> globalDynamic = Map.of("b", "override-global");
+        Map<String, String> localDynamic = Map.of("b", "override-local");
+
+        Assertions.assertThrows(IllegalArgumentException.class, () -> MetricFunctions.combine(mainstay, globalDynamic, localDynamic));
+    }
 }

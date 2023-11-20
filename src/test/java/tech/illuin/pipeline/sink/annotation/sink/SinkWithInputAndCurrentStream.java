@@ -32,4 +32,22 @@ public class SinkWithInputAndCurrentStream<T>
         logger.info("input: {} currents: {}", data, statuses);
         this.collector.update(statuses + "->" + data);
     }
+
+    public static class Named<T>
+    {
+        private final StringCollector collector;
+
+        public Named(StringCollector collector)
+        {
+            this.collector = collector;
+        }
+
+        @SinkConfig(id = "sink-with_input+current-stream")
+        public void execute(@Input T data, @Current(name = "annotation-named") Stream<TestResult> result)
+        {
+            String statuses = result.map(TestResult::status).collect(Collectors.joining("+"));
+            logger.info("input: {} currents: {}", data, statuses);
+            this.collector.update(statuses + "->stream(" + data + ")");
+        }
+    }
 }

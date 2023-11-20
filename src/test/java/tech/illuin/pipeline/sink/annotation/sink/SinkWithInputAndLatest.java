@@ -28,4 +28,21 @@ public class SinkWithInputAndLatest<T>
         logger.info("input: {} latest: {}", data, result.status());
         this.collector.update(result.status() + "->" + data);
     }
+
+    public static class Named<T>
+    {
+        private final StringCollector collector;
+
+        public Named(StringCollector collector)
+        {
+            this.collector = collector;
+        }
+
+        @SinkConfig(id = "sink-with_input+latest")
+        public void execute(@Input T data, @Latest(name = "annotation-named") TestResult result)
+        {
+            logger.info("input: {} latest: {}", data, result.status());
+            this.collector.update(result.status() + "->single(" + data + ")");
+        }
+    }
 }

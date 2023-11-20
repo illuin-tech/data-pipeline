@@ -24,4 +24,15 @@ public class StepWithInputAndLatestOptional<T>
         logger.info("input: {} latest: {}", data, status);
         return new TestResult("annotation-test", status + "->" + data);
     }
+
+    public static class Named<T>
+    {
+        @StepConfig(id = "step-with_input+latest-optional")
+        public Result execute(@Input T data, @Latest(name = "annotation-named") Optional<TestResult> result)
+        {
+            String status = result.map(TestResult::status).orElse(null);
+            logger.info("input: {} latest: {}", data, status);
+            return new TestResult("annotation-test", status + "->optional(" + data + ")");
+        }
+    }
 }

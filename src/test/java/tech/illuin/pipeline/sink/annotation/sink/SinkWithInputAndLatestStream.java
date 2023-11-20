@@ -29,7 +29,25 @@ public class SinkWithInputAndLatestStream<T>
     public void execute(@Input T data, @Latest Stream<TestResult> result)
     {
         String statuses = result.map(TestResult::status).collect(Collectors.joining("+"));
-        logger.info("input: {} currents: {}", data, statuses);
+        logger.info("input: {} latests: {}", data, statuses);
         this.collector.update(statuses + "->" + data);
+    }
+
+    public static class Named<T>
+    {
+        private final StringCollector collector;
+
+        public Named(StringCollector collector)
+        {
+            this.collector = collector;
+        }
+
+        @SinkConfig(id = "sink-with_input+latest-stream")
+        public void execute(@Input T data, @Latest(name = "annotation-named") Stream<TestResult> result)
+        {
+            String statuses = result.map(TestResult::status).collect(Collectors.joining("+"));
+            logger.info("input: {} latests: {}", data, statuses);
+            this.collector.update(statuses + "->stream(" + data + ")");
+        }
     }
 }

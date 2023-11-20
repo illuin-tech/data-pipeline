@@ -14,5 +14,5 @@ import java.lang.annotation.*;
 @Target({ElementType.PARAMETER})
 public @interface Latest
 {
-
+    String name() default "";
 }

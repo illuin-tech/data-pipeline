@@ -47,6 +47,24 @@ public class PipelineSinkMetricsTest
     }
 
     @Test
+    public void testMarkDynamic()
+    {
+        PipelineSinkMetrics metrics = Assertions.assertDoesNotThrow(() -> new PipelineSinkMetrics(
+            new SimpleMeterRegistry(),
+            createTag("test-mark", "test-mark-sink"),
+            new MetricTags().put("test", "true")
+        ));
+
+        Map<String, String> labels = metrics.mark("dynamic", "true").getLabels();
+
+        Assertions.assertEquals("test-mark", labels.get("pipeline"));
+        Assertions.assertEquals("test-mark-sink", labels.get("sink"));
+        Assertions.assertEquals(ANONYMOUS, labels.get("author"));
+        Assertions.assertEquals("true", labels.get("test"));
+        Assertions.assertEquals("true", labels.get("dynamic"));
+    }
+
+    @Test
     public void testMarkException()
     {
         PipelineSinkMetrics metrics = Assertions.assertDoesNotThrow(() -> new PipelineSinkMetrics(

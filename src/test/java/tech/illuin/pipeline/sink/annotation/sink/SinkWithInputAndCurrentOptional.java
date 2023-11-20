@@ -31,4 +31,22 @@ public class SinkWithInputAndCurrentOptional<T>
         logger.info("input: {} current: {}", data, status);
         this.collector.update(status + "->" + data);
     }
+
+    public static class Named<T>
+    {
+        private final StringCollector collector;
+
+        public Named(StringCollector collector)
+        {
+            this.collector = collector;
+        }
+
+        @SinkConfig(id = "sink-with_input+current-optional")
+        public void execute(@Input T data, @Current(name = "annotation-named") Optional<TestResult> result)
+        {
+            String status = result.map(TestResult::status).orElse(null);
+            logger.info("input: {} current: {}", data, status);
+            this.collector.update(status + "->optional(" + data + ")");
+        }
+    }
 }

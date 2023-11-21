@@ -29,7 +29,7 @@ public class InitializerBuilder<I, P> extends ComponentBuilder<Object, I, P, Ini
     protected void fillFromAnnotation(InitializerConfig annotation)
     {
         try {
-            if (annotation.id() != null && !annotation.id().isBlank())
+            if (this.id == null && annotation.id() != null && !annotation.id().isBlank())
                 this.id = annotation.id();
             if (this.errorHandler == null && annotation.errorHandler() != null && annotation.errorHandler() != InitializerErrorHandler.class)
                 this.errorHandler = annotation.errorHandler().getConstructor().newInstance();

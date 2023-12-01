@@ -2,6 +2,7 @@ package tech.illuin.pipeline.input.uid_generator;
 
 import com.github.f4b6a3.ksuid.Ksuid;
 import com.github.f4b6a3.tsid.Tsid;
+import com.github.f4b6a3.ulid.Ulid;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -38,6 +39,14 @@ public class UIDGeneratorTest
     }
 
     @Test
+    public void test__ulid()
+    {
+        String uid = Assertions.assertDoesNotThrow(() -> ULIDGenerator.INSTANCE.generate());
+        Assertions.assertEquals(26, uid.length());
+        Assertions.assertEquals(Ulid.from(uid).toString(), uid);
+    }
+
+    @Test
     public void test__uuid()
     {
         String uid = Assertions.assertDoesNotThrow(() -> UUIDGenerator.INSTANCE.generate());
@@ -53,6 +62,22 @@ public class UIDGeneratorTest
         Pipeline<Object, ?> pipeline = createPipeline("test-ksuid", KSUIDGenerator.INSTANCE, uid -> {
             Assertions.assertEquals(uid.length(), 27);
             Assertions.assertEquals(Ksuid.from(uid).toString(), uid);
+        }, counter);
+
+        Assertions.assertDoesNotThrow(() -> pipeline.run());
+        Assertions.assertDoesNotThrow(pipeline::close);
+
+        Assertions.assertEquals(1, counter.get());
+    }
+
+    @Test
+    public void testPipeline__ulid()
+    {
+        AtomicInteger counter = new AtomicInteger(0);
+
+        Pipeline<Object, ?> pipeline = createPipeline("test-ulid", ULIDGenerator.INSTANCE, uid -> {
+            Assertions.assertEquals(uid.length(), 26);
+            Assertions.assertEquals(Ulid.from(uid).toString(), uid);
         }, counter);
 
         Assertions.assertDoesNotThrow(() -> pipeline.run());

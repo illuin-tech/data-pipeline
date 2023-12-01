@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * The PipelineContainer is
+ *
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
 public final class PipelineContainer

@@ -16,6 +16,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
+ * The Pipeline interface is both the top-level type for Pipeline implementations, and the entrypoint for the creation of pipeline builders via the {@link Pipeline#of} methods.
+ *
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
 @FunctionalInterface

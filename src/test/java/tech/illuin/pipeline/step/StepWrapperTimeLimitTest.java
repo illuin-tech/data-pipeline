@@ -66,11 +66,11 @@ public class StepWrapperTimeLimitTest
     {
         builder
             .step(new TestStep<>("2", b -> {
-                sleep(Duration.ofSeconds(5));
+                sleep(Duration.ofMillis(300));
                 return "ok";
             }))
             .withWrapper(new TimeLimiterWrapper<>(TimeLimiterConfig.custom()
-                .timeoutDuration(Duration.ofSeconds(2))
+                .timeoutDuration(Duration.ofMillis(200))
                 .build()
             ))
         ;

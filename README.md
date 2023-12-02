@@ -1,5 +1,12 @@
 # data-pipeline
 
+[![Maven Build](https://github.com/illuin/data-pipeline/actions/workflows/maven-build.yml/badge.svg?branch=master)](https://github.com/illuin/data-pipeline/actions/workflows/maven-build.yml)
+[![Maven Central Repository](https://maven-badges.herokuapp.com/maven-central/tech.illuin/data-pipeline/badge.svg)](https://maven-badges.herokuapp.com/maven-central/tech.illuin/data-pipeline)
+[![javadoc](https://javadoc.io/badge2/tech.illuin/data-pipeline/javadoc.svg)](https://javadoc.io/doc/tech.illuin/data-pipeline)
+[![coverage](https://codecov.io/gh/illuin/data-pipeline/branch/master/graph/badge.svg?token=Y9FD38RLDE)](https://codecov.io/gh/illuin/data-pipeline)
+![GitHub](https://img.shields.io/github/license/illuin/data-pipeline)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Filluin%2Fdata-pipeline.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Filluin%2Fdata-pipeline?ref=badge_shield)
+
 This library is a toolkit for describing data transformation pipelines by compositing simple reusable components.
 
 A typical `data-pipeline` use-case can be:

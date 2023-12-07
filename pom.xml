@@ -51,7 +51,7 @@
         <loki4j.version>1.4.2</loki4j.version>
         <junit.version>5.10.1</junit.version>
         <jacoco.version>0.8.11</jacoco.version>
-        <checkstyle.version>10.12.5</checkstyle.version>
+        <checkstyle.version>10.12.6</checkstyle.version>
         <checkstyle.config.location>checkstyle.xml</checkstyle.config.location>
         <maven-compiler.version>3.11.0</maven-compiler.version>
         <maven-surefire.version>3.2.2</maven-surefire.version>

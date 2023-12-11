@@ -17,6 +17,7 @@ import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
 import tech.illuin.pipeline.metering.tag.MetricTags;
 import tech.illuin.pipeline.metering.tag.TagResolver;
 import tech.illuin.pipeline.output.factory.DefaultOutputFactory;
+import tech.illuin.pipeline.output.factory.OutputFactory;
 import tech.illuin.pipeline.sink.Sink;
 import tech.illuin.pipeline.sink.builder.SinkAssembler;
 import tech.illuin.pipeline.sink.builder.SinkBuilder;
@@ -46,6 +47,7 @@ public final class SimplePipelineBuilder<I>
 {
     private String id;
     private AuthorResolver<I> authorResolver;
+    private OutputFactory<I, VoidPayload> outputFactory;
     private UIDGenerator uidGenerator;
     private final List<StepAssembler<Indexable, I, VoidPayload>> steps;
     private final List<SinkAssembler<VoidPayload>> sinks;
@@ -61,6 +63,7 @@ public final class SimplePipelineBuilder<I>
     public SimplePipelineBuilder()
     {
         this.authorResolver = AuthorResolver::anonymous;
+        this.outputFactory = new DefaultOutputFactory<>();
         this.uidGenerator = KSUIDGenerator.INSTANCE;
         this.sinkExecutorProvider = () -> Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         this.steps = new ArrayList<>();
@@ -78,7 +81,7 @@ public final class SimplePipelineBuilder<I>
             this.buildInitializer(),
             this.authorResolver(),
             Collections.singletonList(SingleIndexer.auto()),
-            new DefaultOutputFactory<>(),
+            this.outputFactory(),
             this.buildSteps(),
             this.buildSinks(),
             this.sinkExecutorProvider().get(),
@@ -245,9 +248,8 @@ public final class SimplePipelineBuilder<I>
 
     private void addAssemblerDefaults(SinkBuilder<?> sinkBuilder)
     {
-        sinkBuilder
-                .withErrorHandler(this.defaultSinkErrorHandler())
-        ;    }
+        sinkBuilder.withErrorHandler(this.defaultSinkErrorHandler());
+    }
 
     public Supplier<ExecutorService> sinkExecutorProvider()
     {
@@ -340,6 +342,18 @@ public final class SimplePipelineBuilder<I>
     public SimplePipelineBuilder<I> setTagResolver(TagResolver<I> tagResolver)
     {
         this.tagResolver = tagResolver;
+        return this;
+    }
+
+    public OutputFactory<I, VoidPayload> outputFactory()
+    {
+        return this.outputFactory;
+    }
+
+    @SuppressWarnings("unchecked")
+    public SimplePipelineBuilder<I> setOutputFactory(OutputFactory<I, ?> outputFactory)
+    {
+        this.outputFactory = (OutputFactory<I, VoidPayload>) outputFactory;
         return this;
     }
 

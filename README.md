@@ -135,7 +135,7 @@ Next up, the `Matcher` step, with a blacklist specified upon instantiation.
 It will recover the tokenizer's output, and produce a `Matches` record of its findings.
 
 Note the `@Current` annotation for requesting the currently known value for tokenized sentence.
-There is more to be said about the semantics of this annotation, more on that in the [documentation](#documentation) section. 
+There is more to be said about the semantics of this annotation, more on that in the [documentation](doc/result_data_model.md) section. 
 
 ```java
 public class Matcher

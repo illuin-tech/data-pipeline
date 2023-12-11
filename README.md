@@ -30,7 +30,7 @@ The main goals behind its design were:
 2. leveraging this design to introduce useful features: data-model with lineage features, parallel execution, resilience features (retry, time-limiter, etc.), systematic performance metrics, error tracking, etc.
 
 A simplified high-level view of a `data-pipeline` pipeline looks like the following diagram:
-* the main phase is composed of `Step` functions, they return a `Result` and are expected to have no side effect (think of them as pure functions)
+* the main phase is composed of `Step` functions, they return a `Result` and are expected to have no side effect (think of them as almost-pure functions)
 * the end phase is composed of `Sink` functions, they return `void` and are expected to induce side effects (e.g. database persistence, message queue push, etc.)
 
 ```mermaid
@@ -118,11 +118,10 @@ public class Tokenizer
     @StepConfig(id = "tokenizer")
     public TokenizedSentence tokenize(@Input String sentence)
     {
-        List<String> tokens = Stream.of(sentence.split("[^\\p{L}]+"))
+        return new TokenizedSentence(Stream.of(sentence.split("[^\\p{L}]+"))
             .map(String::toLowerCase)
             .toList()
-        ;
-        return new TokenizedSentence(tokens);
+        );
     }
 
     public record TokenizedSentence(
@@ -233,27 +232,8 @@ pipeline.close();
 * [Result Data Model](doc/result_data_model.md)
   * [Result Container](doc/result_data_model.md#result-container)
 * [Initializers](doc/initializers.md)
-  * [Description](doc/initializers.md#description)
-  * [Possible Inputs](doc/initializers.md#possible-inputs)
-  * [Indexers](doc/initializers.md#indexers)
-  * [Configuration](doc/initializers.md#configuration)
 * [Steps](doc/steps.md)
-  * [Description](doc/steps.md#description)
-  * [Possible Inputs](doc/steps.md#possible-inputs)
-  * [Results](doc/steps.md#results)
-  * [Configuration](doc/steps.md#configuration)
-  * [Function Modifiers](doc/steps.md#function-modifiers)
-    * [Conditions](doc/steps.md#conditions)
-    * [Error Handlers](doc/steps.md#error-handlers)
-    * [Result Evaluators](doc/steps.md#result-evaluators)
-    * [Wrappers](doc/steps.md#wrappers)
 * [Sinks](doc/sinks.md)
-  * [Description](doc/sinks.md#description)
-  * [Possible Inputs](doc/sinks.md#possible-inputs)
-  * [Configuration](doc/sinks.md#configuration)
-  * [Function Modifiers](doc/sinks.md#function-modifiers)
-    * [Error Handlers](doc/sinks.md#error-handlers)
-    * [Wrappers](doc/sinks.md#wrappers)
 * [Function Modifiers & Hooks](doc/modifiers_and_hooks.md)
   * [Error Handlers](doc/modifiers_and_hooks.md#error-handlers)
   * [Wrappers](doc/modifiers_and_hooks.md#wrappers)

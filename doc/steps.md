@@ -1,6 +1,6 @@
 # Steps
 
-Step functions are the place where most business logic happens. 
+`Step` functions are the place where most business logic happens. 
 They are expected to have no side effect and only concern themselves of what their return value will be.
 
 A `Step` is typically a class with a `public` method annotated with the `@StepConfig` annotation, and that method is expected to return a `Result` subtype.
@@ -75,7 +75,7 @@ As we will show in the following sections, some of these options can be set thro
 
 ## Function Modifiers
 
-A `StepAssembler` accepts a variety of [function modifiers](modifiers_and_hooks.md) which will alter how the `Step` is executed, or how its output (whether on the successful or error path) is handled. 
+The `StepAssembler` accepts a variety of [function modifiers](modifiers_and_hooks.md) which will alter how the `Step` is executed, or how its output (whether on the successful or error path) is handled. 
 All of these are optional, but can be very useful in implementing more sophisticated patterns.
 
 ### Conditions

@@ -135,7 +135,7 @@ Pipeline<String, ?> pipeline = Pipeline.<String>of("string-processor")
         .sink(new MessagePublisher(topicName, producer))
         .withErrorHandler((ex, out, ctx) -> logger.error("Error: {}", ex.getMessage()))
     )
-    /* If we register other steps after the above, they will get executed */
+    /* If we register other sinks after the above, they will get executed */
     .build()
 ;
 ```

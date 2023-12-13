@@ -40,7 +40,7 @@ Together with a [`ResultEvaluator`](#result-evaluators) they can pull a lot of m
 
 ## Configuration
 
-`Step` functions can be supplied to a pipeline builder "as-is", meaning you simply `registerStep` over the step instance itself:
+`Step` functions can be supplied to a pipeline builder "as-is", meaning you simply `registerStep` the step instance itself:
 
 ```java
 Pipeline<String, ?> pipeline = Pipeline.<String>of("string-processor")

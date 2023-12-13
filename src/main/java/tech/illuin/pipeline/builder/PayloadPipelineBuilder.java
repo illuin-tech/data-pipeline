@@ -6,10 +6,7 @@ import tech.illuin.pipeline.CompositePipeline;
 import tech.illuin.pipeline.Pipeline;
 import tech.illuin.pipeline.close.OnCloseHandler;
 import tech.illuin.pipeline.input.author_resolver.AuthorResolver;
-import tech.illuin.pipeline.input.indexer.Indexable;
-import tech.illuin.pipeline.input.indexer.Indexer;
-import tech.illuin.pipeline.input.indexer.MultiIndexer;
-import tech.illuin.pipeline.input.indexer.SingleIndexer;
+import tech.illuin.pipeline.input.indexer.*;
 import tech.illuin.pipeline.input.initializer.Initializer;
 import tech.illuin.pipeline.input.initializer.builder.InitializerAssembler;
 import tech.illuin.pipeline.input.initializer.builder.InitializerBuilder;
@@ -81,13 +78,12 @@ public final class PayloadPipelineBuilder<I, P>
         this.closeTimeout = 15;
     }
 
-    @SuppressWarnings("unchecked")
     public Pipeline<I, P> build()
     {
         if (this.initializer == null)
             throw new IllegalStateException("A payload-based pipeline cannot be built without an initializer");
         if (this.indexers().isEmpty())
-            this.indexers.add((Indexer<P>) SingleIndexer.auto());
+            this.indexers.add(new SingleAutoIndexer<>());
 
         return new CompositePipeline<>(
             this.id(),

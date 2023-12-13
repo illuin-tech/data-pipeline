@@ -4,10 +4,10 @@ The `Initializer` is a component responsible for the initialization of a pipelin
 
 Payloads are used for two things:
 * they are a piece of data inferred from the input, as such they can be used for patterns where your pipelines work on a domain entity which has to be resolved from external input 
-* they are taken as input by `Indexer` functions in order to determine the [object set](#indexers) which influences how `Step` functions are executed 
+* they are taken as input by the `Indexer` functions in order to determine the [object set](#indexers) which influences how `Step` functions are executed 
 
 It is important to note that payloads are not always relevant to a pipeline, most of the time you won't need them and arguably if you can avoid them it will result in lower complexity.
-By default, if you don't use an `Initializer` (and thus, and `Indexer`) the `Pipeline` will use a placeholder payload and run all steps on it.
+By default, if you don't specify an `Initializer` (and thus, an `Indexer`) the `Pipeline` will use a placeholder payload and run all steps on it.
 If that is your case, you can directly skip [to the next section](steps.md).
 
 ## Indexers
@@ -30,9 +30,9 @@ flowchart LR
     subgraph STEP_PHASE[Step Phase]
         direction LR
         
-        STEP_A1(Step A1):::step
-        STEP_A2(Step A2):::step
-        STEP_A3(Step A3):::step
+        STEP_A1(Step 1A):::step
+        STEP_A2(Step 2A):::step
+        STEP_A3(Step 3A):::step
     end
     
     INITIALIZER --> INDEXER
@@ -58,13 +58,13 @@ flowchart LR
     subgraph STEP_PHASE[Step Phase]
         direction LR
         
-        STEP_A1(Step A1):::step
-        STEP_A2(Step A2):::step
-        STEP_A3(Step A3):::step
+        STEP_A1(Step 1A):::step
+        STEP_A2(Step 2A):::step
+        STEP_A3(Step 3A):::step
         
-        STEP_B1(Step B1):::step
-        STEP_B2(Step B2):::step
-        STEP_B3(Step B3):::step
+        STEP_B1(Step 1B):::step
+        STEP_B2(Step 2B):::step
+        STEP_B3(Step 3B):::step
     end
     
     INITIALIZER --> INDEXER
@@ -91,13 +91,13 @@ flowchart LR
     subgraph STEP_PHASE[Step Phase]
         direction LR
         
-        STEP_A1(Step A1):::step
-        STEP_A2(Step A2):::step
-        STEP_A3(Step A3):::step
+        STEP_A1(Step 1A):::step
+        STEP_A2(Step 2A):::step
+        STEP_A3(Step 3A):::step
         
-        STEP_B1(Step B1):::step
-        STEP_B2(Step B2):::disabled
-        STEP_B3(Step B3):::disabled
+        STEP_B1(Step 1B):::step
+        STEP_B2(Step 2B):::disabled
+        STEP_B3(Step 3B):::disabled
     end
     
     INITIALIZER --> INDEXER
@@ -110,10 +110,9 @@ flowchart LR
 ```
 
 Currently, an `Indexer` can only return `Indexable` objects, i.e. with a declared `uid()` method.
+The `Pipeline` will consider the indexable's `uid` and only index a given value once. 
 
-
-By default, the indexing strategy is `SingleIndexer.auto()` which will attempt to index the payload as a whole.
-This will only work if the payload i
+If no `Indexer` is specified, the default indexing strategy is `SingleIndexer.auto()` which will attempt to index the payload as a whole (as a result, the payload is expected to be `Indexable`).
 
 ## Definition
 
@@ -139,9 +138,10 @@ public static class MyInitializer implements Initializer<MyInput, Vehicle>
     public Vehicle initialize(MyInput input, Context<Vehicle> context, UIDGenerator generator)
     {
         return new Vehicle(
-            input.getVehicleUid(), //the arguments are suggestive obviously
-            input.getWeight(),
-            input.getMetadata()
+            //the constructor arguments are suggestive obviously
+            input.getVehicleUid(),
+            computeWeight(input),
+            extractMetadata(context)
         );
     }
 }

@@ -259,9 +259,7 @@ public final class PayloadPipelineBuilder<I, P>
 
     private void addAssemblerDefaults(SinkBuilder<?> sinkBuilder)
     {
-        sinkBuilder
-                .withErrorHandler(this.defaultSinkErrorHandler())
-        ;
+        sinkBuilder.withErrorHandler(this.defaultSinkErrorHandler());
     }
 
     public Supplier<ExecutorService> sinkExecutorProvider()

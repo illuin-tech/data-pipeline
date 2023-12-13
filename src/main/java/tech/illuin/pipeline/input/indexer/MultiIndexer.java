@@ -26,8 +26,8 @@ public non-sealed interface MultiIndexer<T> extends Indexer<T>
         });
     }
 
-    static <P extends Indexable> SingleIndexer<P> auto()
+    static <P extends Indexable> MultiIndexer<P> auto()
     {
-        return p -> p;
+        return new MultiAutoIndexer<>();
     }
 }

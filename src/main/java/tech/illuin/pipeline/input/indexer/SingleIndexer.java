@@ -25,6 +25,6 @@ public non-sealed interface SingleIndexer<T> extends Indexer<T>
 
     static <P extends Indexable> SingleIndexer<P> auto()
     {
-        return p -> p;
+        return new SingleAutoIndexer<>();
     }
 }

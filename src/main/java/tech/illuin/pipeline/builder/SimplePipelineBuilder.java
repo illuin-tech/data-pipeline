@@ -7,6 +7,7 @@ import tech.illuin.pipeline.Pipeline;
 import tech.illuin.pipeline.close.OnCloseHandler;
 import tech.illuin.pipeline.input.author_resolver.AuthorResolver;
 import tech.illuin.pipeline.input.indexer.Indexable;
+import tech.illuin.pipeline.input.indexer.SingleAutoIndexer;
 import tech.illuin.pipeline.input.indexer.SingleIndexer;
 import tech.illuin.pipeline.input.initializer.Initializer;
 import tech.illuin.pipeline.input.initializer.builder.InitializerAssembler;
@@ -80,7 +81,7 @@ public final class SimplePipelineBuilder<I>
             this.uidGenerator(),
             this.buildInitializer(),
             this.authorResolver(),
-            Collections.singletonList(SingleIndexer.auto()),
+            Collections.singletonList(new SingleAutoIndexer<>()),
             this.outputFactory(),
             this.buildSteps(),
             this.buildSinks(),

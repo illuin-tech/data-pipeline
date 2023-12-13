@@ -59,41 +59,65 @@ Given the micrometer integration above, existing meters are trivially converted 
 
 In which case, the following metrics should become available:
 
-| scope          | metric                                      | micrometer meter                      | type      | tags                                | description                                        |
-|----------------|---------------------------------------------|---------------------------------------|-----------|-------------------------------------|----------------------------------------------------|
-| pipeline       | `pipeline_run_seconds_count`                | `pipeline.run`                        | `counter` | `pipeline`                          | Total count of pipeline runs (micrometer Timer)    |
-| pipeline       | `pipeline_run_seconds_sum`                  | `pipeline.run`                        | `counter` | `pipeline`                          | Total seconds spent in pipeline runs               |
-| pipeline       | `pipeline_run_seconds_max`                  | `pipeline.run`                        | `gauge`   | `pipeline`                          | Max. seconds spent in a pipeline run               |
-| pipeline       | `pipeline_run_total`                        | `pipeline.run.total`                  | `counter` | `pipeline`                          | Total count of pipeline runs                       |
-| pipeline       | `pipeline_run_success_total`                | `pipeline.run.success`                | `counter` | `pipeline`                          | Total count of successful pipeline runs            |
-| pipeline       | `pipeline_run_failure_total`                | `pipeline.run.failure`                | `counter` | `pipeline`                          | Total count of failed pipeline runs                |
-| pipeline       | `pipeline_run_error_total`                  | `pipeline.run.error`                  | `counter` | `pipeline` `error`                  | Total count of pipeline exceptions                 |
-| initialization | `pipeline_initialization_run_seconds_count` | `pipeline.initialization.run`         | `counter` | `pipeline` `initialization`         | Total count of initializer runs (micrometer Timer) |
-| initialization | `pipeline_initialization_run_seconds_sum`   | `pipeline.initialization.run`         | `counter` | `pipeline` `initialization`         | Total seconds spent in initializer runs            |
-| initialization | `pipeline_initialization_run_seconds_max`   | `pipeline.initialization.run`         | `gauge`   | `pipeline` `initialization`         | Max. seconds spent in an initializer run           |
-| initialization | `pipeline_initialization_run_total`         | `pipeline.initialization.run.total`   | `counter` | `pipeline` `initialization`         | Total count of initializer runs                    |
-| initialization | `pipeline_initialization_run_success_total` | `pipeline.initialization.run.success` | `counter` | `pipeline` `initialization`         | Total count of initializer pipeline runs           |
-| initialization | `pipeline_initialization_run_failure_total` | `pipeline.initialization.run.failure` | `counter` | `pipeline` `initialization`         | Total count of failed initializer runs             |
-| initialization | `pipeline_initialization_run_error_total`   | `pipeline.initialization.run.error`   | `counter` | `pipeline` `initialization` `error` | Total count of initializer exceptions              |
-| step           | `pipeline_step_run_seconds_count`           | `pipeline.step.run`                   | `counter` | `pipeline` `step`                   | Total count of step runs (micrometer Timer)        |
-| step           | `pipeline_step_run_seconds_sum`             | `pipeline.step.run`                   | `counter` | `pipeline` `step`                   | Total seconds spent in step runs                   |
-| step           | `pipeline_step_run_seconds_max`             | `pipeline.step.run`                   | `gauge`   | `pipeline` `step`                   | Max. seconds spent in an step run                  |
-| step           | `pipeline_step_run_total`                   | `pipeline.step.run.total`             | `counter` | `pipeline` `step`                   | Total count of step runs                           |
-| step           | `pipeline_step_run_success_total`           | `pipeline.step.run.success`           | `counter` | `pipeline` `step`                   | Total count of step pipeline runs                  |
-| step           | `pipeline_step_run_failure_total`           | `pipeline.step.run.failure`           | `counter` | `pipeline` `step`                   | Total count of failed step runs                    |
-| step           | `pipeline_step_run_result_total`            | `pipeline.step.run.result`            | `counter` | `pipeline` `step` `result`          | Total count of step results                        |
-| step           | `pipeline_step_run_error_total`             | `pipeline.step.run.error`             | `counter` | `pipeline` `step` `error`           | Total count of step exceptions                     |
-| sink           | `pipeline_sink_run_seconds_count`           | `pipeline.sink.run`                   | `counter` | `pipeline` `sink`                   | Total count of sink runs (micrometer Timer)        |
-| sink           | `pipeline_sink_run_seconds_sum`             | `pipeline.sink.run`                   | `counter` | `pipeline` `sink`                   | Total seconds spent in sink runs                   |
-| sink           | `pipeline_sink_run_seconds_max`             | `pipeline.sink.run`                   | `gauge`   | `pipeline` `sink`                   | Max. seconds spent in an sink run                  |
-| sink           | `pipeline_sink_run_total`                   | `pipeline.sink.run.total`             | `counter` | `pipeline` `sink`                   | Total count of sink runs                           |
-| sink           | `pipeline_sink_run_success_total`           | `pipeline.sink.run.success`           | `counter` | `pipeline` `sink`                   | Total count of sink pipeline runs                  |
-| sink           | `pipeline_sink_run_failure_total`           | `pipeline.sink.run.failure`           | `counter` | `pipeline` `sink`                   | Total count of failed sink runs                    |
-| sink           | `pipeline_sink_run_error_total`             | `pipeline.sink.run.error`             | `counter` | `pipeline` `sink` `error`           | Total count of sink exceptions                     |
+| metric                                      | micrometer meter                      | type      | tags                                | description                                        |
+|---------------------------------------------|---------------------------------------|-----------|-------------------------------------|----------------------------------------------------|
+| `pipeline_run_seconds_count`                | `pipeline.run`                        | `counter` | `pipeline`                          | Total count of pipeline runs (micrometer Timer)    |
+| `pipeline_run_seconds_sum`                  | `pipeline.run`                        | `counter` | `pipeline`                          | Total seconds spent in pipeline runs               |
+| `pipeline_run_seconds_max`                  | `pipeline.run`                        | `gauge`   | `pipeline`                          | Max. seconds spent in a pipeline run               |
+| `pipeline_run_total`                        | `pipeline.run.total`                  | `counter` | `pipeline`                          | Total count of pipeline runs                       |
+| `pipeline_run_success_total`                | `pipeline.run.success`                | `counter` | `pipeline`                          | Total count of successful pipeline runs            |
+| `pipeline_run_failure_total`                | `pipeline.run.failure`                | `counter` | `pipeline`                          | Total count of failed pipeline runs                |
+| `pipeline_run_error_total`                  | `pipeline.run.error`                  | `counter` | `pipeline` `error`                  | Total count of pipeline exceptions                 |
+| `pipeline_initialization_run_seconds_count` | `pipeline.initialization.run`         | `counter` | `pipeline` `initialization`         | Total count of initializer runs (micrometer Timer) |
+| `pipeline_initialization_run_seconds_sum`   | `pipeline.initialization.run`         | `counter` | `pipeline` `initialization`         | Total seconds spent in initializer runs            |
+| `pipeline_initialization_run_seconds_max`   | `pipeline.initialization.run`         | `gauge`   | `pipeline` `initialization`         | Max. seconds spent in an initializer run           |
+| `pipeline_initialization_run_total`         | `pipeline.initialization.run.total`   | `counter` | `pipeline` `initialization`         | Total count of initializer runs                    |
+| `pipeline_initialization_run_success_total` | `pipeline.initialization.run.success` | `counter` | `pipeline` `initialization`         | Total count of initializer pipeline runs           |
+| `pipeline_initialization_run_failure_total` | `pipeline.initialization.run.failure` | `counter` | `pipeline` `initialization`         | Total count of failed initializer runs             |
+| `pipeline_initialization_run_error_total`   | `pipeline.initialization.run.error`   | `counter` | `pipeline` `initialization` `error` | Total count of initializer exceptions              |
+| `pipeline_step_run_seconds_count`           | `pipeline.step.run`                   | `counter` | `pipeline` `step`                   | Total count of step runs (micrometer Timer)        |
+| `pipeline_step_run_seconds_sum`             | `pipeline.step.run`                   | `counter` | `pipeline` `step`                   | Total seconds spent in step runs                   |
+| `pipeline_step_run_seconds_max`             | `pipeline.step.run`                   | `gauge`   | `pipeline` `step`                   | Max. seconds spent in an step run                  |
+| `pipeline_step_run_total`                   | `pipeline.step.run.total`             | `counter` | `pipeline` `step`                   | Total count of step runs                           |
+| `pipeline_step_run_success_total`           | `pipeline.step.run.success`           | `counter` | `pipeline` `step`                   | Total count of step pipeline runs                  |
+| `pipeline_step_run_failure_total`           | `pipeline.step.run.failure`           | `counter` | `pipeline` `step`                   | Total count of failed step runs                    |
+| `pipeline_step_run_result_total`            | `pipeline.step.run.result`            | `counter` | `pipeline` `step` `result`          | Total count of step results                        |
+| `pipeline_step_run_error_total`             | `pipeline.step.run.error`             | `counter` | `pipeline` `step` `error`           | Total count of step exceptions                     |
+| `pipeline_sink_run_seconds_count`           | `pipeline.sink.run`                   | `counter` | `pipeline` `sink`                   | Total count of sink runs (micrometer Timer)        |
+| `pipeline_sink_run_seconds_sum`             | `pipeline.sink.run`                   | `counter` | `pipeline` `sink`                   | Total seconds spent in sink runs                   |
+| `pipeline_sink_run_seconds_max`             | `pipeline.sink.run`                   | `gauge`   | `pipeline` `sink`                   | Max. seconds spent in an sink run                  |
+| `pipeline_sink_run_total`                   | `pipeline.sink.run.total`             | `counter` | `pipeline` `sink`                   | Total count of sink runs                           |
+| `pipeline_sink_run_success_total`           | `pipeline.sink.run.success`           | `counter` | `pipeline` `sink`                   | Total count of sink pipeline runs                  |
+| `pipeline_sink_run_failure_total`           | `pipeline.sink.run.failure`           | `counter` | `pipeline` `sink`                   | Total count of failed sink runs                    |
+| `pipeline_sink_run_error_total`             | `pipeline.sink.run.error`             | `counter` | `pipeline` `sink` `error`           | Total count of sink exceptions                     |
 
 ## Logback Loki
 
-_TODO_
+As it currently stands, `data-pipeline` comes with a logback-loki dependency.
+
+If you don't use [logback](https://logback.qos.ch) nor [Loki](https://grafana.com/oss/loki/) at all this should be transparent, but if you do a simple tweak in your `logback.xml` enables log marker processing:
+
+```xml
+<configuration>
+    <appender name="LOKI" class="com.github.loki4j.logback.Loki4jAppender">
+        <http>
+            <url>${LOKI_HOST}${LOKI_ENDPOINT}</url>
+        </http>
+        <format>
+            <label>
+                <pattern>app=my-app,job=pipeline,level=%level</pattern>
+                <readMarkers>true</readMarkers> <!-- this is the relevant part -->
+            </label>
+            <!-- ...along with the rest of your configuration -->
+        </format>
+    </appender>
+    <!-- ...along with the rest of your configuration -->
+</configuration>
+```
+
+As a result, this is the kind of label that you will get on marked logs:
+
+![](resources/loki-logback.png)
 
 ## Grafana
 

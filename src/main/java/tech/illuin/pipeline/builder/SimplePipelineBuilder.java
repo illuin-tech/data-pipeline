@@ -8,7 +8,6 @@ import tech.illuin.pipeline.close.OnCloseHandler;
 import tech.illuin.pipeline.input.author_resolver.AuthorResolver;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.input.indexer.SingleAutoIndexer;
-import tech.illuin.pipeline.input.indexer.SingleIndexer;
 import tech.illuin.pipeline.input.initializer.Initializer;
 import tech.illuin.pipeline.input.initializer.builder.InitializerAssembler;
 import tech.illuin.pipeline.input.initializer.builder.InitializerBuilder;

@@ -147,7 +147,7 @@ public class Matcher
         this.blacklist = Set.of(blacklist);
     }
   
-    @StepConfig(id = "counter")
+    @StepConfig(id = "matcher")
     public Matches match(@Current TokenizedSentence tokenized)
     {
         long wordCount = tokenized.tokens().stream().distinct().count();

@@ -19,7 +19,7 @@ The library requires Java 17+, in order to use it, add the following in your `po
 <dependency>
     <groupId>tech.illuin</groupId>
     <artifactId>data-pipeline</artifactId>
-    <version>0.14.1</version>
+    <version>0.14.2</version>
 </dependency>
 ```
 

@@ -42,7 +42,7 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <ksuid.version>4.1.0</ksuid.version>
+        <ksuid.version>4.1.1</ksuid.version>
         <tsid.version>5.2.5</tsid.version>
         <ulid.version>5.2.2</ulid.version>
         <resilience4j.version>2.1.0</resilience4j.version>

@@ -161,7 +161,7 @@ var pipeline = Pipeline.of("my-pipeline")
 ### Retry
 
 The Retry wrapper can be applied on `Step` or `Sink` functions, and enables retry capabilities for the component.
-The implementation leverages the [retry `resilience4j` component](https://resilience4j.readme.io/docs/retry), see their documentation for more information on use-cases and configuration.
+The implementation leverages the [retry `resilience4j` component](https://resilience4j.readme.io/docs/retry), 💡 see their documentation for more information on use-cases and configuration.
 
 A retry can be added on a `StepAssembler` with its `withWrapper` function, it is configured using the resilience4j `RetryConfig` class:
 
@@ -184,7 +184,7 @@ var pipeline = Pipeline.of("my-pipeline")
 ### TimeLimiter
 
 The TimeLimiter wrapper can be applied on `Step` or `Sink` functions, and enables timeout capabilities for the component.
-The implementation leverages the [time-limiter `resilience4j` component](https://resilience4j.readme.io/docs/timeout), see their documentation for more information on use-cases and configuration.
+The implementation leverages the [time-limiter `resilience4j` component](https://resilience4j.readme.io/docs/timeout), 💡 see their documentation for more information on use-cases and configuration.
 
 A timeout can be added on a `StepAssembler` with its `withWrapper` function, it is configured using the resilience4j `TimeLimiterConfig` class:
 

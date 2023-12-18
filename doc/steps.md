@@ -84,7 +84,7 @@ The `StepCondition` is a predicate which role is to determine whether the `Step`
 * the `Context`, most likely for its metadata (see [the relevant documentation](pipelines.md#context)) 
 * the `Indexable` being considered for execution, this makes it possible to partition behaviour between different `Indexer` outputs (see the [Initializers documentation](initializers.md#indexers) for more on that)
 
-In the example below, we leverage the generic `MetadataCondition` implementation for performing a check on 
+In the example below, we leverage the generic `MetadataCondition` implementation for performing a check on the `"tokenizer"` key:
 
 ```java
 Pipeline<String, ?> pipeline = Pipeline.<String>of("string-processor")
@@ -126,7 +126,7 @@ There are two ways `StepErrorHandler` are typically used:
 * as exception wrappers: their contract gives access to the original `Step` exception, you can wrap the exception in order to standardize their signature, or introduce an exception type that can encapsulate metadata
 * as error recovery procedures: handlers can return a `Result`, this can be leveraged for running fallback code or convert an exception into an "error result", for instance if you want non-blocking errors  
 
-Error handlers also have a [dedicated documentation section](modifiers_and_hooks.md#error-handlers).
+💡 Error handlers also have a [dedicated documentation section](modifiers_and_hooks.md#error-handlers).
 
 ```java
 Pipeline<String, ?> pipeline = Pipeline.<String>of("string-processor")
@@ -224,7 +224,7 @@ public MyResult doStuff() { /**/ }
 A `StepWrapper` is a function that takes a `Step` as input and returns a `Step` as output.
 The main use for wrappers is to apply generic policies on your business logic, one such example is resilience patterns such as a [retry](integrations.md#retry) or [circuit-breaker](integrations.md#circuitbreaker).
 
-Wrappers also have a [dedicated documentation section](modifiers_and_hooks.md#wrappers).
+💡 Wrappers also have a [dedicated documentation section](modifiers_and_hooks.md#wrappers).
 
 A simple wrapper implementation can look like this:
 
@@ -371,7 +371,7 @@ public MyResult doStuff(@Latest(name = "my_name") Stream<SomeResult> results) { 
 
 ### `Results` and `ResultView`
 
-The `Results` and `ResultView` arguments give you access to the whole `ResultContainer`, more information on their respective feature sets in the ["Result Data Model" section](result_data_model.md#result-container).
+The `Results` and `ResultView` arguments give you access to the whole `ResultContainer`, 💡 more information on their respective feature sets in the ["Result Data Model" section](result_data_model.md#result-container).
 
 They are mapped by type so no specific annotation is required:
 
@@ -385,7 +385,7 @@ public MyResult doStuff(Results results)
 
 ### `@Payload`
 
-The pipeline's payload can be passed as argument with the `@Payload` annotation, more information on payloads [in the initializer section](initializers.md).
+The pipeline's payload can be passed as argument with the `@Payload` annotation, 💡 more information on payloads [in the initializer section](initializers.md).
 
 If the requested and actual types do not match, an `IllegalArgumentException` will be thrown at execution time.
 
@@ -396,7 +396,7 @@ public MyResult doStuff(@Payload MyPayload payload) { /**/ }
 
 ### `@Object`
 
-The current object can be passed as argument with the `@Object` annotation, more information on objects [in the initializer section](initializers.md#indexers).
+The current object can be passed as argument with the `@Object` annotation, 💡 more information on objects [in the initializer section](initializers.md#indexers).
 
 If the requested and actual types do not match, an `IllegalArgumentException` will be thrown at execution time.
 
@@ -460,7 +460,7 @@ public MyResult doStuff(Context<?> context)
 }
 ```
 
-More info on the context [in the pipeline's section](pipelines.md#context).
+💡 More info on the context [in the pipeline's section](pipelines.md#context).
 
 ### `UIDGenerator`
 
@@ -483,7 +483,7 @@ It may then be relevant to use the same UID generation strategy for other data m
 
 The `LogMarker` is a component that can produce a `LabelMarker` out of the `TagResolver` currently in use by the pipeline. 
 
-Its use is encouraged for annotating your own logs with contextual information (see [the relevant `TagResolver` section](modifiers_and_hooks.md#tag-resolvers)).
+Its use is encouraged for annotating your own logs with contextual information (💡 see [the relevant `TagResolver` section](modifiers_and_hooks.md#tag-resolvers)).
 
 ```java
 @StepConfig
@@ -499,4 +499,4 @@ public MyResult doStuff(LogMarker marker)
 All step functions' `Result` are tracked by the pipeline, and can be used by subsequent steps, sinks, or returned as part of [the final `Output`](pipelines.md#output).
 
 The `Result` interface is a very simple contract with a single `name()` method, which has a default implementation simply returning the class name.
-The value returned by `name()` can be used for addressing results within the `ResultContainer`, more information on that [in the dedicated section](result_data_model.md).
+The value returned by `name()` can be used for addressing results within the `ResultContainer`, 💡 more information on that [in the dedicated section](result_data_model.md).

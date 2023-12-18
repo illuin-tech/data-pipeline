@@ -127,7 +127,7 @@ These handlers are useful:
 * as exception wrappers: their contract gives access to the original `Sink` exception, you can wrap the exception in order to standardize their signature, or introduce an exception type that can encapsulate metadata
 * as error recovery procedures: they can be leveraged for running fallback code
 
-Error handlers also have a [dedicated documentation section](modifiers_and_hooks.md#error-handlers).
+💡 Error handlers also have a [dedicated documentation section](modifiers_and_hooks.md#error-handlers).
 
 ```java
 Pipeline<String, ?> pipeline = Pipeline.<String>of("string-processor")
@@ -152,7 +152,7 @@ public void doStuff() { /**/ }
 A `SinkWrapper` is a function that takes a `Sink` as input and returns a `Sink` as output.
 The main use for wrappers is to apply generic policies on your business logic, one such example is resilience patterns such as a [retry](integrations.md#retry) or [circuit-breaker](integrations.md#circuitbreaker).
 
-Wrappers also have a [dedicated documentation section](modifiers_and_hooks.md#wrappers).
+💡 Wrappers also have a [dedicated documentation section](modifiers_and_hooks.md#wrappers).
 
 A simple wrapper implementation can look like this:
 
@@ -299,7 +299,7 @@ public void doStuff(@Latest(name = "my_name") Stream<SomeResult> results) { /**/
 
 ### `Results`
 
-The `Results` argument gives you access to the whole `ResultContainer`, more information on its feature set in the ["Result Data Model" section](result_data_model.md#result-container).
+The `Results` argument gives you access to the whole `ResultContainer`, 💡 more information on its feature set in the ["Result Data Model" section](result_data_model.md#result-container).
 
 It is mapped by type so no specific annotation is required:
 
@@ -313,7 +313,7 @@ public void doStuff(Results results)
 
 ### `@Payload`
 
-The pipeline's payload can be passed as argument with the `@Payload` annotation, more information on payloads [in the initializer section](initializers.md).
+The pipeline's payload can be passed as argument with the `@Payload` annotation, 💡 more information on payloads [in the initializer section](initializers.md).
 
 If the requested and actual types do not match, an `IllegalArgumentException` will be thrown at execution time.
 
@@ -379,7 +379,7 @@ public void doStuff(Output<?> output)
 }
 ```
 
-This is a bit of a catch-all argument, so definitely not a first-pick, but it can be relevant especially [when combined to a custom `OutputFactory`](pipelines.md#output) for certain use-cases.
+🚨 This is a bit of a catch-all argument, so definitely not a first-pick, but it can be relevant especially [when combined to a custom `OutputFactory`](pipelines.md#output) for certain use-cases.
 
 ### `Context<P>`
 
@@ -393,7 +393,7 @@ public void doStuff(Context<?> context)
 }
 ```
 
-More info on the context [in the pipeline's section](pipelines.md#context).
+💡 More info on the context [in the pipeline's section](pipelines.md#context).
 
 ### `UIDGenerator`
 
@@ -416,7 +416,7 @@ It may then be relevant to use the same UID generation strategy for other data m
 
 The `LogMarker` is a component that can produce a `LabelMarker` out of the `TagResolver` currently in use by the pipeline.
 
-Its use is encouraged for annotating your own logs with contextual information (see [the relevant `TagResolver` section](modifiers_and_hooks.md#tag-resolvers)).
+Its use is encouraged for annotating your own logs with contextual information (💡 see [the relevant `TagResolver` section](modifiers_and_hooks.md#tag-resolvers)).
 
 ```java
 @SinkConfig

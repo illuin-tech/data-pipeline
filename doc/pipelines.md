@@ -79,11 +79,11 @@ classDef step stroke:#0f0;
 classDef sink stroke:#f00;
 ```
 
-At the time of this writing the implementation of the `Initialization Phase` is a bit of an outlier due to its setup role, but the other two share common properties through their `PipelinePhase` contract:
+💡 At the time of this writing the implementation of the `Initialization Phase` is a bit of an outlier due to its setup role, but the other two share common properties through their `PipelinePhase` contract:
 * when they exit, they are expected to return a `PipelineStrategy` (`CONTINUE` or `EXIT`) which is used by the pipeline to determine whether to go onto the next phase or not
 * upon [closing down a `Pipeline`](#shutting-down), it will call on all its phases' `close()` methods, allowing the wrap-up of resources such as a `ServiceExecutor`
 
-Although the current setup of `StepPhase` and `SinkPhase` are currently hardwired, `CompositePipeline` are structured in such a way that custom `PipelinePhase` are perfectly possible, this could come in a future update.
+🔮 Although the current setup of `StepPhase` and `SinkPhase` are currently hardwired, `CompositePipeline` are structured in such a way that custom `PipelinePhase` are perfectly possible, this could come in a future update.
 
 ### Input
 

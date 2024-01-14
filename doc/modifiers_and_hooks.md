@@ -88,7 +88,7 @@ pipelineBuilder.registerStep(builder -> builder
 );
 ```
 
-💡 There are several implementations of wrappers available out-of-the-box, as documented in the [integrations section](integrations.md#resilience4j).
+> 💡 There are several implementations of wrappers available out-of-the-box, as documented in the [integrations section](integrations.md#resilience4j).
 
 All wrapper interfaces have a no-op implementation named `noOp` which simply return the original step.
 By default, `Pipeline` instances are built with those as default wrappers.
@@ -104,8 +104,8 @@ The `UIDGenerator` is the component responsible for producing a UID within a `Pi
 * a `ulid` generator (`ULIDGenerator`) from [`ulid-creator`](https://github.com/f4b6a3/ulid-creator)
 * a `uuid` generator (`UUIDGenerator`) from `java.util.UUID`
 
-💡 More on the subject of UUIDs in Twilio's ["A brief history of the UUID"](https://segment.com/blog/a-brief-history-of-the-uuid/), the GitHub repositories above also have great descriptions of what each implementation can do.
-For instance, you can leverage the `tsid` implementation for generating UIDs similar to [Twitter Snowflakes](https://github.com/twitter-archive/snowflake) or [Discord Snowflakes](https://discord.com/developers/docs/reference#snowflakes).
+> 💡 More on the subject of UUIDs in Twilio's ["A brief history of the UUID"](https://segment.com/blog/a-brief-history-of-the-uuid/), the GitHub repositories above also have great descriptions of what each implementation can do.
+> For instance, you can leverage the `tsid` implementation for generating UIDs similar to [Twitter Snowflakes](https://github.com/twitter-archive/snowflake) or [Discord Snowflakes](https://discord.com/developers/docs/reference#snowflakes).
 
 A custom `UIDGenerator` can look like this:
 

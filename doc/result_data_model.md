@@ -36,6 +36,54 @@ public class MySink
 
 ## Tags and Lineage
 
+`data-pipeline` puts an emphasis on the ability to track the provenance or lineage of its execution and data it produces.
+For that purpose, it will generate "tags" along the way, and apply those to runs, results, and observability byproducts, making it possible to uniquely identify them.
+
+As it stands there are two types of tags: `PipelineTag` and `ComponentTag`.
+
+### `PipelineTag`
+
+The `PipelineTag` is generated at the start of a pipeline run, containing:
+* a pipeline `name` (as determined by the Pipeline's `id`)
+* a run unique `uid` (as [determined by the `UidGenerator`](modifiers_and_hooks.md#uid-generators))
+* a run `author` (as [determined by the `AuthorResolver`](modifiers_and_hooks.md#author-resolvers))
+
+A typical `PipelineTag` may look like this:
+
+```json
+{
+  "name": "my-pipeline",
+  "uid": "2axhxfxn4x0agygvfqdevgc69ru",
+  "author": "some_user@myapp.com"
+}
+```
+
+They can be injected in `Initializer`, `Step` and `Sink` functions by type as described in their respective documentation.
+
+### `ComponentTag`
+
+The `ComponentTag` is generated at the start of each component run (step, sink, etc.), containing:
+* a component `id` (as determined by the component's `id`)
+* a component `family` depending on the type of component (`INITIALIZER`, `STEP` or `SINK`)
+* a run unique `uid` (as [determined by the `UIDGenerator`](modifiers_and_hooks.md#uid-generators))
+* a run `pipelineTag` reference to current pipeline's `PipelineTag`
+
+A typical `ComponentTag` may look like this:
+
+```json
+{
+  "id": "my-step",
+  "family": "STEP",
+  "uid": "2axhxgjnoznxdpvzvas3vnrqh1q",
+  "pipelineTag": {
+    "name": "my-pipeline",
+    "uid": "2axhxfxn4x0agygvfqdevgc69ru",
+    "author": "some_user@myapp.com"
+  }
+}
+```
+
+They can be injected in `Initializer`, `Step` and `Sink` functions by type as described in their respective documentation.
 
 
 ## Result Container

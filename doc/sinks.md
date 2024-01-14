@@ -379,7 +379,7 @@ public void doStuff(Output<?> output)
 }
 ```
 
-🚨 This is a bit of a catch-all argument, so definitely not a first-pick, but it can be relevant especially [when combined to a custom `OutputFactory`](pipelines.md#output) for certain use-cases.
+> 🚨 This is a bit of a catch-all argument, so definitely not a first-pick, but it can be relevant especially [when combined to a custom `OutputFactory`](pipelines.md#output) for certain use-cases.
 
 ### `Context<P>`
 

@@ -224,7 +224,7 @@ public MyResult doStuff() { /**/ }
 A `StepWrapper` is a function that takes a `Step` as input and returns a `Step` as output.
 The main use for wrappers is to apply generic policies on your business logic, one such example is resilience patterns such as a [retry](integrations.md#retry) or [circuit-breaker](integrations.md#circuitbreaker).
 
-💡 Wrappers also have a [dedicated documentation section](modifiers_and_hooks.md#wrappers).
+> 💡 Wrappers also have a [dedicated documentation section](modifiers_and_hooks.md#wrappers).
 
 A simple wrapper implementation can look like this:
 

@@ -61,6 +61,7 @@ public class StepWrapperTest
             .registerIndexer(SingleIndexer.auto())
             .registerStep(new TestStep<>("1", "ok"))
             .registerStep(builder -> builder
+                .withId("retried-test-step")
                 .step(new TestStep<>("2", b -> {
                     if (counter.getAndIncrement() < 4)
                         sleep(Duration.ofSeconds(5));

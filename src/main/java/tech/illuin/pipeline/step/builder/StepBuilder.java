@@ -40,7 +40,7 @@ public class StepBuilder<T extends Indexable, I, P> extends ComponentBuilder<T, 
     protected void fillFromAnnotation(StepConfig annotation)
     {
         try {
-            if (this.id == null && this.executionWrapper == null && annotation.id() != null && !annotation.id().isBlank())
+            if (this.id == null && annotation.id() != null && !annotation.id().isBlank())
                 this.id = annotation.id();
             if (this.pinned == null)
                 this.pinned = annotation.pinned();

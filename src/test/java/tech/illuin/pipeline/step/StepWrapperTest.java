@@ -47,12 +47,12 @@ public class StepWrapperTest
     public static Pipeline<Void, A> createPipeline()
     {
         StepWrapper<Indexable, Void, A> timeWrapper = new TimeLimiterWrapper<>(TimeLimiterConfig.custom()
-            .timeoutDuration(Duration.ofSeconds(2))
+            .timeoutDuration(Duration.ofMillis(200))
             .build()
         );
         StepWrapper<Indexable, Void, A> retryWrapper = new RetryWrapper<>(RetryConfig.custom()
-            .maxAttempts(5)
-            .waitDuration(Duration.ofMillis(500))
+            .maxAttempts(3)
+            .waitDuration(Duration.ofMillis(25))
             .build()
         );
 
@@ -62,8 +62,8 @@ public class StepWrapperTest
             .registerStep(new TestStep<>("1", "ok"))
             .registerStep(builder -> builder
                 .step(new TestStep<>("2", b -> {
-                    if (counter.getAndIncrement() < 4)
-                        sleep(Duration.ofSeconds(5));
+                    if (counter.getAndIncrement() < 2)
+                        sleep(Duration.ofMillis(500));
                     return "ok";
                 }))
                 .withWrapper(timeWrapper.andThen(retryWrapper))

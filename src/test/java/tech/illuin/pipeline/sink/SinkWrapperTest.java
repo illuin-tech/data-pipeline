@@ -31,18 +31,18 @@ public class SinkWrapperTest
         Assertions.assertDoesNotThrow(() -> pipeline.run());
         Assertions.assertDoesNotThrow(pipeline::close);
 
-        Assertions.assertEquals(5, counter.get());
+        Assertions.assertEquals(3, counter.get());
     }
 
     public static Pipeline<Void, A> createPipeline(AtomicInteger counter)
     {
         SinkWrapper<A> timeWrapper = new TimeLimiterWrapper<>(TimeLimiterConfig.custom()
-            .timeoutDuration(Duration.ofSeconds(2))
+            .timeoutDuration(Duration.ofMillis(200))
             .build()
         );
         SinkWrapper<A> retryWrapper = new RetryWrapper<>(RetryConfig.custom()
-            .maxAttempts(5)
-            .waitDuration(Duration.ofMillis(500))
+            .maxAttempts(3)
+            .waitDuration(Duration.ofMillis(25))
             .build()
         );
 
@@ -50,8 +50,8 @@ public class SinkWrapperTest
             .registerIndexer(SingleIndexer.auto())
             .registerSink(builder -> builder
                 .sink((output, context) -> {
-                    if (counter.getAndIncrement() < 4)
-                        sleep(Duration.ofSeconds(5));
+                    if (counter.getAndIncrement() < 2)
+                        sleep(Duration.ofMillis(500));
                 })
                 .withWrapper(timeWrapper.andThen(retryWrapper))
             )

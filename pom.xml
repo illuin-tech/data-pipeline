@@ -11,6 +11,7 @@
 
     <name>Data Pipeline</name>
     <description>Toolkit for structuring data transformation applications</description>
+    <url>https://github.com/illuin-tech/data-pipeline</url>
 
     <organization>
         <name>Illuin Technology</name>

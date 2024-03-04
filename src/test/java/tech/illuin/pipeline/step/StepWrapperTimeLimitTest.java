@@ -70,7 +70,7 @@ public class StepWrapperTimeLimitTest
                 return "ok";
             }))
             .withWrapper(new TimeLimiterWrapper<>(TimeLimiterConfig.custom()
-                .timeoutDuration(Duration.ofMillis(200))
+                .timeoutDuration(Duration.ofMillis(100))
                 .build()
             ))
         ;

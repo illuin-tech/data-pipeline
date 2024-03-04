@@ -6,7 +6,7 @@
 
     <groupId>tech.illuin</groupId>
     <artifactId>data-pipeline</artifactId>
-    <version>0.14.2</version>
+    <version>0.14.3</version>
     <packaging>jar</packaging>
 
     <name>Data Pipeline</name>
@@ -35,7 +35,8 @@
     <licenses>
         <license>
             <name>MIT License</name>
-            <url>https://www.opensource.org/licenses/mit-license.php</url>
+            <url>https://github.com/noleme/noleme-flow/blob/master/LICENSE</url>
+            <distribution>repo</distribution>
         </license>
     </licenses>
 
@@ -43,6 +44,12 @@
         <system>GitLab</system>
         <url>https://gitlab.illuin.tech/illuin-team/data-pipeline/-/issues</url>
     </issueManagement>
+
+    <scm>
+        <connection>scm:git:git://github.com:illuin-tech/data-pipeline.git</connection>
+        <developerConnection>scm:git:ssh://github.com:illuin-tech/data-pipeline.git</developerConnection>
+        <url>https://github.com/illuin-tech/data-pipeline</url>
+    </scm>
 
     <properties>
         <java.version>17</java.version>
@@ -65,6 +72,8 @@
         <maven-source.version>3.3.0</maven-source.version>
         <maven-javadoc.version>3.6.3</maven-javadoc.version>
         <maven-checkstyle.version>3.3.1</maven-checkstyle.version>
+        <maven-gpg.version>3.1.0</maven-gpg.version>
+        <maven-sonatype-staging.version>1.6.13</maven-sonatype-staging.version>
     </properties>
 
     <dependencies>
@@ -197,6 +206,39 @@
                     </dependency>
                 </dependencies>
             </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>${maven-gpg.version}</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                        <configuration>
+                            <gpgArguments>
+                                <arg>--pinentry-mode</arg>
+                                <arg>loopback</arg>
+                            </gpgArguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <version>${maven-sonatype-staging.version}</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <serverId>ossrh</serverId>
+                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
@@ -206,5 +248,10 @@
             <name>Central Repository OSSRH</name>
             <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <name>Central Repository OSSRH (snapshots)</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
     </distributionManagement>
 </project>

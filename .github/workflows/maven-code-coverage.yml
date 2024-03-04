@@ -28,4 +28,6 @@ jobs:
       run: mvn clean -B test --file pom.xml
     - uses: codecov/codecov-action@v4
       with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        slug: illuin-tech/data-pipeline
         verbose: true

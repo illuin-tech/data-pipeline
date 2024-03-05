@@ -31,7 +31,7 @@ public class SinkBuilder<P> extends ComponentBuilder<Object, Object, P, SinkDesc
     protected void fillFromAnnotation(SinkConfig annotation)
     {
         try {
-            if (this.id == null && this.executionWrapper == null && annotation.id() != null && !annotation.id().isBlank())
+            if (this.id == null && annotation.id() != null && !annotation.id().isBlank())
                 this.id = annotation.id();
             if (this.async == null)
                 this.async = annotation.async();

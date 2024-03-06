@@ -1,7 +1,7 @@
 # data-pipeline
 
 [![Maven Build](https://github.com/illuin-tech/data-pipeline/actions/workflows/maven-build.yml/badge.svg?branch=master)](https://github.com/illuin/data-pipeline/actions/workflows/maven-build.yml)
-[![Maven Central Version](https://img.shields.io/maven-central/v/tech.illuin/data-pipeline)](https://maven-badges.herokuapp.com/maven-central/tech.illuin/data-pipeline)
+[![Maven Central Version](https://img.shields.io/maven-central/v/tech.illuin/data-pipeline)](https://central.sonatype.com/artifact/tech.illuin/data-pipeline)
 [![javadoc](https://javadoc.io/badge2/tech.illuin/data-pipeline/javadoc.svg)](https://javadoc.io/doc/tech.illuin/data-pipeline)
 [![codecov](https://codecov.io/gh/illuin-tech/data-pipeline/graph/badge.svg?token=T141JE2VMY)](https://codecov.io/gh/illuin-tech/data-pipeline)
 ![GitHub](https://img.shields.io/github/license/illuin-tech/data-pipeline)

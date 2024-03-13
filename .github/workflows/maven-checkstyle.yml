@@ -24,8 +24,8 @@ jobs:
         with:
           java-version: ${{ matrix.java }}
           distribution: 'temurin'
-      - name: Checkstyle with Maven
-        run: mvn clean -B checkstyle:check
-      - uses: lcollins/checkstyle-github-action@v2.0.0
+      - name: Run check style
+        uses: nikitasavinov/checkstyle-action@0.6.0
         with:
-          path: 'target/checkstyle-result.xml'
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tool_name: 'reviewdog'

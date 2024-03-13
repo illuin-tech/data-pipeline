@@ -28,5 +28,4 @@ jobs:
         uses: nikitasavinov/checkstyle-action@0.6.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          reporter: 'checkstyle-check'
           tool_name: 'reviewdog'

@@ -21,7 +21,7 @@ public class PipelineErrorHandlerTest
     @Test
     public void shouldWrapChecked()
     {
-        PipelineErrorHandler<Object> handler = PipelineErrorHandler::WRAP_CHECKED;
+        PipelineErrorHandler<Object> handler = PipelineErrorHandler::wrapChecked;
 
         Assertions.assertThrows(PipelineException.class, () -> handler.handle(new Exception("checked"), null, null, null));
         Assertions.assertThrows(CustomRuntimeException.class, () -> handler.handle(new CustomRuntimeException(), null, null, null));

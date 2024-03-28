@@ -41,8 +41,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Supplier;
 
-import static tech.illuin.pipeline.execution.error.PipelineErrorHandler.WRAP_CHECKED;
-
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
@@ -72,7 +70,7 @@ public final class SimplePipelineBuilder<I>
         this.sinkExecutorProvider = () -> Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         this.steps = new ArrayList<>();
         this.sinks = new ArrayList<>();
-        this.errorHandler = PipelineErrorHandler::WRAP_CHECKED;
+        this.errorHandler = PipelineErrorHandler::wrapChecked;
         this.onCloseHandlers = new ArrayList<>();
         this.meterRegistry = null;
         this.closeTimeout = 15;

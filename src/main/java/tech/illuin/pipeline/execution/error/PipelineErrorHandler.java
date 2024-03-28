@@ -21,7 +21,7 @@ public interface PipelineErrorHandler<P>
         };
     }
 
-    static <P> Output<P> WRAP_CHECKED(Exception ex, Output<P> previous, Object input, Context<P> context) throws PipelineException
+    static <P> Output<P> wrapChecked(Exception ex, Output<P> previous, Object input, Context<P> context) throws PipelineException
     {
         if (ex instanceof RuntimeException re)
             throw re;

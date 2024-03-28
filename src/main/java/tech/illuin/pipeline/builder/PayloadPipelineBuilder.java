@@ -73,7 +73,7 @@ public final class PayloadPipelineBuilder<I, P>
         this.sinkExecutorProvider = () -> Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         this.steps = new ArrayList<>();
         this.sinks = new ArrayList<>();
-        this.errorHandler = PipelineErrorHandler::WRAP_CHECKED;
+        this.errorHandler = PipelineErrorHandler::wrapChecked;
         this.onCloseHandlers = new ArrayList<>();
         this.meterRegistry = null;
         this.initializer = null;

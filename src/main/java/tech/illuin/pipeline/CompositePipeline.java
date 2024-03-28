@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import tech.illuin.pipeline.close.OnCloseHandler;
 import tech.illuin.pipeline.context.ComponentContext;
 import tech.illuin.pipeline.context.Context;
+import tech.illuin.pipeline.execution.error.PipelineErrorHandler;
 import tech.illuin.pipeline.execution.phase.PipelinePhase;
 import tech.illuin.pipeline.execution.phase.PipelineStrategy;
 import tech.illuin.pipeline.execution.phase.impl.SinkPhase;
@@ -39,6 +40,7 @@ import java.util.concurrent.TimeUnit;
  *     <li>1 to n {@link tech.illuin.pipeline.input.indexer.Indexer} responsible for identifying parts (or all) of the payload that will be subjected to steps</li>
  *     <li>0 to n {@link tech.illuin.pipeline.step.Step} performing transformative operations, ideally without external side effects, their output is indexed in the {@link tech.illuin.pipeline.step.result.ResultContainer}</li>
  *     <li>0 to n {@link tech.illuin.pipeline.sink.Sink} performing terminal operations, expected to be external side effects, they can be executed in a synchronous or asynchronous fashion</li>
+ *     <li>0 to 1 {@link tech.illuin.pipeline.execution.error.PipelineErrorHandler} responsible for handling and possibly recovering from exceptions occurring during the pipeline's execution</li>
  *     <li>0 to n {@link tech.illuin.pipeline.close.OnCloseHandler} responsible for cleaning up when tearing down the pipeline</li>
  * </ul>
  * <p>The pipeline references an {@link java.util.concurrent.ExecutorService} which the pipeline will attempt to close when its own close() method is called.</p>
@@ -55,6 +57,7 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
     private final List<Indexer<P>> indexers;
     private final OutputFactory<I, P> outputFactory;
     private final List<PipelinePhase<I, P>> phases;
+    private final PipelineErrorHandler<P> errorHandler;
     private final List<OnCloseHandler> onCloseHandlers;
     private final MeterRegistry meterRegistry;
     private final TagResolver<I> tagResolver;
@@ -72,6 +75,7 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
         List<StepDescriptor<Indexable, I, P>> steps,
         List<SinkDescriptor<P>> sinks,
         ExecutorService sinkExecutor,
+        PipelineErrorHandler<P> errorHandler,
         int closeTimeout,
         List<OnCloseHandler> onCloseHandlers,
         MeterRegistry meterRegistry,
@@ -83,6 +87,7 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
         this.authorResolver = authorResolver;
         this.indexers = indexers;
         this.outputFactory = outputFactory;
+        this.errorHandler = errorHandler;
         this.onCloseHandlers = onCloseHandlers;
         this.meterRegistry = meterRegistry;
         this.tagResolver = tagResolver;
@@ -105,12 +110,13 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
         PipelineTag tag = this.createTag(input, context);
         MetricTags metricTags = this.tagResolver.resolve(input, context);
         PipelineMetrics metrics = new PipelineMetrics(this.meterRegistry, tag, metricTags);
+        Output<P> output = null;
 
         long start = System.nanoTime();
         try {
             logger.debug(metrics.mark(), "{}: launching pipeline over input of type {}", this.id(), input != null ? input.getClass().getName() : "null");
 
-            Output<P> output = this.runInitialization(input, context, tag);
+            output = this.runInitialization(input, context, tag);
 
             /* We will go iteratively through each phase, if one requires a pipeline exit we will skip remaining phases */
             for (PipelinePhase<I, P> phase : this.phases)
@@ -129,9 +135,7 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
             metrics.failureCounter().increment();
             metrics.errorCounter(e).increment();
             logger.error(metrics.mark(e), "{}: {}", this.id(), e.getMessage());
-            if (e instanceof RuntimeException re)
-                throw re;
-            throw new PipelineException(e.getMessage(), e);
+            return this.errorHandler.handle(e, output, input, context);
         }
         finally {
             metrics.runTimer().record(System.nanoTime() - start, TimeUnit.NANOSECONDS);

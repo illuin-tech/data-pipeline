@@ -5,6 +5,7 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import tech.illuin.pipeline.CompositePipeline;
 import tech.illuin.pipeline.Pipeline;
 import tech.illuin.pipeline.close.OnCloseHandler;
+import tech.illuin.pipeline.execution.error.PipelineErrorHandler;
 import tech.illuin.pipeline.input.author_resolver.AuthorResolver;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.input.indexer.SingleAutoIndexer;
@@ -40,6 +41,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Supplier;
 
+import static tech.illuin.pipeline.execution.error.PipelineErrorHandler.WRAP_CHECKED;
+
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
@@ -55,6 +58,7 @@ public final class SimplePipelineBuilder<I>
     private int closeTimeout;
     private final List<OnCloseHandler> onCloseHandlers;
     private ResultEvaluator defaultEvaluator;
+    private PipelineErrorHandler<VoidPayload> errorHandler;
     private StepErrorHandler defaultStepErrorHandler;
     private SinkErrorHandler defaultSinkErrorHandler;
     private MeterRegistry meterRegistry;
@@ -68,6 +72,7 @@ public final class SimplePipelineBuilder<I>
         this.sinkExecutorProvider = () -> Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         this.steps = new ArrayList<>();
         this.sinks = new ArrayList<>();
+        this.errorHandler = PipelineErrorHandler::WRAP_CHECKED;
         this.onCloseHandlers = new ArrayList<>();
         this.meterRegistry = null;
         this.closeTimeout = 15;
@@ -85,6 +90,7 @@ public final class SimplePipelineBuilder<I>
             this.buildSteps(),
             this.buildSinks(),
             this.sinkExecutorProvider().get(),
+            this.errorHandler(),
             this.closeTimeout(),
             this.onCloseHandlers(),
             this.meterRegistry() == null ? new SimpleMeterRegistry() : this.meterRegistry(),
@@ -298,6 +304,18 @@ public final class SimplePipelineBuilder<I>
     public SimplePipelineBuilder<I> setDefaultEvaluator(ResultEvaluator defaultEvaluator)
     {
         this.defaultEvaluator = defaultEvaluator;
+        return this;
+    }
+
+    public PipelineErrorHandler<VoidPayload> errorHandler()
+    {
+        return this.errorHandler;
+    }
+
+    @SuppressWarnings("unchecked")
+    public SimplePipelineBuilder<I> setErrorHandler(PipelineErrorHandler<?> errorHandler)
+    {
+        this.errorHandler = (PipelineErrorHandler<VoidPayload>) errorHandler;
         return this;
     }
 

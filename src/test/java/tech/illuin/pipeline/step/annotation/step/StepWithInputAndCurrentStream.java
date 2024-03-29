@@ -23,7 +23,7 @@ public class StepWithInputAndCurrentStream<T>
     {
         String statuses = result.map(TestResult::status).collect(Collectors.joining("+"));
         logger.info("input: {} currents: {}", data, statuses);
-        return new TestResult("annotation-test", statuses + "->" + data);
+        return new TestResult("annotation-test", statuses + "->stream(" + data + ")");
     }
 
     public static class Named<T>

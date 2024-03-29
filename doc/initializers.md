@@ -389,7 +389,7 @@ public MyPayload doStuff(ComponentTag tag)
 }
 ```
 
-### `@Context`
+### `Context`
 
 The `Context` can be mapped by type, it gives you access to the pipeline's context:
 
@@ -402,6 +402,17 @@ public MyPayload doStuff(Context<?> context)
 ```
 
 More info on the context [in the pipeline's section](pipelines.md#context).
+
+Single entries in the context can be passed via the `@Context` annotation:
+
+```java
+@InitializerConfig
+public MyPayload doStuff(@Context("some_entry") String someEntry) { /**/ }
+
+/* The argument can be an `Optional`, it will be empty if no match can be found */
+@InitializerConfig
+public MyPayload doStuff(@Context("some_entry") Optional<String> someEntry) { /**/ }
+```
 
 ### `UIDGenerator`
 

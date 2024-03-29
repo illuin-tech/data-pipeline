@@ -1,5 +1,6 @@
 package tech.illuin.pipeline.input.initializer.builder;
 
+import tech.illuin.pipeline.annotation.Context;
 import tech.illuin.pipeline.annotation.Input;
 import tech.illuin.pipeline.builder.runner_compiler.argument_resolver.MethodArgumentResolver;
 import tech.illuin.pipeline.builder.runner_compiler.argument_resolver.mapper_factory.*;
@@ -18,7 +19,7 @@ class InitializerMethodArgumentResolver<T, I, P> implements MethodArgumentResolv
     private final List<MethodArgumentMapperFactory<T, I, P>> factories;
 
     private static final Set<Class<?>> LEGAL_ANNOTATIONS = Set.of(
-        Input.class
+        Input.class, Context.class
     );
 
     InitializerMethodArgumentResolver()
@@ -26,6 +27,7 @@ class InitializerMethodArgumentResolver<T, I, P> implements MethodArgumentResolv
         this.factories = List.of(
             new InputMapperFactory<>(),
             new ContextMapperFactory<>(),
+            new ContextKeyMapperFactory<>(),
             new UIDGeneratorMapperFactory<>(),
             new LogMarkerMapperFactory<>(),
             new PipelineTagMapperFactory<>(),

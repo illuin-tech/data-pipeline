@@ -19,7 +19,7 @@ public class StepWithInputAndLatest<T>
     public Result execute(@Input T data, @Latest TestResult result)
     {
         logger.info("input: {} latest: {}", data, result.status());
-        return new TestResult("annotation-test", result.status() + "->" + data);
+        return new TestResult("annotation-test", result.status() + "->single(" + data + ")");
     }
 
     public static class Named<T>

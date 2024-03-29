@@ -26,7 +26,7 @@ public class SinkWithInputAndLatest<T>
     public void execute(@Input T data, @Latest TestResult result)
     {
         logger.info("input: {} latest: {}", data, result.status());
-        this.collector.update(result.status() + "->" + data);
+        this.collector.update(result.status() + "->single(" + data + ")");
     }
 
     public static class Named<T>

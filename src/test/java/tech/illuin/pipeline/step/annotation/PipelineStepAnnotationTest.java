@@ -109,7 +109,7 @@ public class PipelineStepAnnotationTest
         Assertions.assertDoesNotThrow(pipeline::close);
 
         Assertions.assertEquals(
-            "input+input->input+input->input->input->input",
+            "input+input->single(input)+input->single(input)->optional(input)->stream(input)",
             output.results().current(TestResult.class).map(TestResult::status).orElse(null)
         );
     }
@@ -146,7 +146,7 @@ public class PipelineStepAnnotationTest
         Assertions.assertDoesNotThrow(pipeline::close);
 
         Assertions.assertEquals(
-            "input+input->input+input->input->input->input",
+            "input+input->single(input)+input->single(input)->optional(input)->stream(input)",
             output.results().current(TestResult.class).map(TestResult::status).orElse(null)
         );
     }
@@ -233,6 +233,31 @@ public class PipelineStepAnnotationTest
             value,
             output.results().current(TestResult.class).map(TestResult::status).orElse(null)
         );
+    }
+
+    @Test
+    public void testPipeline__shouldCompile_contextKey()
+    {
+        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_contextKey("test-context-key"));
+
+        Output<?> output = Assertions.assertDoesNotThrow(() -> pipeline.run("input", ctx -> ctx
+            .set("some-metadata", "my_value")
+            .set("some-primitive", 123)
+        ));
+        Assertions.assertDoesNotThrow(pipeline::close);
+
+        List<String> statuses = output.results().stream(TestResult.class)
+            .map(TestResult::status)
+            .sorted()
+            .toList()
+        ;
+
+        Assertions.assertEquals(3, statuses.size());
+        Assertions.assertLinesMatch(List.of(
+            "optional(my_value)",
+            "primitive(123)",
+            "single(my_value)"
+        ), statuses);
     }
 
     @Test
@@ -388,6 +413,16 @@ public class PipelineStepAnnotationTest
     {
         return Pipeline.of(name)
             .registerStep(new StepWithContext(metadataKey))
+            .build()
+        ;
+    }
+
+    public static Pipeline<Object, ?> createPipeline_contextKey(String name)
+    {
+        return Pipeline.of(name)
+            .registerStep(new StepWithContextKey())
+            .registerStep(new StepWithContextKeyOptional())
+            .registerStep(new StepWithContextKeyPrimitive())
             .build()
         ;
     }

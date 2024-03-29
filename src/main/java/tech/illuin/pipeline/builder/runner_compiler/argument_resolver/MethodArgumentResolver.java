@@ -13,7 +13,7 @@ import java.util.Set;
 public interface MethodArgumentResolver<T, I, P>
 {
     Set<Class<?>> ANNOTATIONS = Set.of(
-        Input.class, Object.class, Payload.class, Current.class, Latest.class
+        Input.class, Object.class, Payload.class, Current.class, Latest.class, Context.class
     );
 
     MethodArgumentMapper<T, I, P> resolveMapper(Parameter parameter);

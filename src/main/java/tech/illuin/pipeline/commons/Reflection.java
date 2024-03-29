@@ -6,6 +6,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -15,6 +17,21 @@ import java.util.stream.Stream;
  */
 public final class Reflection
 {
+    private static final Map<Class<?>, Class<?>> PRIMITIVE_MAP;
+
+    static {
+        PRIMITIVE_MAP = new HashMap<>();
+        PRIMITIVE_MAP.put(byte.class, Byte.class);
+        PRIMITIVE_MAP.put(short.class, Short.class);
+        PRIMITIVE_MAP.put(int.class, Integer.class);
+        PRIMITIVE_MAP.put(long.class, Long.class);
+        PRIMITIVE_MAP.put(float.class, Float.class);
+        PRIMITIVE_MAP.put(double.class, Double.class);
+        PRIMITIVE_MAP.put(char.class, Character.class);
+        PRIMITIVE_MAP.put(boolean.class, Boolean.class);
+        PRIMITIVE_MAP.put(void.class, Void.class);
+    }
+
     private Reflection() {}
 
     public static boolean isAnonymousImplementation(Class<?> c)
@@ -53,7 +70,7 @@ public final class Reflection
             throw new IllegalStateException("Argument of type Optional uses an unexpected type " + typeParam.getClass());
 
         //noinspection unchecked
-        return Result.class.isAssignableFrom(typeParamClass)
+        return expectedSuperclass.isAssignableFrom(typeParamClass)
             ? Optional.of((C) typeParamClass)
             : Optional.empty()
         ;
@@ -77,5 +94,13 @@ public final class Reflection
             ? Optional.of((C) typeParamClass)
             : Optional.empty()
         ;
+    }
+
+    public static Class<?> getWrapperType(Class<?> primitiveType)
+    {
+        if (!primitiveType.isPrimitive())
+            throw new IllegalArgumentException("The provided type is not a primitive type");
+
+        return PRIMITIVE_MAP.get(primitiveType);
     }
 }

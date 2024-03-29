@@ -4,13 +4,20 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import tech.illuin.pipeline.Pipeline;
 import tech.illuin.pipeline.PipelineException;
+import tech.illuin.pipeline.generic.pipeline.TestResult;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.input.initializer.Initializer;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.sink.Sink;
 import tech.illuin.pipeline.sink.annotation.sink.*;
 import tech.illuin.pipeline.sink.annotation.sink.SinkWithException.SinkWithExceptionException;
+import tech.illuin.pipeline.step.annotation.step.StepWithContextKey;
+import tech.illuin.pipeline.step.annotation.step.StepWithContextKeyOptional;
+import tech.illuin.pipeline.step.annotation.step.StepWithContextKeyPrimitive;
 import tech.illuin.pipeline.step.annotation.step.StepWithInput;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
@@ -109,7 +116,7 @@ public class PipelineSinkAnnotationTest
         Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
 
-        Assertions.assertEquals("input->input", collector.get());
+        Assertions.assertEquals("input->single(input)", collector.get());
     }
 
     @Test
@@ -121,7 +128,7 @@ public class PipelineSinkAnnotationTest
         Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
 
-        Assertions.assertEquals("input->input", collector.get());
+        Assertions.assertEquals("input->optional(input)", collector.get());
     }
 
     @Test
@@ -133,7 +140,7 @@ public class PipelineSinkAnnotationTest
         Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
 
-        Assertions.assertEquals("input->input", collector.get());
+        Assertions.assertEquals("input->stream(input)", collector.get());
     }
 
     @Test
@@ -181,7 +188,7 @@ public class PipelineSinkAnnotationTest
         Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
 
-        Assertions.assertEquals("input->input", collector.get());
+        Assertions.assertEquals("input->single(input)", collector.get());
     }
 
     @Test
@@ -193,7 +200,7 @@ public class PipelineSinkAnnotationTest
         Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
 
-        Assertions.assertEquals("input->input", collector.get());
+        Assertions.assertEquals("input->optional(input)", collector.get());
     }
 
     @Test
@@ -205,7 +212,7 @@ public class PipelineSinkAnnotationTest
         Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
 
-        Assertions.assertEquals("input->input", collector.get());
+        Assertions.assertEquals("input->stream(input)", collector.get());
     }
 
     @Test
@@ -281,6 +288,26 @@ public class PipelineSinkAnnotationTest
         Assertions.assertDoesNotThrow(pipeline::close);
 
         Assertions.assertEquals(value, collector.get());
+    }
+
+    @Test
+    public void testPipeline__shouldCompile_contextKey()
+    {
+        List<String> collector = new ArrayList<>();
+        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_contextKey("test-context-key", collector));
+
+        Assertions.assertDoesNotThrow(() -> pipeline.run("input", ctx -> ctx
+            .set("some-metadata", "my_value")
+            .set("some-primitive", 123)
+        ));
+        Assertions.assertDoesNotThrow(pipeline::close);
+
+        Assertions.assertEquals(3, collector.size());
+        Assertions.assertLinesMatch(List.of(
+            "optional(my_value)",
+            "primitive(123)",
+            "single(my_value)"
+        ), collector.stream().sorted().toList());
     }
 
     @Test
@@ -494,6 +521,16 @@ public class PipelineSinkAnnotationTest
     {
         return Pipeline.of(name)
             .registerSink(new SinkWithContext(metadataKey, collector))
+            .build()
+        ;
+    }
+
+    public static Pipeline<Object, ?> createPipeline_contextKey(String name, List<String> collector)
+    {
+        return Pipeline.of(name)
+            .registerSink(new SinkWithContextKey(collector))
+            .registerSink(new SinkWithContextKeyOptional(collector))
+            .registerSink(new SinkWithContextKeyPrimitive(collector))
             .build()
         ;
     }

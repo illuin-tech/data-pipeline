@@ -22,7 +22,7 @@ public class StepWithInputAndCurrentOptional<T>
     {
         String status = result.map(TestResult::status).orElse(null);
         logger.info("input: {} current: {}", data, status);
-        return new TestResult("annotation-test", status + "->" + data);
+        return new TestResult("annotation-test", status + "->optional(" + data + ")");
     }
 
     public static class Named<T>

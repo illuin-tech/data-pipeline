@@ -49,7 +49,7 @@ public class PipelineErrorHandlerTest
 
         PipelineErrorHandler<VoidPayload> errorHandler = (exception, previous, input, context) -> recovery.run(
             (String) input,
-            new SimpleContext<>(previous)
+            new SimpleContext<>(previous).copyFrom(context)
         );
         Pipeline<String, ?> pipeline = Pipeline.<String>of("pipeline")
             .registerStep((in, res, ctx) -> new TestResult("abc", "ok"))

@@ -36,6 +36,29 @@ pipelineBuilder.registerStep(builder -> builder
 All error handler interfaces have a no-op implementation named `RETHROW_ALL` which simply rethrows the original exception.
 By default, `Pipeline` instances are built with those as default handlers.  
 
+## Pipeline Error Handlers
+
+Pipeline error handlers are responsible for managing exceptions occurring during the pipeline run, before they are thrown by the pipeline.
+Their typical use would be for running a recovery pipeline, or wrapping outgoing exceptions before their throw.
+
+An exemple for a recovery pattern could look like this:
+
+```java
+/* Given a hypothetical pipeline builder */
+PayloadPipelineBuilder<String, MyPayload> builder;
+/* Given a hypothetical recovery pipeline with a String input */
+Pipeline<String, MyPayload> recovery;
+
+PipelineErrorHandler<MyPayload> recoveryHandler = (exception, previous, input, context) -> recovery.run(
+    (String) input,
+    new SimpleContext<>(previous).copyFrom(context)
+);
+builder.setErrorHandler(recoveryHandler);
+```
+
+In the example above, if the pipeline resulting from `builder` fails, it will hand over processing to the `recovery` pipeline.
+Note that the context inherits from the previous run, so `Result` created by the main pipeline, as well as original context metadata will be available in the recovery pipeline. 
+
 ## Wrappers
 
 Wrappers are for encapsulating the execution of pipeline components, they allow the execution of additional logic before and/or after a component is executed.

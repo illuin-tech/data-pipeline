@@ -193,10 +193,10 @@ public class PipelineBuilderTest
     public void test__withDefaultSinkErrorHandler()
     {
         var builder = Assertions.assertDoesNotThrow(() -> Pipeline.of("test-with-default-sink-error-handler")
-                .registerStep(step1)
-                .registerStep(step2)
-                .registerSink((output, context) -> { throw new Exception("interrupted"); })
-                .setDefaultSinkErrorHandler(sinkErrorHandler)
+            .registerStep(step1)
+            .registerStep(step2)
+            .registerSink((output, context) -> { throw new Exception("interrupted"); })
+            .setDefaultSinkErrorHandler(sinkErrorHandler)
         );
 
         Context<VoidPayload> ctx = new SimpleContext<VoidPayload>().set("sinkError", new AtomicInteger(0));

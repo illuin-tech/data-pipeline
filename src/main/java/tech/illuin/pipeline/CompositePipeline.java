@@ -32,6 +32,7 @@ import tech.illuin.pipeline.step.builder.StepDescriptor;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 /**
  * <p>The CompositePipeline works by separating its run implementation into predefined categories of components:</p>
@@ -74,7 +75,7 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
         OutputFactory<I, P> outputFactory,
         List<StepDescriptor<Indexable, I, P>> steps,
         List<SinkDescriptor<P>> sinks,
-        ExecutorService sinkExecutor,
+        Supplier<ExecutorService> sinkExecutorProvider,
         PipelineErrorHandler<P> errorHandler,
         int closeTimeout,
         List<OnCloseHandler> onCloseHandlers,
@@ -93,7 +94,7 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
         this.tagResolver = tagResolver;
         this.phases = List.of(
             new StepPhase<>(steps, uidGenerator, meterRegistry),
-            new SinkPhase<>(this, sinks, sinkExecutor, closeTimeout, uidGenerator, meterRegistry)
+            new SinkPhase<>(this, sinks, sinkExecutorProvider, closeTimeout, uidGenerator, meterRegistry)
         );
     }
 

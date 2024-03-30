@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
@@ -41,14 +42,14 @@ public class SinkPhase<I, P> implements PipelinePhase<I, P>
     public SinkPhase(
         Pipeline<I, P> pipeline,
         List<SinkDescriptor<P>> sinks,
-        ExecutorService sinkExecutor,
+        Supplier<ExecutorService> sinkExecutorProvider,
         int closeTimeout,
         UIDGenerator uidGenerator,
         MeterRegistry meterRegistry
     ) {
         this.pipeline = pipeline;
         this.sinks = sinks;
-        this.sinkExecutor = sinkExecutor;
+        this.sinkExecutor = this.initExecutor(sinkExecutorProvider);
         this.closeTimeout = closeTimeout;
         this.uidGenerator = uidGenerator;
         this.meterRegistry = meterRegistry;
@@ -97,6 +98,9 @@ public class SinkPhase<I, P> implements PipelinePhase<I, P>
     @SuppressWarnings("IllegalCatch")
     private void runSinkAsynchronously(SinkDescriptor<P> sink, ComponentTag tag, I input, Output<P> output, Context<P> context, PipelineSinkMetrics metrics)
     {
+        if (this.sinkExecutor == null)
+            throw new IllegalStateException("An asynchronous run has been initiated but there is no active executor");
+
         ComponentContext<P> componentContext = wrapContext(input, context, tag.pipelineTag(), tag, metrics);
 
         logger.trace(metrics.mark(), "{}#{} queuing sink {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), tag.id());
@@ -130,9 +134,18 @@ public class SinkPhase<I, P> implements PipelinePhase<I, P>
         return new ComponentContext<>(context, input, pipelineTag, componentTag, this.uidGenerator, marker);
     }
 
+    private ExecutorService initExecutor(Supplier<ExecutorService> provider)
+    {
+        if (this.sinks.stream().anyMatch(SinkDescriptor::isAsync))
+            return provider.get();
+        return null;
+    }
+
     @Override
     public void close() throws Exception
     {
+        if (this.sinkExecutor == null)
+            return;
         if (this.sinkExecutor.isShutdown())
             return;
 

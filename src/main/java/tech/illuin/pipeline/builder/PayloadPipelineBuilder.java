@@ -97,7 +97,7 @@ public final class PayloadPipelineBuilder<I, P>
             this.outputFactory(),
             this.buildSteps(),
             this.buildSinks(),
-            this.sinkExecutorProvider().get(),
+            this.sinkExecutorProvider(),
             this.errorHandler(),
             this.closeTimeout(),
             this.onCloseHandlers(),

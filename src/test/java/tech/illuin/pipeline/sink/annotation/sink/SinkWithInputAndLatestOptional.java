@@ -29,7 +29,7 @@ public class SinkWithInputAndLatestOptional<T>
     {
         String status = result.map(TestResult::status).orElse(null);
         logger.info("input: {} latest: {}", data, status);
-        this.collector.update(status + "->" + data);
+        this.collector.update(status + "->optional(" + data + ")");
     }
 
     public static class Named<T>

@@ -462,6 +462,17 @@ public MyResult doStuff(Context<?> context)
 
 💡 More info on the context [in the pipeline's section](pipelines.md#context).
 
+Single entries in the context can be passed via the `@Context` annotation:
+
+```java
+@StepConfig
+public MyResult doStuff(@Context("some_entry") String someEntry) { /**/ }
+
+/* The argument can be an `Optional`, it will be empty if no match can be found */
+@StepConfig
+public MyResult doStuff(@Context("some_entry") Optional<String> someEntry) { /**/ }
+```
+
 ### `UIDGenerator`
 
 You can access the `UIDGenerator` [currently in use by the pipeline](modifiers_and_hooks.md#uid-generators) by requesting it as an argument:

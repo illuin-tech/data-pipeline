@@ -1,9 +1,6 @@
 package tech.illuin.pipeline.sink.builder;
 
-import tech.illuin.pipeline.annotation.Current;
-import tech.illuin.pipeline.annotation.Input;
-import tech.illuin.pipeline.annotation.Latest;
-import tech.illuin.pipeline.annotation.Payload;
+import tech.illuin.pipeline.annotation.*;
 import tech.illuin.pipeline.builder.runner_compiler.argument_resolver.MethodArgumentResolver;
 import tech.illuin.pipeline.builder.runner_compiler.argument_resolver.mapper_factory.*;
 
@@ -21,7 +18,7 @@ class SinkMethodArgumentResolver<T, I, P> implements MethodArgumentResolver<T, I
     private final List<MethodArgumentMapperFactory<T, I, P>> factories;
 
     private static final Set<Class<?>> LEGAL_ANNOTATIONS = Set.of(
-        Input.class, Payload.class, Current.class, Latest.class
+        Input.class, Payload.class, Current.class, Latest.class, Context.class
     );
 
     SinkMethodArgumentResolver()
@@ -33,6 +30,7 @@ class SinkMethodArgumentResolver<T, I, P> implements MethodArgumentResolver<T, I
             new CurrentMapperFactory<>(),
             new LatestMapperFactory<>(),
             new ContextMapperFactory<>(),
+            new ContextKeyMapperFactory<>(),
             new ResultsMapperFactory<>(),
             new UIDGeneratorMapperFactory<>(),
             new LogMarkerMapperFactory<>(),

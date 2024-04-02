@@ -27,6 +27,7 @@ public class StepMethodArgumentResolver<T, I, P> implements MethodArgumentResolv
             new CurrentMapperFactory<>(),
             new LatestMapperFactory<>(),
             new ContextMapperFactory<>(),
+            new ContextKeyMapperFactory<>(),
             new ResultsMapperFactory<>(),
             new ResultViewMapperFactory<>(),
             new UIDGeneratorMapperFactory<>(),

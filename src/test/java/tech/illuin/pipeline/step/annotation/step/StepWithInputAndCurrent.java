@@ -19,7 +19,7 @@ public class StepWithInputAndCurrent<T>
     public Result execute(@Input T data, @Current TestResult result)
     {
         logger.info("input: {} current: {}", data, result.status());
-        return new TestResult("annotation-test", result.status() + "->" + data);
+        return new TestResult("annotation-test", result.status() + "->single(" + data +")");
     }
 
     public static class Named<T>

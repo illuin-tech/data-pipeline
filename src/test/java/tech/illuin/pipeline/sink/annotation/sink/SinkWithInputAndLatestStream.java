@@ -30,7 +30,7 @@ public class SinkWithInputAndLatestStream<T>
     {
         String statuses = result.map(TestResult::status).collect(Collectors.joining("+"));
         logger.info("input: {} latests: {}", data, statuses);
-        this.collector.update(statuses + "->" + data);
+        this.collector.update(statuses + "->stream(" + data + ")");
     }
 
     public static class Named<T>

@@ -87,7 +87,7 @@ public final class SimplePipelineBuilder<I>
             this.outputFactory(),
             this.buildSteps(),
             this.buildSinks(),
-            this.sinkExecutorProvider().get(),
+            this.sinkExecutorProvider(),
             this.errorHandler(),
             this.closeTimeout(),
             this.onCloseHandlers(),

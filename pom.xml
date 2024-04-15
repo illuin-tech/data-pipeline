@@ -61,7 +61,7 @@
         <tsid.version>5.2.6</tsid.version>
         <ulid.version>5.2.3</ulid.version>
         <resilience4j.version>2.2.0</resilience4j.version>
-        <micrometer.version>1.12.4</micrometer.version>
+        <micrometer.version>1.12.5</micrometer.version>
         <slf4j.version>1.7.36</slf4j.version>
         <loki4j.version>1.4.2</loki4j.version>
         <junit.version>5.10.2</junit.version>

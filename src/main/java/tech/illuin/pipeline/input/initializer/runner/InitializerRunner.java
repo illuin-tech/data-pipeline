@@ -8,7 +8,6 @@ import tech.illuin.pipeline.builder.runner_compiler.argument_resolver.method_arg
 import tech.illuin.pipeline.commons.Reflection;
 import tech.illuin.pipeline.context.Context;
 import tech.illuin.pipeline.context.LocalContext;
-import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.input.initializer.Initializer;
 import tech.illuin.pipeline.input.initializer.annotation.InitializerConfig;
 import tech.illuin.pipeline.input.uid_generator.UIDGenerator;

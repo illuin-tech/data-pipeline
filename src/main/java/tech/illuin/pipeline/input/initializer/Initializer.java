@@ -1,9 +1,7 @@
 package tech.illuin.pipeline.input.initializer;
 
-
 import tech.illuin.pipeline.commons.Reflection;
 import tech.illuin.pipeline.context.Context;
-import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.input.initializer.runner.InitializerRunner;
 import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
 import tech.illuin.pipeline.output.Output;

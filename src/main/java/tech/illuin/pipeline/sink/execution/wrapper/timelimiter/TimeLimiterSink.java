@@ -3,7 +3,6 @@ package tech.illuin.pipeline.sink.execution.wrapper.timelimiter;
 import io.github.resilience4j.timelimiter.TimeLimiter;
 import tech.illuin.pipeline.context.Context;
 import tech.illuin.pipeline.execution.wrapper.TimeLimiterException;
-import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.sink.Sink;
 

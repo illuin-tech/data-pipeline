@@ -1,7 +1,6 @@
 package tech.illuin.pipeline.input.initializer.builder;
 
 import tech.illuin.pipeline.context.Context;
-import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.input.initializer.Initializer;
 import tech.illuin.pipeline.input.initializer.execution.error.InitializerErrorHandler;
 import tech.illuin.pipeline.input.uid_generator.UIDGenerator;

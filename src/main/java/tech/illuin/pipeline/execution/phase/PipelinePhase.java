@@ -7,9 +7,9 @@ import tech.illuin.pipeline.output.Output;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public interface PipelinePhase<I, P> extends AutoCloseable
+public interface PipelinePhase<I> extends AutoCloseable
 {
-    PipelineStrategy run(I input, Output<P> output, Context<P> context, MetricTags tags) throws Exception;
+    PipelineStrategy run(I input, Output output, Context context, MetricTags tags) throws Exception;
 
     default void close() throws Exception {}
 }

@@ -59,7 +59,7 @@ public class UIDGeneratorTest
     {
         AtomicInteger counter = new AtomicInteger(0);
 
-        Pipeline<Object, ?> pipeline = createPipeline("test-ksuid", KSUIDGenerator.INSTANCE, uid -> {
+        Pipeline<Object> pipeline = createPipeline("test-ksuid", KSUIDGenerator.INSTANCE, uid -> {
             Assertions.assertEquals(uid.length(), 27);
             Assertions.assertEquals(Ksuid.from(uid).toString(), uid);
         }, counter);
@@ -75,7 +75,7 @@ public class UIDGeneratorTest
     {
         AtomicInteger counter = new AtomicInteger(0);
 
-        Pipeline<Object, ?> pipeline = createPipeline("test-ulid", ULIDGenerator.INSTANCE, uid -> {
+        Pipeline<Object> pipeline = createPipeline("test-ulid", ULIDGenerator.INSTANCE, uid -> {
             Assertions.assertEquals(uid.length(), 26);
             Assertions.assertEquals(Ulid.from(uid).toString(), uid);
         }, counter);
@@ -91,7 +91,7 @@ public class UIDGeneratorTest
     {
         AtomicInteger counter = new AtomicInteger(0);
 
-        Pipeline<Object, ?> pipeline = createPipeline("test-tsid", TSIDGenerator.INSTANCE, uid -> {
+        Pipeline<Object> pipeline = createPipeline("test-tsid", TSIDGenerator.INSTANCE, uid -> {
             Assertions.assertEquals(uid.length(), 13);
             Assertions.assertEquals(Tsid.from(uid).toString(), uid);
         }, counter);
@@ -107,7 +107,7 @@ public class UIDGeneratorTest
     {
         AtomicInteger counter = new AtomicInteger(0);
 
-        Pipeline<Object, ?> pipeline = createPipeline("test-uuid", UUIDGenerator.INSTANCE, uid -> {
+        Pipeline<Object> pipeline = createPipeline("test-uuid", UUIDGenerator.INSTANCE, uid -> {
             Assertions.assertEquals(uid.length(), 36);
             Assertions.assertEquals(UUID.fromString(uid).toString(), uid);
         }, counter);
@@ -118,7 +118,7 @@ public class UIDGeneratorTest
         Assertions.assertEquals(1, counter.get());
     }
 
-    private static Pipeline<Object, VoidPayload> createPipeline(String name, UIDGenerator generator, Consumer<String> uidTest, AtomicInteger counter)
+    private static Pipeline<Object> createPipeline(String name, UIDGenerator generator, Consumer<String> uidTest, AtomicInteger counter)
     {
         return Assertions.assertDoesNotThrow(() -> Pipeline.of(name)
             .setUidGenerator(generator)

@@ -13,9 +13,9 @@ import java.util.stream.Stream;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-class SinkMethodArgumentResolver<T, I, P> implements MethodArgumentResolver<T, I, P>
+class SinkMethodArgumentResolver<T, I, P> implements MethodArgumentResolver<T, I>
 {
-    private final List<MethodArgumentMapperFactory<T, I, P>> factories;
+    private final List<MethodArgumentMapperFactory<T, I>> factories;
 
     private static final Set<Class<?>> LEGAL_ANNOTATIONS = Set.of(
         Input.class, Payload.class, Current.class, Latest.class, Context.class
@@ -40,7 +40,7 @@ class SinkMethodArgumentResolver<T, I, P> implements MethodArgumentResolver<T, I
     }
 
     @Override
-    public MethodArgumentMapper<T, I, P> resolveMapper(Parameter parameter)
+    public MethodArgumentMapper<T, I> resolveMapper(Parameter parameter)
     {
         Class<?> parameterType = parameter.getType();
         List<Annotation> parameterAnnotations = Stream.of(parameter.getDeclaredAnnotations())

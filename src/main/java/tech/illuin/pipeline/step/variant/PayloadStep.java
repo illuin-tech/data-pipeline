@@ -10,11 +10,11 @@ import tech.illuin.pipeline.step.result.ResultView;
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
 @FunctionalInterface
-public interface PayloadStep<P> extends Step<Indexable, Object, P>
+public interface PayloadStep extends Step<Indexable, Object>
 {
-    Result execute(P payload, ResultView results, Context<P> context) throws Exception;
+    Result execute(Object payload, ResultView results, Context context) throws Exception;
 
-    default Result execute(Indexable object, Object input, P payload, ResultView results, Context<P> context) throws Exception
+    default Result execute(Indexable object, Object input, Object payload, ResultView results, Context context) throws Exception
     {
         return this.execute(payload, results, context);
     }

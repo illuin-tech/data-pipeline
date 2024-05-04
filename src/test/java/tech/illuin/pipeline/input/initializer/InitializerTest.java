@@ -19,7 +19,7 @@ public class InitializerTest
     {
         var counter = new AtomicInteger(0);
 
-        Pipeline<String, B> pipeline = Assertions.assertDoesNotThrow(() -> createPipelineWithInitializer(counter));
+        Pipeline<String> pipeline = Assertions.assertDoesNotThrow(() -> createPipelineWithInitializer(counter));
         Assertions.assertDoesNotThrow(() -> pipeline.run("my_input"));
         Assertions.assertDoesNotThrow(pipeline::close);
 
@@ -31,7 +31,7 @@ public class InitializerTest
     {
         var counter = new AtomicInteger(0);
 
-        Pipeline<String, B> pipeline = Assertions.assertDoesNotThrow(() -> createPipelineWithInitializer_exception(counter));
+        Pipeline<String> pipeline = Assertions.assertDoesNotThrow(() -> createPipelineWithInitializer_exception(counter));
         PipelineException ex = Assertions.assertThrows(PipelineException.class, () -> pipeline.run("my_input"));
         Assertions.assertDoesNotThrow(pipeline::close);
 
@@ -39,22 +39,22 @@ public class InitializerTest
         Assertions.assertEquals("my_input", ex.getMessage());
     }
 
-    public static Pipeline<String, B> createPipelineWithInitializer(AtomicInteger counter)
+    public static Pipeline<String> createPipelineWithInitializer(AtomicInteger counter)
     {
-        Initializer<String, B> init = (input, context, generator) -> new B(generator.generate(), input);
+        Initializer<String> init = (input, context, generator) -> new B(generator.generate(), input);
         return Pipeline.of("test-init", init)
             .registerIndexer(SingleIndexer.auto())
             .registerSink((o, ctx) -> {
-                if (o.payload().name().equals("my_input"))
+                if (o.payload(B.class).name().equals("my_input"))
                     counter.incrementAndGet();
             })
             .build()
         ;
     }
 
-    public static Pipeline<String, B> createPipelineWithInitializer_exception(AtomicInteger counter)
+    public static Pipeline<String> createPipelineWithInitializer_exception(AtomicInteger counter)
     {
-        Initializer<String, B> init = (input, context, generator) -> { throw new Exception(input); };
+        Initializer<String> init = (input, context, generator) -> { throw new Exception(input); };
         return Pipeline.of("test-init-error", init)
             .registerIndexer(SingleIndexer.auto())
             .registerSink((o, ctx) -> counter.incrementAndGet())

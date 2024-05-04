@@ -11,13 +11,13 @@ import tech.illuin.pipeline.step.runner.StepRunner;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public interface Step<T extends Indexable, I, P>
+public interface Step<T extends Indexable, I>
 {
-    Result execute(T object, I input, P payload, ResultView results, Context<P> context) throws Exception;
+    Result execute(T object, I input, Object payload, ResultView results, Context context) throws Exception;
 
-    default Result execute(T object, I input, Output<P> output, Context<P> context) throws Exception
+    default Result execute(T object, I input, Output output, Context context) throws Exception
     {
-        return this.execute(object, input, output.payload(), output.results().view(object), context);
+        return this.execute(object, input, output.payload(Object.class), output.results().view(object), context);
     }
 
     default String defaultId()
@@ -29,7 +29,7 @@ public interface Step<T extends Indexable, I, P>
      * Create a {@link Step} out of a non-specific instance (i.e. not a {@link Step} implementation).
      * The resulting step will leverage reflection-based method introspection mechanisms for resolving execution configuration.
      */
-    static <T extends Indexable, I, P> Step<T, I, P> of(Object target)
+    static <T extends Indexable, I> Step<T, I> of(Object target)
     {
         return new StepRunner<>(target);
     }

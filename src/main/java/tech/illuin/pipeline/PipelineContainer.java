@@ -11,14 +11,14 @@ import java.util.Map;
  */
 public final class PipelineContainer
 {
-    private final Map<String, Pipeline<?, ?>> pipelines;
+    private final Map<String, Pipeline<?>> pipelines;
 
     public PipelineContainer()
     {
         this.pipelines = new HashMap<>();
     }
 
-    public Pipeline<?, ?> get(String id)
+    public Pipeline<?> get(String id)
     {
         return this.pipelines.get(id);
     }
@@ -28,15 +28,15 @@ public final class PipelineContainer
         return this.pipelines.containsKey(id);
     }
 
-    public PipelineContainer register(Pipeline<?, ?> pipeline)
+    public PipelineContainer register(Pipeline<?> pipeline)
     {
         this.pipelines.put(pipeline.id(), pipeline);
         return this;
     }
 
-    public PipelineContainer register(Collection<Pipeline<?, ?>> pipelines)
+    public PipelineContainer register(Collection<Pipeline<?>> pipelines)
     {
-        for (Pipeline<?, ?> pipeline : pipelines)
+        for (Pipeline<?> pipeline : pipelines)
             this.register(pipeline);
         return this;
     }

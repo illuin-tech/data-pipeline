@@ -10,9 +10,9 @@ public interface AuthorResolver<T>
 {
     String ANONYMOUS = "anonymous";
 
-    String resolve(T input, Context<?> context);
+    String resolve(T input, Context context);
 
-    static <T> String anonymous(T input, Context<?> context)
+    static <T> String anonymous(T input, Context context)
     {
         return ANONYMOUS;
     }

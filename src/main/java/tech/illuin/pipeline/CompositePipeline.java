@@ -35,7 +35,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 /**
- * <p>The CompositePipeline works by separating its run implementation into predefined categories of components:</p>
+ * The CompositePipeline works by separating its run implementation into predefined categories of components:</p>
  * <ul>
  *     <li>1 {@link tech.illuin.pipeline.input.initializer.Initializer} responsible for creating the pipeline payload, which is reference in the {@link tech.illuin.pipeline.output.Output} and made available to steps and sinks</li>
  *     <li>1 to n {@link tech.illuin.pipeline.input.indexer.Indexer} responsible for identifying parts (or all) of the payload that will be subjected to steps</li>
@@ -44,21 +44,21 @@ import java.util.function.Supplier;
  *     <li>0 to 1 {@link tech.illuin.pipeline.execution.error.PipelineErrorHandler} responsible for handling and possibly recovering from exceptions occurring during the pipeline's execution</li>
  *     <li>0 to n {@link tech.illuin.pipeline.close.OnCloseHandler} responsible for cleaning up when tearing down the pipeline</li>
  * </ul>
- * <p>The pipeline references an {@link java.util.concurrent.ExecutorService} which the pipeline will attempt to close when its own close() method is called.</p>
- * <p>It will additionally handle a variety of {@link MeterRegistry} counters reflecting the activity of its components.</p>
+ * The pipeline references an {@link java.util.concurrent.ExecutorService} which the pipeline will attempt to close when its own close() method is called.</p>
+ * It will additionally handle a variety of {@link MeterRegistry} counters reflecting the activity of its components.</p>
  *
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public final class CompositePipeline<I, P> implements Pipeline<I, P>
+public final class CompositePipeline<I> implements Pipeline<I>
 {
     private final String id;
     private final UIDGenerator uidGenerator;
-    private final InitializerDescriptor<I, P> initializer;
+    private final InitializerDescriptor<I> initializer;
     private final AuthorResolver<I> authorResolver;
-    private final List<Indexer<P>> indexers;
-    private final OutputFactory<I, P> outputFactory;
-    private final List<PipelinePhase<I, P>> phases;
-    private final PipelineErrorHandler<P> errorHandler;
+    private final List<Indexer<?>> indexers;
+    private final OutputFactory<I> outputFactory;
+    private final List<PipelinePhase<I>> phases;
+    private final PipelineErrorHandler errorHandler;
     private final List<OnCloseHandler> onCloseHandlers;
     private final MeterRegistry meterRegistry;
     private final TagResolver<I> tagResolver;
@@ -69,14 +69,14 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
     public CompositePipeline(
         String id,
         UIDGenerator uidGenerator,
-        InitializerDescriptor<I, P> initializer,
+        InitializerDescriptor<I> initializer,
         AuthorResolver<I> authorResolver,
-        List<Indexer<P>> indexers,
-        OutputFactory<I, P> outputFactory,
-        List<StepDescriptor<Indexable, I, P>> steps,
-        List<SinkDescriptor<P>> sinks,
+        List<Indexer<?>> indexers,
+        OutputFactory<I> outputFactory,
+        List<StepDescriptor<Indexable, I>> steps,
+        List<SinkDescriptor> sinks,
         Supplier<ExecutorService> sinkExecutorProvider,
-        PipelineErrorHandler<P> errorHandler,
+        PipelineErrorHandler errorHandler,
         int closeTimeout,
         List<OnCloseHandler> onCloseHandlers,
         MeterRegistry meterRegistry,
@@ -106,12 +106,12 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
 
     @Override
     @SuppressWarnings("IllegalCatch")
-    public Output<P> run(I input, Context<P> context) throws PipelineException
+    public Output run(I input, Context context) throws PipelineException
     {
         PipelineTag tag = this.createTag(input, context);
         MetricTags metricTags = this.tagResolver.resolve(input, context);
         PipelineMetrics metrics = new PipelineMetrics(this.meterRegistry, tag, metricTags);
-        Output<P> output = null;
+        Output output = null;
 
         long start = System.nanoTime();
         try {
@@ -120,7 +120,7 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
             output = this.runInitialization(input, context, tag);
 
             /* We will go iteratively through each phase, if one requires a pipeline exit we will skip remaining phases */
-            for (PipelinePhase<I, P> phase : this.phases)
+            for (PipelinePhase<I> phase : this.phases)
             {
                 PipelineStrategy strategy = phase.run(input, output, context, metricTags);
                 if (strategy == PipelineStrategy.EXIT)
@@ -145,7 +145,7 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
     }
 
     @SuppressWarnings("IllegalCatch")
-    private Output<P> runInitialization(I input, Context<P> context, PipelineTag tag) throws Exception
+    private Output runInitialization(I input, Context context, PipelineTag tag) throws Exception
     {
         if (context == null)
             throw new IllegalArgumentException("Runtime context cannot be null");
@@ -156,13 +156,15 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
 
         long start = System.nanoTime();
         try {
-            P payload = this.runInitializer(input, componentTag, context, metrics);
-            Output<P> output = this.outputFactory.create(tag, input, payload, context);
+            Object payload = this.runInitializer(input, componentTag, context, metrics);
+            Output output = this.outputFactory.create(tag, input, payload, context);
 
-            for (Indexer<P> indexer : this.indexers)
+            for (Indexer<?> indexer : this.indexers)
             {
+                @SuppressWarnings("unchecked")
+                Indexer<Object> objectIndexer = (Indexer<Object>) indexer;
                 logger.trace(metrics.mark(), "{}#{} launching indexer {}", this.id(), tag.uid(), indexer.getClass().getName());
-                indexer.index(payload, output.index());
+                objectIndexer.index(payload, output.index());
             }
 
             metrics.successCounter().increment();
@@ -180,9 +182,9 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
     }
 
     @SuppressWarnings("IllegalCatch")
-    private P runInitializer(I input, ComponentTag tag, Context<P> context, PipelineInitializationMetrics metrics) throws Exception
+    private Object runInitializer(I input, ComponentTag tag, Context context, PipelineInitializationMetrics metrics) throws Exception
     {
-        ComponentContext<P> componentContext = wrapContext(input, context, tag.pipelineTag(), tag, metrics);
+        ComponentContext componentContext = wrapContext(input, context, tag.pipelineTag(), tag, metrics);
         try {
             logger.trace(metrics.mark(), "{}#{} initializing payload", tag.pipelineTag().pipeline(), tag.pipelineTag().uid());
             return this.initializer.execute(input, componentContext, this.uidGenerator);
@@ -201,22 +203,22 @@ public final class CompositePipeline<I, P> implements Pipeline<I, P>
             handler.execute();
 
         logger.trace("{} closing, closing {} phases", this.id(), this.phases.size());
-        for (PipelinePhase<I, P> phase : this.phases)
+        for (PipelinePhase<I> phase : this.phases)
             phase.close();
     }
 
-    private PipelineTag createTag(I input, Context<P> context)
+    private PipelineTag createTag(I input, Context context)
     {
         return new PipelineTag(this.uidGenerator.generate(), this.id(), this.authorResolver.resolve(input, context));
     }
 
-    private ComponentTag createTag(PipelineTag pipelineTag, InitializerDescriptor<?, ?> initializer)
+    private ComponentTag createTag(PipelineTag pipelineTag, InitializerDescriptor<?> initializer)
     {
         return new ComponentTag(this.uidGenerator.generate(), pipelineTag, initializer.id(), ComponentFamily.INITIALIZER);
     }
 
-    private ComponentContext<P> wrapContext(I input, Context<P> context, PipelineTag pipelineTag, ComponentTag componentTag, LogMarker marker)
+    private ComponentContext wrapContext(I input, Context context, PipelineTag pipelineTag, ComponentTag componentTag, LogMarker marker)
     {
-        return new ComponentContext<>(context, input, pipelineTag, componentTag, this.uidGenerator, marker);
+        return new ComponentContext(context, input, pipelineTag, componentTag, this.uidGenerator, marker);
     }
 }

@@ -21,7 +21,7 @@ import java.util.function.Function;
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
 @FunctionalInterface
-public interface Pipeline<I, P> extends AutoCloseable
+public interface Pipeline<I> extends AutoCloseable
 {
     /**
      * The returned identifier should ideally be unique throughout an application.
@@ -44,16 +44,16 @@ public interface Pipeline<I, P> extends AutoCloseable
      * @return the Pipeline's output
      * @throws PipelineException
      */
-    Output<P> run(I input, Context<P> context) throws PipelineException;
+    Output run(I input, Context context) throws PipelineException;
 
     /**
      * Runs the Pipeline with a {@link SimpleContext} that can be adjusted via the setup argument.
      *
      * @see #run(Object, Context)
      */
-    default Output<P> run(I input, Consumer<Context<P>> setup) throws PipelineException
+    default Output run(I input, Consumer<Context> setup) throws PipelineException
     {
-        Context<P> context = new SimpleContext<>();
+        Context context = new SimpleContext();
         setup.accept(context);
         return this.run(input, context);
     }
@@ -63,7 +63,7 @@ public interface Pipeline<I, P> extends AutoCloseable
      *
      * @see #run(Object, Context)
      */
-    default Output<P> run() throws PipelineException
+    default Output run() throws PipelineException
     {
         return this.run(null);
     }
@@ -73,9 +73,9 @@ public interface Pipeline<I, P> extends AutoCloseable
      *
      * @see #run(Object, Context)
      */
-    default Output<P> run(I input) throws PipelineException
+    default Output run(I input) throws PipelineException
     {
-        return this.run(input, new SimpleContext<>());
+        return this.run(input, new SimpleContext());
     }
 
     @Override
@@ -85,7 +85,7 @@ public interface Pipeline<I, P> extends AutoCloseable
      * @see #asStep(Function)
      */
     @Experimental
-    default Step<?, I, ?> asStep()
+    default Step<?, I> asStep()
     {
         return this.asStep(PipelineResult::new);
     }
@@ -98,7 +98,7 @@ public interface Pipeline<I, P> extends AutoCloseable
      * @return a {@link Step} instance usable within another Pipeline
      */
     @Experimental
-    default Step<?, I, ?> asStep(Function<Output<P>, Result> resultMapper)
+    default Step<?, I> asStep(Function<Output, Result> resultMapper)
     {
         return new PipelineStep<>(this, resultMapper);
     }
@@ -121,21 +121,14 @@ public interface Pipeline<I, P> extends AutoCloseable
      * Returns a new {@link PayloadPipelineBuilder} instance, this is the default type of pipeline with input and payload management.
      *
      * @param id the Pipeline's identifier
+     * @param initializer the Initializer responsible for creating the payload
      * @return the builder instance
      * @param <I> the Pipeline's input type
-     * @param <P> the Pipeline's payload type
-     */
-    static <I, P> PayloadPipelineBuilder<I, P> of(String id, Class<P> payloadType)
-    {
-        return new PayloadPipelineBuilder<I, P>().setId(id);
-    }
-
-    /**
      * @see #of(String)
      */
-    static <I, P> PayloadPipelineBuilder<I, P> of(String id, Initializer<I, P> initializer)
+    static <I> PayloadPipelineBuilder<I> of(String id, Initializer<I> initializer)
     {
-        return new PayloadPipelineBuilder<I, P>()
+        return new PayloadPipelineBuilder<I>()
             .setId(id)
             .setInitializer(initializer)
         ;
@@ -144,21 +137,21 @@ public interface Pipeline<I, P> extends AutoCloseable
     /**
      * @see #of(String, Initializer)
      */
-    static <I, P> PayloadPipelineBuilder<I, P> of(String id, InitializerAssembler<I, ? extends P> initializer)
+    static <I> PayloadPipelineBuilder<I> of(String id, InitializerAssembler<I> initializer)
     {
-        return new PayloadPipelineBuilder<I, P>()
+        return new PayloadPipelineBuilder<I>()
             .setId(id)
             .setInitializer(initializer)
         ;
     }
 
-    default Context<P> newContext()
+    default Context newContext()
     {
-        return new SimpleContext<>();
+        return new SimpleContext();
     }
 
-    default Context<P> newContext(Output<P> parent)
+    default Context newContext(Output parent)
     {
-        return new SimpleContext<>(parent);
+        return new SimpleContext(parent);
     }
 }

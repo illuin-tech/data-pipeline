@@ -10,16 +10,16 @@ import tech.illuin.pipeline.step.result.Results;
 @FunctionalInterface
 public interface StepErrorHandler
 {
-    Result handle(Exception exception, Object input, Object payload, Results results, Context<?> context) throws Exception;
+    Result handle(Exception exception, Object input, Object payload, Results results, Context context) throws Exception;
 
-    StepErrorHandler RETHROW_ALL = (Exception ex, Object input, Object payload, Results results, Context<?> ctx) -> {
+    StepErrorHandler RETHROW_ALL = (Exception ex, Object input, Object payload, Results results, Context ctx) -> {
         throw ex;
     };
 
     @SuppressWarnings("IllegalCatch")
     default StepErrorHandler andThen(StepErrorHandler nextErrorHandler)
     {
-        return (Exception exception, Object input, Object payload, Results results, Context<?> context) -> {
+        return (Exception exception, Object input, Object payload, Results results, Context context) -> {
             try {
                 return this.handle(exception, input, payload, results, context);
             }

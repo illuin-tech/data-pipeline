@@ -10,12 +10,12 @@ import tech.illuin.pipeline.sink.execution.wrapper.SinkWrapperException;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public class RetrySink<P> implements Sink<P>
+public class RetrySink implements Sink
 {
-    private final Sink<P> sink;
+    private final Sink sink;
     private final Retry retry;
 
-    public RetrySink(Sink<P> sink, Retry retry)
+    public RetrySink(Sink sink, Retry retry)
     {
         this.sink = sink;
         this.retry = retry;
@@ -23,7 +23,7 @@ public class RetrySink<P> implements Sink<P>
 
     @Override
     @SuppressWarnings("IllegalCatch")
-    public void execute(Output<P> output, Context<P> context) throws Exception
+    public void execute(Output output, Context context) throws Exception
     {
         try {
             this.retry.executeCallable(() -> executeSink(output, context));
@@ -37,7 +37,7 @@ public class RetrySink<P> implements Sink<P>
     }
 
     @SuppressWarnings("IllegalCatch")
-    private boolean executeSink(Output<P> output, Context<P> context) throws SinkWrapperException
+    private boolean executeSink(Output output, Context context) throws SinkWrapperException
     {
         try {
             this.sink.execute(output, context);

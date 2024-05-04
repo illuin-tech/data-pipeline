@@ -13,11 +13,11 @@ import java.util.Optional;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public class InitializerBuilder<I, P> extends ComponentBuilder<Object, I, P, InitializerDescriptor<I, P>, InitializerConfig>
+public class InitializerBuilder<I> extends ComponentBuilder<Object, I, InitializerDescriptor<I>, InitializerConfig>
 {
     private String id;
-    private Initializer<I, P> initializer;
-    private InitializerErrorHandler<P> errorHandler;
+    private Initializer<I> initializer;
+    private InitializerErrorHandler errorHandler;
 
     public InitializerBuilder()
     {
@@ -25,7 +25,6 @@ public class InitializerBuilder<I, P> extends ComponentBuilder<Object, I, P, Ini
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     protected void fillFromAnnotation(InitializerConfig annotation)
     {
         try {
@@ -40,49 +39,48 @@ public class InitializerBuilder<I, P> extends ComponentBuilder<Object, I, P, Ini
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     protected void fillDefaults()
     {
         if (this.id == null)
             this.id = this.initializer.defaultId();
         if (this.errorHandler == null)
-            this.errorHandler = (InitializerErrorHandler<P>) InitializerErrorHandler.RETHROW_ALL;
+            this.errorHandler = InitializerErrorHandler.RETHROW_ALL;
     }
     
-    public InitializerBuilder<I, P> initializer(Initializer<I, P> initializer)
+    public InitializerBuilder<I> initializer(Initializer<I> initializer)
     {
         this.initializer = initializer;
         return this;
     }
 
-    public InitializerBuilder<I, P> initializer(Object target)
+    public InitializerBuilder<I> initializer(Object target)
     {
         this.initializer = Initializer.of(target);
         return this;
     }
 
-    public InitializerBuilder<I, P> withId(String id)
+    public InitializerBuilder<I> withId(String id)
     {
         this.id = id;
         return this;
     }
 
-    public InitializerBuilder<I, P> withErrorHandler(InitializerErrorHandler<P> errorHandler)
+    public InitializerBuilder<I> withErrorHandler(InitializerErrorHandler errorHandler)
     {
         this.errorHandler = errorHandler;
         return this;
     }
 
     @Override
-    protected InitializerDescriptor<I, P> build()
+    protected InitializerDescriptor<I> build()
     {
         if (this.initializer == null)
             throw new IllegalStateException("An InitializerDescriptor cannot be built from a null initializer");
 
         Optional<InitializerConfig> config;
-        if (this.initializer instanceof InitializerRunner<I, P> initializerRunner)
+        if (this.initializer instanceof InitializerRunner<I> initializerRunner)
         {
-            CompiledMethod<InitializerConfig, Object, I, P> compiled = this.compiler.compile(initializerRunner.target());
+            CompiledMethod<InitializerConfig, Object, I> compiled = this.compiler.compile(initializerRunner.target());
             initializerRunner.build(compiled);
             config = Optional.of(compiled.config());
         }

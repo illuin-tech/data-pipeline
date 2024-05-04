@@ -20,7 +20,7 @@ public class PipelinePhaseTest
     public void testPipeline__continue()
     {
         Counters counters = new Counters();
-        Pipeline<Object, ?> pipeline = createPipeline("test-continue", (res, obj, in, ctx) -> StepStrategy.CONTINUE, counters);
+        Pipeline<Object> pipeline = createPipeline("test-continue", (res, obj, in, ctx) -> StepStrategy.CONTINUE, counters);
 
         Assertions.assertDoesNotThrow(() -> pipeline.run());
         Assertions.assertDoesNotThrow(pipeline::close);
@@ -36,7 +36,7 @@ public class PipelinePhaseTest
     public void testPipeline__stop()
     {
         Counters counters = new Counters();
-        Pipeline<Object, ?> pipeline = createPipeline("test-stop", (res, obj, in, ctx) -> StepStrategy.STOP, counters);
+        Pipeline<Object> pipeline = createPipeline("test-stop", (res, obj, in, ctx) -> StepStrategy.STOP, counters);
 
         Assertions.assertDoesNotThrow(() -> pipeline.run());
         Assertions.assertDoesNotThrow(pipeline::close);
@@ -52,7 +52,7 @@ public class PipelinePhaseTest
     public void testPipeline__abort()
     {
         Counters counters = new Counters();
-        Pipeline<Object, ?> pipeline = createPipeline("test-abort", (res, obj, in, ctx) -> StepStrategy.ABORT, counters);
+        Pipeline<Object> pipeline = createPipeline("test-abort", (res, obj, in, ctx) -> StepStrategy.ABORT, counters);
 
         Assertions.assertDoesNotThrow(() -> pipeline.run());
         Assertions.assertDoesNotThrow(pipeline::close);
@@ -68,7 +68,7 @@ public class PipelinePhaseTest
     public void testPipeline__exit()
     {
         Counters counters = new Counters();
-        Pipeline<Object, ?> pipeline = createPipeline("test-exit", (res, obj, in, ctx) -> StepStrategy.EXIT, counters);
+        Pipeline<Object> pipeline = createPipeline("test-exit", (res, obj, in, ctx) -> StepStrategy.EXIT, counters);
 
         Assertions.assertDoesNotThrow(() -> pipeline.run());
         Assertions.assertDoesNotThrow(pipeline::close);
@@ -80,7 +80,7 @@ public class PipelinePhaseTest
         Assertions.assertEquals(0, counters.sink_async.get());
     }
 
-    public static Pipeline<Object, VoidPayload> createPipeline(String name, ResultEvaluator evaluator, Counters counters)
+    public static Pipeline<Object> createPipeline(String name, ResultEvaluator evaluator, Counters counters)
     {
         return Assertions.assertDoesNotThrow(() -> Pipeline.of(name)
             .registerStep(builder -> builder

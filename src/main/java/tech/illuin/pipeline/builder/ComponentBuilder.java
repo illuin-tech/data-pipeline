@@ -12,12 +12,12 @@ import java.util.Optional;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public abstract class ComponentBuilder<T, I, P, CD, CC extends Annotation>
+public abstract class ComponentBuilder<T, I, CD, CC extends Annotation>
 {
-    protected final RunnerCompiler<CC, T, I, P> compiler;
+    protected final RunnerCompiler<CC, T, I> compiler;
     private final Class<CC> configType;
 
-    protected ComponentBuilder(Class<CC> configType, MethodArgumentResolver<T, I, P> methodArgumentResolver, List<MethodValidator> methodValidators)
+    protected ComponentBuilder(Class<CC> configType, MethodArgumentResolver<T, I> methodArgumentResolver, List<MethodValidator> methodValidators)
     {
         this.compiler = new GenericRunnerCompiler<>(configType, methodArgumentResolver, methodValidators);
         this.configType = configType;

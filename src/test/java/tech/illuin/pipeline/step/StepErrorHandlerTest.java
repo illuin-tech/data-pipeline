@@ -8,6 +8,7 @@ import tech.illuin.pipeline.generic.model.A;
 import tech.illuin.pipeline.generic.model.B;
 import tech.illuin.pipeline.generic.pipeline.TestResult;
 import tech.illuin.pipeline.generic.pipeline.step.TestStep;
+import tech.illuin.pipeline.input.indexer.MultiIndexer;
 import tech.illuin.pipeline.input.indexer.SingleIndexer;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.step.execution.error.StepErrorHandler;
@@ -26,7 +27,7 @@ public class StepErrorHandlerTest
     @Test
     public void testPipeline_shouldThrowException()
     {
-        Pipeline<Void, A> pipeline = Assertions.assertDoesNotThrow(StepErrorHandlerTest::createErrorThrownPipeline);
+        Pipeline<Void> pipeline = Assertions.assertDoesNotThrow(StepErrorHandlerTest::createErrorThrownPipeline);
         RuntimeException exception = Assertions.assertThrows(RuntimeException.class, pipeline::run);
         Assertions.assertDoesNotThrow(pipeline::close);
 
@@ -36,13 +37,13 @@ public class StepErrorHandlerTest
     @Test
     public void testPipeline_shouldHandleError()
     {
-        Pipeline<Void, A> pipeline = Assertions.assertDoesNotThrow(StepErrorHandlerTest::createErrorHandledPipeline);
-        Output<A> output = Assertions.assertDoesNotThrow(() -> pipeline.run());
+        Pipeline<Void> pipeline = Assertions.assertDoesNotThrow(StepErrorHandlerTest::createErrorHandledPipeline);
+        Output output = Assertions.assertDoesNotThrow(() -> pipeline.run());
         Assertions.assertDoesNotThrow(pipeline::close);
 
-        Assertions.assertIterableEquals(List.of("1", "error"), getResultTypes(output, output.payload()));
-        Assertions.assertIterableEquals(List.of("2"), getResultTypes(output, output.payload().bs().get(0)));
-        Assertions.assertIterableEquals(List.of("2"), getResultTypes(output, output.payload().bs().get(1)));
+        Assertions.assertIterableEquals(List.of("1", "error"), getResultTypes(output, output.payload(A.class)));
+        Assertions.assertIterableEquals(List.of("2"), getResultTypes(output, output.payload(A.class).bs().get(0)));
+        Assertions.assertIterableEquals(List.of("2"), getResultTypes(output, output.payload(A.class).bs().get(1)));
 
         Assertions.assertEquals(3, output.results().size());
         Assertions.assertEquals(4, output.results().current().count());
@@ -59,13 +60,13 @@ public class StepErrorHandlerTest
     {
         AtomicInteger counter = new AtomicInteger(0);
 
-        Pipeline<Void, A> pipeline = Assertions.assertDoesNotThrow(() -> createErrorHandledPipelineWithTwoErrorHandlers(counter));
-        Output<A> output = Assertions.assertDoesNotThrow(() -> pipeline.run());
+        Pipeline<Void> pipeline = Assertions.assertDoesNotThrow(() -> createErrorHandledPipelineWithTwoErrorHandlers(counter));
+        Output output = Assertions.assertDoesNotThrow(() -> pipeline.run());
         Assertions.assertDoesNotThrow(pipeline::close);
 
-        Assertions.assertIterableEquals(List.of("1", "error"), getResultTypes(output, output.payload()));
-        Assertions.assertIterableEquals(List.of("2"), getResultTypes(output, output.payload().bs().get(0)));
-        Assertions.assertIterableEquals(List.of("2"), getResultTypes(output, output.payload().bs().get(1)));
+        Assertions.assertIterableEquals(List.of("1", "error"), getResultTypes(output, output.payload(A.class)));
+        Assertions.assertIterableEquals(List.of("2"), getResultTypes(output, output.payload(A.class).bs().get(0)));
+        Assertions.assertIterableEquals(List.of("2"), getResultTypes(output, output.payload(A.class).bs().get(1)));
 
         Assertions.assertEquals(3, output.results().size());
         Assertions.assertEquals(4, output.results().current().count());
@@ -78,11 +79,11 @@ public class StepErrorHandlerTest
         Assertions.assertEquals(1, counter.get());
     }
 
-    public static Pipeline<Void, A> createErrorHandledPipeline()
+    public static Pipeline<Void> createErrorHandledPipeline()
     {
         return Pipeline.of("test-error-handled", TestFactory::initializer)
            .registerIndexer(SingleIndexer.auto())
-           .registerIndexer(A::bs)
+           .registerIndexer((MultiIndexer<A>) A::bs)
            .registerStep(builder -> builder
                .step(new TestStep<>("1", "ok"))
                .withCondition(A.class)
@@ -102,7 +103,7 @@ public class StepErrorHandlerTest
         ;
     }
 
-    public static Pipeline<Void, A> createErrorHandledPipelineWithTwoErrorHandlers(AtomicInteger counter)
+    public static Pipeline<Void> createErrorHandledPipelineWithTwoErrorHandlers(AtomicInteger counter)
     {
         StepErrorHandler firstErrorHandler = (ex, in, payload, res, ctx) -> {
             counter.incrementAndGet();
@@ -112,7 +113,7 @@ public class StepErrorHandlerTest
 
         return Pipeline.of("test-composite-error-handled", TestFactory::initializer)
             .registerIndexer(SingleIndexer.auto())
-            .registerIndexer(A::bs)
+            .registerIndexer((MultiIndexer<A>) A::bs)
             .registerStep(builder -> builder
                 .step(new TestStep<>("1", "ok"))
                 .withCondition(A.class)
@@ -132,7 +133,7 @@ public class StepErrorHandlerTest
         ;
     }
 
-    public static Pipeline<Void, A> createErrorThrownPipeline()
+    public static Pipeline<Void> createErrorThrownPipeline()
     {
         return Pipeline.of("test-error-thrown", TestFactory::initializerOfEmpty)
            .registerIndexer(SingleIndexer.auto())

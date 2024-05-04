@@ -25,11 +25,11 @@ public class StepWrapperRetryTest
     @Test
     public void testPipeline_shouldRetryException()
     {
-        Pipeline<Void, A> pipeline = Assertions.assertDoesNotThrow(StepWrapperRetryTest::createErrorRetryPipeline);
-        Output<A> output = Assertions.assertDoesNotThrow(() -> pipeline.run());
+        Pipeline<Void> pipeline = Assertions.assertDoesNotThrow(StepWrapperRetryTest::createErrorRetryPipeline);
+        Output output = Assertions.assertDoesNotThrow(() -> pipeline.run());
         Assertions.assertDoesNotThrow(pipeline::close);
 
-        Assertions.assertIterableEquals(List.of("1", "2", "3"), getResultTypes(output, output.payload()));
+        Assertions.assertIterableEquals(List.of("1", "2", "3"), getResultTypes(output, output.payload(A.class)));
 
         Assertions.assertEquals(1, output.results().size());
         Assertions.assertEquals(3, output.results().current().count());
@@ -39,7 +39,7 @@ public class StepWrapperRetryTest
         Assertions.assertTrue(output.results().current("3").isPresent());
     }
 
-    public static Pipeline<Void, A> createErrorRetryPipeline()
+    public static Pipeline<Void> createErrorRetryPipeline()
     {
         var counter = new AtomicInteger(0);
         return Pipeline.of("test-error-retry", TestFactory::initializerOfEmpty)

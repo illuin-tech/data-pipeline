@@ -19,8 +19,8 @@ public class ConditionTest
     @Test
     public void testPipeline_shouldMatchEnabled()
     {
-        Pipeline<?, ?> pipeline = Assertions.assertDoesNotThrow(ConditionTest::createConditionalPipeline);
-        Output<?> output = Assertions.assertDoesNotThrow(() -> pipeline.run(null, ctx -> ctx.set("enabled", true)));
+        Pipeline<?> pipeline = Assertions.assertDoesNotThrow(ConditionTest::createConditionalPipeline);
+        Output output = Assertions.assertDoesNotThrow(() -> pipeline.run(null, ctx -> ctx.set("enabled", true)));
         Assertions.assertDoesNotThrow(pipeline::close);
 
         Assertions.assertIterableEquals(List.of("1", "3"), getResultTypes(output));
@@ -32,8 +32,8 @@ public class ConditionTest
     @Test
     public void testPipeline_shouldMatchDisabled()
     {
-        Pipeline<?, ?> pipeline = Assertions.assertDoesNotThrow(ConditionTest::createConditionalPipeline);
-        Output<?> output = Assertions.assertDoesNotThrow(() -> pipeline.run(null, ctx -> ctx.set("enabled", false)));
+        Pipeline<?> pipeline = Assertions.assertDoesNotThrow(ConditionTest::createConditionalPipeline);
+        Output output = Assertions.assertDoesNotThrow(() -> pipeline.run(null, ctx -> ctx.set("enabled", false)));
         Assertions.assertDoesNotThrow(pipeline::close);
 
         Assertions.assertIterableEquals(List.of("2", "3"), getResultTypes(output));
@@ -42,7 +42,7 @@ public class ConditionTest
         Assertions.assertTrue(output.results().current("3").isPresent());
     }
 
-    public static Pipeline<?, ?> createConditionalPipeline()
+    public static Pipeline<?> createConditionalPipeline()
     {
         return Pipeline.of("test-condition")
            .registerStep(builder -> builder

@@ -19,19 +19,19 @@ public class AnnotationTest
     {
         var counter = new AtomicInteger(0);
 
-        Pipeline<Void, ?> pipeline = Assertions.assertDoesNotThrow(() -> AnnotationTest.createAnnotatedPipeline(counter));
+        Pipeline<Void> pipeline = Assertions.assertDoesNotThrow(() -> AnnotationTest.createAnnotatedPipeline(counter));
         Assertions.assertDoesNotThrow(() -> pipeline.run());
         Assertions.assertDoesNotThrow(pipeline::close);
 
         Assertions.assertEquals(1, counter.get());
     }
 
-    public static Pipeline<Void, A> createAnnotatedPipeline(AtomicInteger counter)
+    public static Pipeline<Void> createAnnotatedPipeline(AtomicInteger counter)
     {
-        Initializer<Void, A> initializer = new TestAnnotatedInitializers.ErrorHandler<>("0", (gen, in) -> new A("a", Collections.emptyList()));
+        Initializer<Void> initializer = new TestAnnotatedInitializers.ErrorHandler<>("0", (gen, in) -> new A("a", Collections.emptyList()));
         return Pipeline.of("test-annotated", initializer)
             .registerSink(((output, context) -> {
-                if (output.payload().uid().equals("a"))
+                if (output.payload(A.class).uid().equals("a"))
                     counter.incrementAndGet();
             }))
             .build()

@@ -9,8 +9,8 @@ import java.util.List;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public record CompiledMethod<C extends Annotation, T, I, P>(
+public record CompiledMethod<C extends Annotation, T, I>(
     Method method,
-    List<MethodArgumentMapper<T, I, P>> mappers,
+    List<MethodArgumentMapper<T, I>> mappers,
     C config
 ) {}

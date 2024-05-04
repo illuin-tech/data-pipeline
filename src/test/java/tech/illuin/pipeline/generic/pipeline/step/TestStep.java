@@ -35,7 +35,7 @@ public class TestStep<T extends Indexable> implements IndexableStep<T>
     }
 
     @Override
-    public Result execute(T data, ResultView results, Context<?> context)
+    public Result execute(T data, ResultView results, Context context)
     {
         logger.info("test:{}: {}", this.name, data);
         return new TestResult(this.name, this.function.apply(data));

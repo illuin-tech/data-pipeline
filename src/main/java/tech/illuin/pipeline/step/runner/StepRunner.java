@@ -21,11 +21,11 @@ import java.util.List;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public class StepRunner<T extends Indexable, I, P> implements Step<T, I, P>
+public class StepRunner<T extends Indexable, I> implements Step<T, I>
 {
     private final java.lang.Object target;
     private Method method;
-    private List<MethodArgumentMapper<T, I, P>> argumentMappers;
+    private List<MethodArgumentMapper<T, I>> argumentMappers;
 
     private static final Logger logger = LoggerFactory.getLogger(StepRunner.class);
 
@@ -37,15 +37,15 @@ public class StepRunner<T extends Indexable, I, P> implements Step<T, I, P>
     }
 
     @Override
-    public Result execute(T object, I input, P payload, ResultView results, Context<P> context) throws Exception
+    public Result execute(T object, I input, Object payload, ResultView results, Context context) throws Exception
     {
-        if (!(context instanceof LocalContext<P> localContext))
+        if (!(context instanceof LocalContext localContext))
             throw new IllegalArgumentException("Invalid context provided to a SinkRunner instance");
 
         logger.trace("{}#{} launching step over target {}#{}", localContext.pipelineTag().pipeline(), localContext.pipelineTag().uid(), this.target.getClass().getName(), Reflection.getMethodSignature(this.method));
 
         try {
-            MethodArguments<T, I, P> originalArguments = new MethodArguments<>(
+            MethodArguments<T, I> originalArguments = new MethodArguments<>(
                 object,
                 input,
                 payload,
@@ -94,7 +94,7 @@ public class StepRunner<T extends Indexable, I, P> implements Step<T, I, P>
         return this.target;
     }
 
-    public void build(CompiledMethod<StepConfig, T, I, P> compiled)
+    public void build(CompiledMethod<StepConfig, T, I> compiled)
     {
         this.method = compiled.method();
         this.argumentMappers = compiled.mappers();

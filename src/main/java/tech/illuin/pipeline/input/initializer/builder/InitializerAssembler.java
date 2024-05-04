@@ -3,11 +3,11 @@ package tech.illuin.pipeline.input.initializer.builder;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public interface InitializerAssembler<I, P>
+public interface InitializerAssembler<I>
 {
-    void assemble(InitializerBuilder<I, P> builder);
+    void assemble(InitializerBuilder<I> builder);
 
-    default InitializerDescriptor<I, P> build(InitializerBuilder<I, P> builder)
+    default InitializerDescriptor<I> build(InitializerBuilder<I> builder)
     {
         this.assemble(builder);
         return builder.build();

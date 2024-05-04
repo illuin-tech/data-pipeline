@@ -5,11 +5,11 @@ import tech.illuin.pipeline.input.indexer.Indexable;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public interface StepAssembler<T extends Indexable, I, P>
+public interface StepAssembler<T extends Indexable, I>
 {
-    void assemble(StepBuilder<T, I, P> builder);
+    void assemble(StepBuilder<T, I> builder);
 
-    default StepDescriptor<T, I, P> build(StepBuilder<T, I, P> builder)
+    default StepDescriptor<T, I> build(StepBuilder<T, I> builder)
     {
         this.assemble(builder);
         return builder.build();

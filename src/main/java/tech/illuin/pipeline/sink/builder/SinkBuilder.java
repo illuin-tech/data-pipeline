@@ -14,11 +14,11 @@ import java.util.Optional;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public class SinkBuilder<P> extends ComponentBuilder<Object, Object, P, SinkDescriptor<P>, SinkConfig>
+public class SinkBuilder extends ComponentBuilder<Object, Object, SinkDescriptor, SinkConfig>
 {
     private String id;
-    private Sink<P> sink;
-    private SinkWrapper<P> executionWrapper;
+    private Sink sink;
+    private SinkWrapper executionWrapper;
     private SinkErrorHandler errorHandler;
     private Boolean async;
 
@@ -56,52 +56,52 @@ public class SinkBuilder<P> extends ComponentBuilder<Object, Object, P, SinkDesc
             this.errorHandler = SinkErrorHandler.RETHROW_ALL;
     }
     
-    public SinkBuilder<P> sink(Sink<P> sink)
+    public SinkBuilder sink(Sink sink)
     {
         this.sink = sink;
         return this;
     }
 
-    public SinkBuilder<P> sink(Object target)
+    public SinkBuilder sink(Object target)
     {
         this.sink = Sink.of(target);
         return this;
     }
 
-    public SinkBuilder<P> withId(String id)
+    public SinkBuilder withId(String id)
     {
         this.id = id;
         return this;
     }
 
-    public SinkBuilder<P> withWrapper(SinkWrapper<P> wrapper)
+    public SinkBuilder withWrapper(SinkWrapper wrapper)
     {
         this.executionWrapper = wrapper;
         return this;
     }
 
-    public SinkBuilder<P> withErrorHandler(SinkErrorHandler errorHandler)
+    public SinkBuilder withErrorHandler(SinkErrorHandler errorHandler)
     {
         this.errorHandler = errorHandler;
         return this;
     }
 
-    public SinkBuilder<P> setAsync(boolean async)
+    public SinkBuilder setAsync(boolean async)
     {
         this.async = async;
         return this;
     }
 
     @Override
-    protected SinkDescriptor<P> build()
+    protected SinkDescriptor build()
     {
         if (this.sink == null)
             throw new IllegalStateException("A SinkDescriptor cannot be built from a null sink");
 
         Optional<SinkConfig> config;
-        if (this.sink instanceof SinkRunner<P> sinkRunner)
+        if (this.sink instanceof SinkRunner sinkRunner)
         {
-            CompiledMethod<SinkConfig, Object, Object, P> compiled = this.compiler.compile(sinkRunner.target());
+            CompiledMethod<SinkConfig, Object, Object> compiled = this.compiler.compile(sinkRunner.target());
             sinkRunner.build(compiled);
             config = Optional.of(compiled.config());
         }
@@ -112,7 +112,7 @@ public class SinkBuilder<P> extends ComponentBuilder<Object, Object, P, SinkDesc
 
         this.fillDefaults();
 
-        return new SinkDescriptor<>(
+        return new SinkDescriptor(
             this.id,
             this.sink,
             this.async,

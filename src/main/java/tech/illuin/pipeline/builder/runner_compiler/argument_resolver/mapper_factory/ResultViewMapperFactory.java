@@ -8,7 +8,7 @@ import java.lang.reflect.Parameter;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public class ResultViewMapperFactory<T, I, P> implements MethodArgumentMapperFactory<T, I, P>
+public class ResultViewMapperFactory<T, I> implements MethodArgumentMapperFactory<T, I>
 {
     @Override
     public boolean canHandle(Annotation category, Class<?> parameterType)
@@ -17,7 +17,7 @@ public class ResultViewMapperFactory<T, I, P> implements MethodArgumentMapperFac
     }
 
     @Override
-    public MethodArgumentMapper<T, I, P> produce(Annotation category, Parameter parameter)
+    public MethodArgumentMapper<T, I> produce(Annotation category, Parameter parameter)
     {
         Class<?> parameterType = parameter.getType();
         return args -> {

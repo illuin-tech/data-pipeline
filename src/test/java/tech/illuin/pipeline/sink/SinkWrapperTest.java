@@ -27,20 +27,20 @@ public class SinkWrapperTest
     {
         var counter = new AtomicInteger(0);
 
-        Pipeline<Void, A> pipeline = Assertions.assertDoesNotThrow(() -> SinkWrapperTest.createPipeline(counter));
+        Pipeline<Void> pipeline = Assertions.assertDoesNotThrow(() -> SinkWrapperTest.createPipeline(counter));
         Assertions.assertDoesNotThrow(() -> pipeline.run());
         Assertions.assertDoesNotThrow(pipeline::close);
 
         Assertions.assertEquals(3, counter.get());
     }
 
-    public static Pipeline<Void, A> createPipeline(AtomicInteger counter)
+    public static Pipeline<Void> createPipeline(AtomicInteger counter)
     {
-        SinkWrapper<A> timeWrapper = new TimeLimiterWrapper<>(TimeLimiterConfig.custom()
+        SinkWrapper timeWrapper = new TimeLimiterWrapper<>(TimeLimiterConfig.custom()
             .timeoutDuration(Duration.ofMillis(200))
             .build()
         );
-        SinkWrapper<A> retryWrapper = new RetryWrapper<>(RetryConfig.custom()
+        SinkWrapper retryWrapper = new RetryWrapper<>(RetryConfig.custom()
             .maxAttempts(3)
             .waitDuration(Duration.ofMillis(25))
             .build()

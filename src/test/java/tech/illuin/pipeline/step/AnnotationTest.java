@@ -21,11 +21,11 @@ public class AnnotationTest
     @Test
     public void testPipeline_withAnnotatedSteps()
     {
-        Pipeline<Void, A> pipeline = Assertions.assertDoesNotThrow(AnnotationTest::createAnnotatedPipeline);
-        Output<A> output = Assertions.assertDoesNotThrow(() -> pipeline.run());
+        Pipeline<Void> pipeline = Assertions.assertDoesNotThrow(AnnotationTest::createAnnotatedPipeline);
+        Output output = Assertions.assertDoesNotThrow(() -> pipeline.run());
         Assertions.assertDoesNotThrow(pipeline::close);
 
-        Assertions.assertIterableEquals(List.of("1", "5", "error"), getResultTypes(output, output.payload()));
+        Assertions.assertIterableEquals(List.of("1", "5", "error"), getResultTypes(output, output.payload(A.class)));
 
         Assertions.assertEquals(1, output.results().size());
         Assertions.assertEquals(3, output.results().current().count());
@@ -38,7 +38,7 @@ public class AnnotationTest
         Assertions.assertTrue(output.results().current("5").isPresent());
     }
 
-    public static Pipeline<Void, A> createAnnotatedPipeline()
+    public static Pipeline<Void> createAnnotatedPipeline()
     {
         return Pipeline.of("test-annotated", TestFactory::initializerOfEmpty)
            .registerIndexer(SingleIndexer.auto())

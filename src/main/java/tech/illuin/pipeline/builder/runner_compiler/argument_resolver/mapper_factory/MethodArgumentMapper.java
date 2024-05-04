@@ -5,7 +5,7 @@ import tech.illuin.pipeline.builder.runner_compiler.argument_resolver.method_arg
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public interface MethodArgumentMapper<T, I, P>
+public interface MethodArgumentMapper<T, I>
 {
-    Object map(MethodArguments<T, I, P> arguments);
+    Object map(MethodArguments<T, I> arguments);
 }

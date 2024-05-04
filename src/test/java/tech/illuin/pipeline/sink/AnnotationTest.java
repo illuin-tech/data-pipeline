@@ -17,14 +17,14 @@ public class AnnotationTest
     {
         var counter = new AtomicInteger(0);
 
-        Pipeline<Void, ?> pipeline = Assertions.assertDoesNotThrow(() -> AnnotationTest.createAnnotatedPipeline(counter));
+        Pipeline<Void> pipeline = Assertions.assertDoesNotThrow(() -> AnnotationTest.createAnnotatedPipeline(counter));
         Assertions.assertDoesNotThrow(() -> pipeline.run());
         Assertions.assertDoesNotThrow(pipeline::close);
 
         Assertions.assertEquals(1, counter.get());
     }
 
-    public static Pipeline<Void, ?> createAnnotatedPipeline(AtomicInteger counter)
+    public static Pipeline<Void> createAnnotatedPipeline(AtomicInteger counter)
     {
         return Pipeline.<Void>of("test-annotated")
             .registerSink(new TestAnnotatedSinks.ErrorHandler<>("1", in -> { throw new RuntimeException("Some error"); }))

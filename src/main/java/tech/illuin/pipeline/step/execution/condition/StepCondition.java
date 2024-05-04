@@ -8,19 +8,19 @@ import tech.illuin.pipeline.input.indexer.Indexable;
  */
 public interface StepCondition
 {
-    boolean canExecute(Indexable indexable, Context<?> context);
+    boolean canExecute(Indexable indexable, Context context);
 
     StepCondition ALWAYS_TRUE = StepCondition::alwaysTrue;
     StepCondition ALWAYS_FALSE = StepCondition::alwaysFalse;
 
     /* Default implementations */
 
-    private static boolean alwaysTrue(Indexable indexable, Context<?> context)
+    private static boolean alwaysTrue(Indexable indexable, Context context)
     {
         return true;
     }
 
-    private static boolean alwaysFalse(Indexable indexable, Context<?> context)
+    private static boolean alwaysFalse(Indexable indexable, Context context)
     {
         return false;
     }

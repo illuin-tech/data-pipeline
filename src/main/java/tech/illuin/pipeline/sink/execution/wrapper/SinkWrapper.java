@@ -6,16 +6,16 @@ import tech.illuin.pipeline.sink.Sink;
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
 @FunctionalInterface
-public interface SinkWrapper<P>
+public interface SinkWrapper
 {
-    Sink<P> wrap(Sink<P> sink);
+    Sink wrap(Sink sink);
 
-    static <P> Sink<P> noOp(Sink<P> sink)
+    static Sink noOp(Sink sink)
     {
         return sink;
     }
 
-    default SinkWrapper<P> andThen(SinkWrapper<P> nextWrapper)
+    default SinkWrapper andThen(SinkWrapper nextWrapper)
     {
         return step -> nextWrapper.wrap(this.wrap(step));
     }

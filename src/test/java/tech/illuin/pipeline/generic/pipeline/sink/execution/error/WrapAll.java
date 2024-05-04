@@ -14,7 +14,7 @@ public class WrapAll implements SinkErrorHandler
     private static final Logger logger = LoggerFactory.getLogger(WrapAll.class);
 
     @Override
-    public void handle(Exception exception, Output<?> output, Context<?> context)
+    public void handle(Exception exception, Output output, Context context)
     {
         logger.error(exception.getMessage());
     }

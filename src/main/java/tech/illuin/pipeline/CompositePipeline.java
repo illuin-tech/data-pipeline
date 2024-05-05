@@ -35,7 +35,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 /**
- * The CompositePipeline works by separating its run implementation into predefined categories of components:</p>
+ * <p>The CompositePipeline works by separating its run implementation into predefined categories of components:</p>
  * <ul>
  *     <li>1 {@link tech.illuin.pipeline.input.initializer.Initializer} responsible for creating the pipeline payload, which is reference in the {@link tech.illuin.pipeline.output.Output} and made available to steps and sinks</li>
  *     <li>1 to n {@link tech.illuin.pipeline.input.indexer.Indexer} responsible for identifying parts (or all) of the payload that will be subjected to steps</li>
@@ -44,8 +44,8 @@ import java.util.function.Supplier;
  *     <li>0 to 1 {@link tech.illuin.pipeline.execution.error.PipelineErrorHandler} responsible for handling and possibly recovering from exceptions occurring during the pipeline's execution</li>
  *     <li>0 to n {@link tech.illuin.pipeline.close.OnCloseHandler} responsible for cleaning up when tearing down the pipeline</li>
  * </ul>
- * The pipeline references an {@link java.util.concurrent.ExecutorService} which the pipeline will attempt to close when its own close() method is called.</p>
- * It will additionally handle a variety of {@link MeterRegistry} counters reflecting the activity of its components.</p>
+ * <p>The pipeline references an {@link java.util.concurrent.ExecutorService} which the pipeline will attempt to close when its own close() method is called.</p>
+ * <p>It will additionally handle a variety of {@link MeterRegistry} counters reflecting the activity of its components.</p>
  *
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */

@@ -6,7 +6,6 @@ import tech.illuin.pipeline.input.initializer.runner.InitializerRunner;
 import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
 import tech.illuin.pipeline.output.Output;
 
-import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
@@ -16,14 +15,6 @@ import java.util.function.Supplier;
 public interface Initializer<I>
 {
     Object initialize(I input, Context context, UIDGenerator generator) throws Exception;
-
-    static <I> Object initializeFromParent(I input, Context context)
-    {
-        Optional<Output> parentOutput = context.parent();
-        if (parentOutput.isEmpty())
-            throw new IllegalArgumentException("The provided context does not reference a parent output");
-        return parentOutput.get().payload();
-    }
 
     static <P> Object initializeFromParentOr(Context context, Supplier<P> or)
     {

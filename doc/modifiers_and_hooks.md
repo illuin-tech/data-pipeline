@@ -15,7 +15,7 @@ An error handler implementation looks something like this:
 public class MyHandler implements StepErrorHandler
 {
     @Override
-    public Result handle(Exception exception, Object input, Object payload, Results results, Context<?> context)
+    public Result handle(Exception exception, Object input, Object payload, Results results, Context context)
     {
         logger.error("We did get an error.. ({})", exception.getMessage());
         return new MyResult("..but let's ignore it anyway");
@@ -45,13 +45,13 @@ An exemple for a recovery pattern could look like this:
 
 ```java
 /* Given a hypothetical pipeline builder */
-PayloadPipelineBuilder<String, MyPayload> builder;
+PayloadPipelineBuilder<String> builder;
 /* Given a hypothetical recovery pipeline with a String input */
-Pipeline<String, MyPayload> recovery;
+Pipeline<String> recovery;
 
-PipelineErrorHandler<MyPayload> recoveryHandler = (exception, previous, input, context) -> recovery.run(
+PipelineErrorHandler recoveryHandler = (exception, previous, input, context) -> recovery.run(
     (String) input,
-    new SimpleContext<>(previous).copyFrom(context)
+    new SimpleContext(previous).copyFrom(context)
 );
 builder.setErrorHandler(recoveryHandler);
 ```
@@ -72,10 +72,10 @@ Due to differences in their respective signatures and role within a `Pipeline`, 
 A custom `StepWrapper` may look like the following, it takes the current step as input, and returns the step that should run in its stead:
 
 ```java
-public class MyWrapper<T, I, P> implements StepWrapper<T, I, P>
+public class MyWrapper<T, I> implements StepWrapper<T, I>
 {
     @Override
-    public Step<T, I, P> wrap(Step<T, I, P> step)
+    public Step<T, I> wrap(Step<T, I> step)
     {
         return (object, input, payload, results, context) -> {
             System.out.println("This is something I need to print before");
@@ -88,10 +88,10 @@ public class MyWrapper<T, I, P> implements StepWrapper<T, I, P>
 Similarly, a `SinkWrapper`:
 
 ```java
-public class MyWrapper<P> implements SinkWrapper<P>
+public class MyWrapper implements SinkWrapper
 {
     @Override
-    public Sink<P> wrap(Sink<P> sink)
+    public Sink wrap(Sink sink)
     {
         return (output, context) -> {
             System.out.println("This is something I need to print before");
@@ -167,7 +167,7 @@ A typical `AuthorResolver` may look like this:
 public class MyAuthorResolver implements AuthorResolver<MyInputType>
 {
     @Override
-    public String resolve(MyInputType input, Context<?> context)
+    public String resolve(MyInputType input, Context context)
     {
         return input.getUsername();
     }
@@ -186,7 +186,7 @@ A typical `TagResolver` may look like this:
 public class MyTagResolver implements TagResolver<MyInputType>
 {
     @Override
-    public MetricTags resolve(MyInputType input, Context<?> context)
+    public MetricTags resolve(MyInputType input, Context context)
     {
         return new MetricTags()
             .put("some_tag", input.getSome())

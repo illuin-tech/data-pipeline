@@ -43,7 +43,7 @@ Together with a [`ResultEvaluator`](#result-evaluators) they can pull a lot of m
 `Step` functions can be supplied to a pipeline builder "as-is", meaning you simply `registerStep` the step instance itself:
 
 ```java
-Pipeline<String, ?> pipeline = Pipeline.<String>of("string-processor")
+Pipeline<String> pipeline = Pipeline.<String>of("string-processor")
     .registerStep(new Tokenizer())
     /* ...and others */
     .build()
@@ -56,7 +56,7 @@ But at some point you will want finer-grained configuration at the component lev
 The `StepAssembler` accepts a `Step` (the one you would be providing directly to the pipeline) and offers you a way to plug in as many modifiers as you need:
 
 ```java
-Pipeline<String, ?> pipeline = Pipeline.<String>of("string-processor")
+Pipeline<String> pipeline = Pipeline.<String>of("string-processor")
     .registerStep(builder -> builder
         .step(new Tokenizer())
         .withId("special-tokenizer")
@@ -87,7 +87,7 @@ The `StepCondition` is a predicate which role is to determine whether the `Step`
 In the example below, we leverage the generic `MetadataCondition` implementation for performing a check on the `"tokenizer"` key:
 
 ```java
-Pipeline<String, ?> pipeline = Pipeline.<String>of("string-processor")
+Pipeline<String> pipeline = Pipeline.<String>of("string-processor")
     .registerStep(builder -> builder
         .step(new Tokenizer())
         .withCondition(new MetadataCondition("tokenizer", BASIC))
@@ -129,7 +129,7 @@ There are two ways `StepErrorHandler` are typically used:
 💡 Error handlers also have a [dedicated documentation section](modifiers_and_hooks.md#error-handlers).
 
 ```java
-Pipeline<String, ?> pipeline = Pipeline.<String>of("string-processor")
+Pipeline<String> pipeline = Pipeline.<String>of("string-processor")
     .registerStep(builder -> builder
         .step(new Tokenizer())
         .withErrorHandler((ex, in, payload, results, ctx) -> new ErrorResult("This didn't go as planned: " + ex.getMessage(), ex))
@@ -180,7 +180,7 @@ For instance, if we want a `ResultEvaluator` that will stop the pipeline as soon
 public class MyResultEvaluator implements ResultEvaluator
 {
     @Override
-    public StepStrategy evaluate(Result result, Indexable object, Object input, Context<?> ctx)
+    public StepStrategy evaluate(Result result, Indexable object, Object input, Context ctx)
     {
         if (result instanceof MyStopConditionResult)
             return StepStrategy.STOP;
@@ -192,7 +192,7 @@ public class MyResultEvaluator implements ResultEvaluator
 From there, we would likely apply it as the default evaluator on the whole pipeline:
 
 ```java
-Pipeline<String, ?> pipeline = Pipeline.<String>of("string-processor")
+Pipeline<String> pipeline = Pipeline.<String>of("string-processor")
     .setDefaultEvaluator(new MyResultEvaluator())
     /* ...and others */
     .build()
@@ -202,7 +202,7 @@ Pipeline<String, ?> pipeline = Pipeline.<String>of("string-processor")
 ...or on a single `Step`:
 
 ```java
-Pipeline<String, ?> pipeline = Pipeline.<String>of("string-processor")
+Pipeline<String> pipeline = Pipeline.<String>of("string-processor")
     .registerStep(builder -> builder
         .step(new Tokenizer())
         .withEvaluator(new MyResultEvaluator())
@@ -229,10 +229,10 @@ The main use for wrappers is to apply generic policies on your business logic, o
 A simple wrapper implementation can look like this:
 
 ```java
-public static class MyWrapper<T extends Indexable, I, P> implements StepWrapper<T, I, P>
+public static class MyWrapper<T extends Indexable, I> implements StepWrapper<T, I>
 {
     @Override
-    public Step<T, I, P> wrap(Step<T, I, P> step)
+    public Step<T, I> wrap(Step<T, I> step)
     {
         return (obj, in, payload, res, ctx) -> {
             // do stuff
@@ -245,7 +245,7 @@ public static class MyWrapper<T extends Indexable, I, P> implements StepWrapper<
 Then, the wrapper can be applied as follows:
 
 ```java
-Pipeline<String, ?> pipeline = Pipeline.<String>of("string-processor")
+Pipeline<String> pipeline = Pipeline.<String>of("string-processor")
     .registerStep(builder -> builder
         .step(new Tokenizer())
         .withWrapper(new MyWrapper<>())
@@ -448,13 +448,13 @@ public MyResult doStuff(ComponentTag tag)
 }
 ```
 
-### `Context<P>`
+### `Context`
 
 The `Context` can be mapped by type, and gives you access to the pipeline's context:
 
 ```java
 @StepConfig
-public MyResult doStuff(Context<?> context)
+public MyResult doStuff(Context context)
 {
     //context.get("my_metadata_key", SomeType.class).orElseThrow();
 }

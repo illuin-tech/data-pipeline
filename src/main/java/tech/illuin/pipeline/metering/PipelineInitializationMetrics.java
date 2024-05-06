@@ -10,11 +10,11 @@ import tech.illuin.pipeline.metering.tag.MetricTags;
 import tech.illuin.pipeline.output.ComponentTag;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 import static java.util.Collections.emptyMap;
-import static tech.illuin.pipeline.metering.MeterRegistryKeys.*;
+import static tech.illuin.pipeline.metering.MeterRegistryKey.*;
+import static tech.illuin.pipeline.metering.MetricFunctions.*;
 
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
@@ -34,11 +34,11 @@ public class PipelineInitializationMetrics implements LogMarker
         this.meterRegistry = meterRegistry;
         this.tag = tag;
         this.metricTags = metricTags;
-        Collection<Tag> meterTags = this.compileTags(Tag.of("pipeline", this.tag.pipelineTag().pipeline()), Tag.of("initializer", this.tag.id()));
-        this.runTimer = meterRegistry.timer(PIPELINE_INITIALIZATION_RUN_KEY, meterTags);
-        this.totalCounter = meterRegistry.counter(PIPELINE_INITIALIZATION_RUN_TOTAL_KEY, meterTags);
-        this.successCounter = meterRegistry.counter(PIPELINE_INITIALIZATION_RUN_SUCCESS_KEY, meterTags);
-        this.failureCounter = meterRegistry.counter(PIPELINE_INITIALIZATION_RUN_FAILURE_KEY, meterTags);
+        Collection<Tag> meterTags = compileTags(this.metricTags, Tag.of("pipeline", this.tag.pipelineTag().pipeline()), Tag.of("initializer", this.tag.id()));
+        this.runTimer = meterRegistry.timer(PIPELINE_INITIALIZATION_RUN_KEY.id(), fill(PIPELINE_INITIALIZATION_RUN_KEY, meterTags));
+        this.totalCounter = meterRegistry.counter(PIPELINE_INITIALIZATION_RUN_TOTAL_KEY.id(), fill(PIPELINE_INITIALIZATION_RUN_TOTAL_KEY, meterTags));
+        this.successCounter = meterRegistry.counter(PIPELINE_INITIALIZATION_RUN_SUCCESS_KEY.id(), fill(PIPELINE_INITIALIZATION_RUN_SUCCESS_KEY, meterTags));
+        this.failureCounter = meterRegistry.counter(PIPELINE_INITIALIZATION_RUN_FAILURE_KEY.id(), fill(PIPELINE_INITIALIZATION_RUN_FAILURE_KEY, meterTags));
     }
 
     public Timer runTimer()
@@ -64,8 +64,10 @@ public class PipelineInitializationMetrics implements LogMarker
     public Counter errorCounter(Exception exception)
     {
         return this.meterRegistry.counter(
-            MeterRegistryKeys.PIPELINE_INITIALIZATION_ERROR_TOTAL_KEY,
-            this.compileTags(
+            PIPELINE_INITIALIZATION_ERROR_TOTAL_KEY.id(),
+            compileAndFillTags(
+                this.metricTags,
+                PIPELINE_INITIALIZATION_ERROR_TOTAL_KEY,
                 Tag.of("pipeline", this.tag.pipelineTag().pipeline()),
                 Tag.of("initializer", this.tag.id()),
                 Tag.of("error", exception.getClass().getName())
@@ -76,7 +78,8 @@ public class PipelineInitializationMetrics implements LogMarker
     @Override
     public LabelMarker mark(Map<String, String> labels)
     {
-        return LabelMarker.of(() -> this.compileMarkers(
+        return LabelMarker.of(() -> compileMarkers(
+            this.metricTags,
             Map.of(
                 "pipeline", this.tag.pipelineTag().pipeline(),
                 "author", this.tag.pipelineTag().author(),
@@ -89,21 +92,15 @@ public class PipelineInitializationMetrics implements LogMarker
     @Override
     public LabelMarker mark(Exception exception)
     {
-        return LabelMarker.of(() -> this.compileMarkers(Map.of(
-            "pipeline", this.tag.pipelineTag().pipeline(),
-            "author", this.tag.pipelineTag().author(),
-            "error", exception.getClass().getName(),
-            "initializer", this.tag.id()
-        ), emptyMap()));
-    }
-
-    private Collection<Tag> compileTags(Tag... mainstayTags)
-    {
-        return MetricFunctions.combine(List.of(mainstayTags), this.metricTags.asTags());
-    }
-
-    private Map<String, String> compileMarkers(Map<String, String> mainstayMarkers, Map<String, String> dynamicMarkers)
-    {
-        return MetricFunctions.combine(mainstayMarkers, this.metricTags.asMap(), dynamicMarkers);
+        return LabelMarker.of(() -> compileMarkers(
+            this.metricTags,
+            Map.of(
+                "pipeline", this.tag.pipelineTag().pipeline(),
+                "author", this.tag.pipelineTag().author(),
+                "error", exception.getClass().getName(),
+                "initializer", this.tag.id()
+            ),
+            emptyMap()
+        ));
     }
 }

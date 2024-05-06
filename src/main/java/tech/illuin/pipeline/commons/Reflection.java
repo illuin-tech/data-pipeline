@@ -1,7 +1,5 @@
 package tech.illuin.pipeline.commons;
 
-import tech.illuin.pipeline.step.result.Result;
-
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
@@ -86,7 +84,7 @@ public final class Reflection
             throw new IllegalStateException("Argument of type Stream uses an unexpected type " + typeParam.getClass());
 
         //noinspection unchecked
-        return Result.class.isAssignableFrom(typeParamClass)
+        return expectedSuperclass.isAssignableFrom(typeParamClass)
             ? Optional.of((C) typeParamClass)
             : Optional.empty()
         ;

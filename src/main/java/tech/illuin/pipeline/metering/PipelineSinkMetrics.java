@@ -10,10 +10,11 @@ import tech.illuin.pipeline.metering.tag.MetricTags;
 import tech.illuin.pipeline.output.ComponentTag;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 import static java.util.Collections.emptyMap;
+import static tech.illuin.pipeline.metering.MeterRegistryKey.*;
+import static tech.illuin.pipeline.metering.MetricFunctions.*;
 
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
@@ -33,11 +34,11 @@ public class PipelineSinkMetrics implements LogMarker
         this.tag = tag;
         this.meterRegistry = meterRegistry;
         this.metricTags = metricTags;
-        Collection<Tag> meterTags = this.compileTags(Tag.of("pipeline", this.tag.pipelineTag().pipeline()), Tag.of("sink", this.tag.id()));
-        this.runTimer = meterRegistry.timer(MeterRegistryKeys.PIPELINE_SINK_RUN_KEY, meterTags);
-        this.totalCounter = meterRegistry.counter(MeterRegistryKeys.PIPELINE_SINK_RUN_TOTAL_KEY, meterTags);
-        this.successCounter = meterRegistry.counter(MeterRegistryKeys.PIPELINE_SINK_RUN_SUCCESS_KEY, meterTags);
-        this.failureCounter = meterRegistry.counter(MeterRegistryKeys.PIPELINE_SINK_RUN_FAILURE_KEY, meterTags);
+        Collection<Tag> meterTags = compileTags(this.metricTags, Tag.of("pipeline", this.tag.pipelineTag().pipeline()), Tag.of("sink", this.tag.id()));
+        this.runTimer = meterRegistry.timer(PIPELINE_SINK_RUN_KEY.id(), fill(PIPELINE_SINK_RUN_KEY, meterTags));
+        this.totalCounter = meterRegistry.counter(PIPELINE_SINK_RUN_TOTAL_KEY.id(), fill(PIPELINE_SINK_RUN_TOTAL_KEY, meterTags));
+        this.successCounter = meterRegistry.counter(PIPELINE_SINK_RUN_SUCCESS_KEY.id(), fill(PIPELINE_SINK_RUN_SUCCESS_KEY, meterTags));
+        this.failureCounter = meterRegistry.counter(PIPELINE_SINK_RUN_FAILURE_KEY.id(), fill(PIPELINE_SINK_RUN_FAILURE_KEY, meterTags));
     }
 
     public Timer runTimer()
@@ -63,8 +64,10 @@ public class PipelineSinkMetrics implements LogMarker
     public Counter errorCounter(Exception exception)
     {
         return this.meterRegistry.counter(
-            MeterRegistryKeys.PIPELINE_SINK_ERROR_TOTAL_KEY,
-            this.compileTags(
+            PIPELINE_SINK_ERROR_TOTAL_KEY.id(),
+            compileAndFillTags(
+                this.metricTags,
+                PIPELINE_SINK_ERROR_TOTAL_KEY,
                 Tag.of("pipeline", this.tag.pipelineTag().pipeline()),
                 Tag.of("sink", this.tag.id()),
                 Tag.of("error", exception.getClass().getName())
@@ -75,7 +78,8 @@ public class PipelineSinkMetrics implements LogMarker
     @Override
     public LabelMarker mark(Map<String, String> labels)
     {
-        return LabelMarker.of(() -> this.compileMarkers(
+        return LabelMarker.of(() -> compileMarkers(
+            this.metricTags,
             Map.of(
                 "pipeline", this.tag.pipelineTag().pipeline(),
                 "author", this.tag.pipelineTag().author(),
@@ -88,21 +92,15 @@ public class PipelineSinkMetrics implements LogMarker
     @Override
     public LabelMarker mark(Exception exception)
     {
-        return LabelMarker.of(() -> this.compileMarkers(Map.of(
-            "pipeline", this.tag.pipelineTag().pipeline(),
-            "author", this.tag.pipelineTag().author(),
-            "error", exception.getClass().getName(),
-            "sink", this.tag.id()
-        ), emptyMap()));
-    }
-
-    private Collection<Tag> compileTags(Tag... mainstayTags)
-    {
-        return MetricFunctions.combine(List.of(mainstayTags), this.metricTags.asTags());
-    }
-
-    private Map<String, String> compileMarkers(Map<String, String> mainstayMarkers, Map<String, String> dynamicMarkers)
-    {
-        return MetricFunctions.combine(mainstayMarkers, this.metricTags.asMap(), dynamicMarkers);
+        return LabelMarker.of(() -> compileMarkers(
+            this.metricTags,
+            Map.of(
+                "pipeline", this.tag.pipelineTag().pipeline(),
+                "author", this.tag.pipelineTag().author(),
+                "error", exception.getClass().getName(),
+                "sink", this.tag.id()
+            ),
+            emptyMap()
+        ));
     }
 }

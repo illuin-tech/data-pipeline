@@ -1,6 +1,7 @@
 package tech.illuin.pipeline.metering;
 
 import io.micrometer.core.instrument.Tag;
+import tech.illuin.pipeline.metering.tag.MetricTags;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -66,5 +67,25 @@ public final class MetricFunctions
                 throw new IllegalArgumentException("Supplied dynamic markers contain the reserved mainstay key " + entry.getKey());
             combined.put(entry.getKey(), entry.getValue());
         }
+    }
+
+    public static Collection<Tag> compileTags(MetricTags metricTags, Tag... mainstayTags)
+    {
+        return combine(List.of(mainstayTags), metricTags.asTags());
+    }
+
+    public static Collection<Tag> compileAndFillTags(MetricTags metricTags, MeterRegistryKey key, Tag... tags)
+    {
+        return compileAndFillTags(metricTags, key, List.of(tags));
+    }
+
+    public static Collection<Tag> compileAndFillTags(MetricTags metricTags, MeterRegistryKey key, Collection<Tag> tags)
+    {
+        return MeterRegistryKey.fill(key, combine(tags, metricTags.asTags()));
+    }
+
+    public static Map<String, String> compileMarkers(MetricTags metricTags, Map<String, String> mainstayMarkers, Map<String, String> dynamicMarkers)
+    {
+        return MetricFunctions.combine(mainstayMarkers, metricTags.asMap(), dynamicMarkers);
     }
 }

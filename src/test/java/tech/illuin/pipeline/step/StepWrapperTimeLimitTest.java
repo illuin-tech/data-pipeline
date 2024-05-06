@@ -27,7 +27,7 @@ public class StepWrapperTimeLimitTest
     @Test
     public void testPipeline_shouldTimeout()
     {
-        Pipeline<?, VoidPayload> pipeline = Assertions.assertDoesNotThrow(() -> createTimeoutPipeline(StepWrapperTimeLimitTest::addTimeLimitedStep));
+        Pipeline<?> pipeline = Assertions.assertDoesNotThrow(() -> createTimeoutPipeline(StepWrapperTimeLimitTest::addTimeLimitedStep));
 
         var ex = Assertions.assertThrows(RuntimeException.class, pipeline::run);
         Assertions.assertDoesNotThrow(pipeline::close);
@@ -38,8 +38,8 @@ public class StepWrapperTimeLimitTest
     @Test
     public void testPipeline_shouldTimeoutThenBeHandled()
     {
-        Pipeline<?, VoidPayload> pipeline = Assertions.assertDoesNotThrow(() -> createTimeoutPipeline(StepWrapperTimeLimitTest::addTimeLimitedStepWithErrorHandler));
-        Output<?> output = Assertions.assertDoesNotThrow(() -> pipeline.run());
+        Pipeline<?> pipeline = Assertions.assertDoesNotThrow(() -> createTimeoutPipeline(StepWrapperTimeLimitTest::addTimeLimitedStepWithErrorHandler));
+        Output output = Assertions.assertDoesNotThrow(() -> pipeline.run());
         Assertions.assertDoesNotThrow(pipeline::close);
 
         Assertions.assertIterableEquals(List.of("1", "3", "timed-out"), getResultTypes(output));
@@ -52,7 +52,7 @@ public class StepWrapperTimeLimitTest
         Assertions.assertTrue(output.results().current("3").isPresent());
     }
 
-    public static Pipeline<?, VoidPayload> createTimeoutPipeline(StepAssembler<?, Object, VoidPayload> timeLimitedAssembler)
+    public static Pipeline<?> createTimeoutPipeline(StepAssembler<?, Object> timeLimitedAssembler)
     {
         return Pipeline.of("test-error-timelimit")
             .registerStep(new TestStep<>("1", "ok"))
@@ -62,7 +62,7 @@ public class StepWrapperTimeLimitTest
         ;
     }
 
-    public static void addTimeLimitedStep(StepBuilder<?, ?, ?> builder)
+    public static void addTimeLimitedStep(StepBuilder<?, ?> builder)
     {
         builder
             .step(new TestStep<>("2", b -> {
@@ -76,7 +76,7 @@ public class StepWrapperTimeLimitTest
         ;
     }
 
-    public static void addTimeLimitedStepWithErrorHandler(StepBuilder<?, ?, ?> builder)
+    public static void addTimeLimitedStepWithErrorHandler(StepBuilder<?, ?> builder)
     {
         addTimeLimitedStep(builder);
         builder.withErrorHandler((exception, input, payload, results, context) -> new TestResult("timed-out", "ko"));

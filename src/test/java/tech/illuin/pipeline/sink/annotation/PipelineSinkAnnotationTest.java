@@ -6,6 +6,7 @@ import tech.illuin.pipeline.Pipeline;
 import tech.illuin.pipeline.PipelineException;
 import tech.illuin.pipeline.generic.pipeline.TestResult;
 import tech.illuin.pipeline.input.indexer.Indexable;
+import tech.illuin.pipeline.input.indexer.SingleIndexer;
 import tech.illuin.pipeline.input.initializer.Initializer;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.sink.Sink;
@@ -28,7 +29,7 @@ public class PipelineSinkAnnotationTest
     public void testPipeline__shouldCompile_input()
     {
         StringCollector collector = new StringCollector();
-        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_input("test-input", collector));
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_input("test-input", collector));
 
         Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
@@ -40,7 +41,7 @@ public class PipelineSinkAnnotationTest
     public void testPipeline__shouldCompile_input_assembler()
     {
         StringCollector collector = new StringCollector();
-        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_input_assembler("test-input", collector));
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_input_assembler("test-input", collector));
 
         Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
@@ -52,7 +53,7 @@ public class PipelineSinkAnnotationTest
     public void testPipeline__shouldCompile_input_of()
     {
         StringCollector collector = new StringCollector();
-        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_input_of("test-input", collector));
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_input_of("test-input", collector));
 
         Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
@@ -63,7 +64,7 @@ public class PipelineSinkAnnotationTest
     @Test
     public void testPipeline__shouldCompile_input_exception()
     {
-        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_input_exception("test-input"));
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_input_exception("test-input"));
 
         PipelineException exception = Assertions.assertThrows(PipelineException.class, () -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
@@ -75,7 +76,7 @@ public class PipelineSinkAnnotationTest
     public void testPipeline__shouldCompile_inputAndReturnValue()
     {
         StringCollector collector = new StringCollector();
-        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_input_returnValue("test-input-return-value", collector));
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_input_returnValue("test-input-return-value", collector));
 
         Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
@@ -87,31 +88,31 @@ public class PipelineSinkAnnotationTest
     public void testPipeline__shouldCompile_payload()
     {
         StringCollector collector = new StringCollector();
-        Pipeline<String, TestPayload> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_payload("test-payload", collector));
+        Pipeline<String> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_payload("test-payload", collector));
 
-        Output<TestPayload> output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
+        Output output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
 
-        Assertions.assertEquals(output.payload().object().uid(), collector.get());
+        Assertions.assertEquals(output.payload(TestPayload.class).object().uid(), collector.get());
     }
 
     @Test
     public void testPipeline__shouldCompile_output()
     {
         StringCollector collector = new StringCollector();
-        Pipeline<String, TestPayload> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_output("test-output", collector));
+        Pipeline<String> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_output("test-output", collector));
 
-        Output<TestPayload> output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
+        Output output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
 
-        Assertions.assertEquals(output.payload().object().uid(), collector.get());
+        Assertions.assertEquals(output.payload(TestPayload.class).object().uid(), collector.get());
     }
 
     @Test
     public void testPipeline__shouldCompile_current()
     {
         StringCollector collector = new StringCollector();
-        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_current("test-current", collector));
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_current("test-current", collector));
 
         Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
@@ -123,7 +124,7 @@ public class PipelineSinkAnnotationTest
     public void testPipeline__shouldCompile_currentOptional()
     {
         StringCollector collector = new StringCollector();
-        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_currentOptional("test-current-optional", collector));
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_currentOptional("test-current-optional", collector));
 
         Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
@@ -135,7 +136,7 @@ public class PipelineSinkAnnotationTest
     public void testPipeline__shouldCompile_currentStream()
     {
         StringCollector collector = new StringCollector();
-        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_currentStream("test-current-stream", collector));
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_currentStream("test-current-stream", collector));
 
         Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
@@ -147,7 +148,7 @@ public class PipelineSinkAnnotationTest
     public void testPipeline__shouldCompile_currentNamed()
     {
         StringCollector collector = new StringCollector();
-        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_currentNamed("test-current-named", collector));
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_currentNamed("test-current-named", collector));
 
         Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
@@ -159,7 +160,7 @@ public class PipelineSinkAnnotationTest
     public void testPipeline__shouldCompile_currentOptionalNamed()
     {
         StringCollector collector = new StringCollector();
-        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_currentOptionalNamed("test-current-optional-named", collector));
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_currentOptionalNamed("test-current-optional-named", collector));
 
         Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
@@ -171,7 +172,7 @@ public class PipelineSinkAnnotationTest
     public void testPipeline__shouldCompile_currentStreamNamed()
     {
         StringCollector collector = new StringCollector();
-        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_currentStreamNamed("test-current-stream-named", collector));
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_currentStreamNamed("test-current-stream-named", collector));
 
         Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
@@ -183,7 +184,7 @@ public class PipelineSinkAnnotationTest
     public void testPipeline__shouldCompile_latest()
     {
         StringCollector collector = new StringCollector();
-        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_latest("test-latest", collector));
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_latest("test-latest", collector));
 
         Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
@@ -195,7 +196,7 @@ public class PipelineSinkAnnotationTest
     public void testPipeline__shouldCompile_latestOptional()
     {
         StringCollector collector = new StringCollector();
-        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_latestOptional("test-latest-optional", collector));
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_latestOptional("test-latest-optional", collector));
 
         Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
@@ -207,7 +208,7 @@ public class PipelineSinkAnnotationTest
     public void testPipeline__shouldCompile_latestStream()
     {
         StringCollector collector = new StringCollector();
-        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_latestStream("test-latest-stream", collector));
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_latestStream("test-latest-stream", collector));
 
         Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
@@ -219,7 +220,7 @@ public class PipelineSinkAnnotationTest
     public void testPipeline__shouldCompile_latestNamed()
     {
         StringCollector collector = new StringCollector();
-        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_latestNamed("test-latest-named", collector));
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_latestNamed("test-latest-named", collector));
 
         Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
@@ -231,7 +232,7 @@ public class PipelineSinkAnnotationTest
     public void testPipeline__shouldCompile_latestOptionalNamed()
     {
         StringCollector collector = new StringCollector();
-        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_latestOptionalNamed("test-latest-optional-named", collector));
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_latestOptionalNamed("test-latest-optional-named", collector));
 
         Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
@@ -243,7 +244,7 @@ public class PipelineSinkAnnotationTest
     public void testPipeline__shouldCompile_latestStreamNamed()
     {
         StringCollector collector = new StringCollector();
-        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_latestStreamNamed("test-latest-stream-named", collector));
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_latestStreamNamed("test-latest-stream-named", collector));
 
         Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
@@ -255,7 +256,7 @@ public class PipelineSinkAnnotationTest
     public void testPipeline__shouldCompile_tags()
     {
         StringCollector collector = new StringCollector();
-        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_tags("test-tags", collector));
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_tags("test-tags", collector));
 
         Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
@@ -267,7 +268,7 @@ public class PipelineSinkAnnotationTest
     public void testPipeline__shouldCompile_results()
     {
         StringCollector collector = new StringCollector();
-        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_results("test-results", collector));
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_results("test-results", collector));
 
         Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
@@ -282,7 +283,7 @@ public class PipelineSinkAnnotationTest
         String value = "my_value";
 
         StringCollector collector = new StringCollector();
-        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_context("test-context", key, collector));
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_context("test-context", key, collector));
 
         Assertions.assertDoesNotThrow(() -> pipeline.run("input", ctx -> ctx.set(key, value)));
         Assertions.assertDoesNotThrow(pipeline::close);
@@ -294,7 +295,7 @@ public class PipelineSinkAnnotationTest
     public void testPipeline__shouldCompile_contextKey()
     {
         List<String> collector = new ArrayList<>();
-        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_contextKey("test-context-key", collector));
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_contextKey("test-context-key", collector));
 
         Assertions.assertDoesNotThrow(() -> pipeline.run("input", ctx -> ctx
             .set("some-metadata", "my_value")
@@ -314,7 +315,7 @@ public class PipelineSinkAnnotationTest
     public void testPipeline__shouldCompile_uidGenerator()
     {
         StringCollector collector = new StringCollector();
-        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_uidGenerator("test-generator", collector));
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_uidGenerator("test-generator", collector));
 
         Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
@@ -326,7 +327,7 @@ public class PipelineSinkAnnotationTest
     public void testPipeline__shouldCompile_logMarker()
     {
         StringCollector collector = new StringCollector();
-        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_logMarker("test-log-marker", collector));
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_logMarker("test-log-marker", collector));
 
         Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
@@ -334,7 +335,7 @@ public class PipelineSinkAnnotationTest
         Assertions.assertEquals("sink-with_log-marker", collector.get());
     }
 
-    public static Pipeline<Object, ?> createPipeline_input(String name, StringCollector collector)
+    public static Pipeline<Object> createPipeline_input(String name, StringCollector collector)
     {
         return Pipeline.of(name)
             .registerSink(new SinkWithInput<>(collector))
@@ -342,7 +343,7 @@ public class PipelineSinkAnnotationTest
         ;
     }
 
-    public static Pipeline<Object, ?> createPipeline_input_assembler(String name, StringCollector collector)
+    public static Pipeline<Object> createPipeline_input_assembler(String name, StringCollector collector)
     {
         return Pipeline.of(name)
             .registerSink(builder -> builder.sink(new SinkWithInput<>(collector)))
@@ -350,7 +351,7 @@ public class PipelineSinkAnnotationTest
         ;
     }
 
-    public static Pipeline<Object, ?> createPipeline_input_of(String name, StringCollector collector)
+    public static Pipeline<Object> createPipeline_input_of(String name, StringCollector collector)
     {
         return Pipeline.of(name)
             .registerSink(Sink.of(new SinkWithInput<>(collector)))
@@ -358,7 +359,7 @@ public class PipelineSinkAnnotationTest
         ;
     }
 
-    public static Pipeline<Object, ?> createPipeline_input_exception(String name)
+    public static Pipeline<Object> createPipeline_input_exception(String name)
     {
         return Pipeline.of(name)
             .registerSink(Sink.of(new SinkWithException<>()))
@@ -366,7 +367,7 @@ public class PipelineSinkAnnotationTest
         ;
     }
 
-    public static Pipeline<Object, ?> createPipeline_input_returnValue(String name, StringCollector collector)
+    public static Pipeline<Object> createPipeline_input_returnValue(String name, StringCollector collector)
     {
         return Pipeline.of(name)
             .registerSink(new SinkWithInputAndReturnValue<>(collector))
@@ -374,25 +375,25 @@ public class PipelineSinkAnnotationTest
         ;
     }
 
-    public static Pipeline<String, TestPayload> createPipeline_payload(String name, StringCollector collector)
+    public static Pipeline<String> createPipeline_payload(String name, StringCollector collector)
     {
-        return Pipeline.of(name, (Initializer<String, TestPayload>) (input, context, generator) -> new TestPayload(new TestObject(generator.generate())))
-            .registerIndexer(TestPayload::object)
+        return Pipeline.of(name, (Initializer<String>) (input, context, generator) -> new TestPayload(new TestObject(generator.generate())))
+            .registerIndexer((SingleIndexer<TestPayload>) TestPayload::object)
             .registerSink(new SinkWithPayload(collector))
             .build()
         ;
     }
 
-    public static Pipeline<String, TestPayload> createPipeline_output(String name, StringCollector collector)
+    public static Pipeline<String> createPipeline_output(String name, StringCollector collector)
     {
-        return Pipeline.of(name, (Initializer<String, TestPayload>) (input, context, generator) -> new TestPayload(new TestObject(generator.generate())))
-            .registerIndexer(TestPayload::object)
+        return Pipeline.of(name, (Initializer<String>) (input, context, generator) -> new TestPayload(new TestObject(generator.generate())))
+            .registerIndexer((SingleIndexer<TestPayload>) TestPayload::object)
             .registerSink(new SinkWithOutput(collector))
             .build()
         ;
     }
 
-    public static Pipeline<Object, ?> createPipeline_current(String name, StringCollector collector)
+    public static Pipeline<Object> createPipeline_current(String name, StringCollector collector)
     {
         return Pipeline.of(name)
             .registerStep(new StepWithInput<>())
@@ -401,7 +402,7 @@ public class PipelineSinkAnnotationTest
         ;
     }
 
-    public static Pipeline<Object, ?> createPipeline_currentOptional(String name, StringCollector collector)
+    public static Pipeline<Object> createPipeline_currentOptional(String name, StringCollector collector)
     {
         return Pipeline.of(name)
             .registerStep(new StepWithInput<>())
@@ -410,7 +411,7 @@ public class PipelineSinkAnnotationTest
         ;
     }
 
-    public static Pipeline<Object, ?> createPipeline_currentStream(String name, StringCollector collector)
+    public static Pipeline<Object> createPipeline_currentStream(String name, StringCollector collector)
     {
         return Pipeline.of(name)
             .registerStep(new StepWithInput<>())
@@ -419,7 +420,7 @@ public class PipelineSinkAnnotationTest
         ;
     }
 
-    public static Pipeline<Object, ?> createPipeline_currentNamed(String name, StringCollector collector)
+    public static Pipeline<Object> createPipeline_currentNamed(String name, StringCollector collector)
     {
         return Pipeline.of(name)
             .registerStep(new StepWithInput<>("annotation-named"))
@@ -428,7 +429,7 @@ public class PipelineSinkAnnotationTest
         ;
     }
 
-    public static Pipeline<Object, ?> createPipeline_currentOptionalNamed(String name, StringCollector collector)
+    public static Pipeline<Object> createPipeline_currentOptionalNamed(String name, StringCollector collector)
     {
         return Pipeline.of(name)
             .registerStep(new StepWithInput<>("annotation-named"))
@@ -437,7 +438,7 @@ public class PipelineSinkAnnotationTest
         ;
     }
 
-    public static Pipeline<Object, ?> createPipeline_currentStreamNamed(String name, StringCollector collector)
+    public static Pipeline<Object> createPipeline_currentStreamNamed(String name, StringCollector collector)
     {
         return Pipeline.of(name)
             .registerStep(new StepWithInput<>("annotation-named"))
@@ -446,7 +447,7 @@ public class PipelineSinkAnnotationTest
         ;
     }
 
-    public static Pipeline<Object, ?> createPipeline_latest(String name, StringCollector collector)
+    public static Pipeline<Object> createPipeline_latest(String name, StringCollector collector)
     {
         return Pipeline.of(name)
             .registerStep(new StepWithInput<>())
@@ -455,7 +456,7 @@ public class PipelineSinkAnnotationTest
         ;
     }
 
-    public static Pipeline<Object, ?> createPipeline_latestOptional(String name, StringCollector collector)
+    public static Pipeline<Object> createPipeline_latestOptional(String name, StringCollector collector)
     {
         return Pipeline.of(name)
             .registerStep(new StepWithInput<>())
@@ -464,7 +465,7 @@ public class PipelineSinkAnnotationTest
         ;
     }
 
-    public static Pipeline<Object, ?> createPipeline_latestStream(String name, StringCollector collector)
+    public static Pipeline<Object> createPipeline_latestStream(String name, StringCollector collector)
     {
         return Pipeline.of(name)
             .registerStep(new StepWithInput<>())
@@ -473,7 +474,7 @@ public class PipelineSinkAnnotationTest
         ;
     }
 
-    public static Pipeline<Object, ?> createPipeline_latestNamed(String name, StringCollector collector)
+    public static Pipeline<Object> createPipeline_latestNamed(String name, StringCollector collector)
     {
         return Pipeline.of(name)
             .registerStep(new StepWithInput<>("annotation-named"))
@@ -482,7 +483,7 @@ public class PipelineSinkAnnotationTest
         ;
     }
 
-    public static Pipeline<Object, ?> createPipeline_latestOptionalNamed(String name, StringCollector collector)
+    public static Pipeline<Object> createPipeline_latestOptionalNamed(String name, StringCollector collector)
     {
         return Pipeline.of(name)
             .registerStep(new StepWithInput<>("annotation-named"))
@@ -491,7 +492,7 @@ public class PipelineSinkAnnotationTest
         ;
     }
 
-    public static Pipeline<Object, ?> createPipeline_latestStreamNamed(String name, StringCollector collector)
+    public static Pipeline<Object> createPipeline_latestStreamNamed(String name, StringCollector collector)
     {
         return Pipeline.of(name)
             .registerStep(new StepWithInput<>("annotation-named"))
@@ -500,7 +501,7 @@ public class PipelineSinkAnnotationTest
         ;
     }
 
-    public static Pipeline<Object, ?> createPipeline_tags(String name, StringCollector collector)
+    public static Pipeline<Object> createPipeline_tags(String name, StringCollector collector)
     {
         return Pipeline.of(name)
             .registerSink(new SinkWithTags(collector))
@@ -508,7 +509,7 @@ public class PipelineSinkAnnotationTest
         ;
     }
 
-    public static Pipeline<Object, ?> createPipeline_results(String name, StringCollector collector)
+    public static Pipeline<Object> createPipeline_results(String name, StringCollector collector)
     {
         return Pipeline.of(name)
             .registerStep(new StepWithInput<>())
@@ -517,7 +518,7 @@ public class PipelineSinkAnnotationTest
         ;
     }
 
-    public static Pipeline<Object, ?> createPipeline_context(String name, String metadataKey, StringCollector collector)
+    public static Pipeline<Object> createPipeline_context(String name, String metadataKey, StringCollector collector)
     {
         return Pipeline.of(name)
             .registerSink(new SinkWithContext(metadataKey, collector))
@@ -525,7 +526,7 @@ public class PipelineSinkAnnotationTest
         ;
     }
 
-    public static Pipeline<Object, ?> createPipeline_contextKey(String name, List<String> collector)
+    public static Pipeline<Object> createPipeline_contextKey(String name, List<String> collector)
     {
         return Pipeline.of(name)
             .registerSink(new SinkWithContextKey(collector))
@@ -535,7 +536,7 @@ public class PipelineSinkAnnotationTest
         ;
     }
 
-    public static Pipeline<Object, ?> createPipeline_uidGenerator(String name, StringCollector collector)
+    public static Pipeline<Object> createPipeline_uidGenerator(String name, StringCollector collector)
     {
         return Pipeline.of(name)
             .registerSink(new SinkWithUIDGenerator(collector))
@@ -543,7 +544,7 @@ public class PipelineSinkAnnotationTest
         ;
     }
 
-    public static Pipeline<Object, ?> createPipeline_logMarker(String name, StringCollector collector)
+    public static Pipeline<Object> createPipeline_logMarker(String name, StringCollector collector)
     {
         return Pipeline.of(name)
             .registerSink(new SinkWithLogMarker(collector))

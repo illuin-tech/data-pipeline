@@ -51,11 +51,11 @@ public class PipelineStepIllegalAnnotationTest
     {
         Assertions.assertThrows(IllegalStateException.class, () -> createNonCompilingPipeline(
             "test-non-compiling",
-            new IllegalStepIllegalArgumentOutput<>()
+            new IllegalStepIllegalArgumentOutput()
         ));
     }
 
-    public static Pipeline<Object, ?> createNonCompilingPipeline(String name, Object illegalStep)
+    public static Pipeline<Object> createNonCompilingPipeline(String name, Object illegalStep)
     {
         return Pipeline.of(name)
            .registerStep(builder -> builder.step(new StepWithInput<>()))

@@ -28,7 +28,7 @@ public class TestAnnotatedInitializers
         public ErrorHandler(String name, BiFunction<UIDGenerator, I, P> function) { super(name, function); }
     }
 
-    private abstract static class AnnotatedInitializer<I, P> implements Initializer<I, P>
+    private abstract static class AnnotatedInitializer<I, P> implements Initializer<I>
     {
         private final String name;
         private final BiFunction<UIDGenerator, I, P> function;
@@ -42,7 +42,7 @@ public class TestAnnotatedInitializers
         }
 
         @Override
-        public P initialize(I input, Context<P> context, UIDGenerator generator)
+        public P initialize(I input, Context context, UIDGenerator generator)
         {
             logger.info("test:{}: ~", this.name);
             return this.function.apply(generator, input);

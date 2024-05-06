@@ -8,9 +8,9 @@ import tech.illuin.pipeline.sink.runner.SinkRunner;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public interface Sink<T>
+public interface Sink
 {
-    void execute(Output<T> output, Context<T> context) throws Exception;
+    void execute(Output output, Context context) throws Exception;
 
     default String defaultId()
     {
@@ -21,8 +21,8 @@ public interface Sink<T>
      * Create a {@link Sink} out of a non-specific instance (i.e. not a {@link Sink} implementation).
      * The resulting sink will leverage reflection-based method introspection mechanisms for resolving execution configuration.
      */
-    static <T> Sink<T> of(Object target)
+    static Sink of(Object target)
     {
-        return new SinkRunner<>(target);
+        return new SinkRunner(target);
     }
 }

@@ -11,8 +11,8 @@ public class SimpleContextTest
     @Test
     public void copyFrom()
     {
-        Context<Void> contextA = new SimpleContext<Void>().set("a", true).set("b", false);
-        Context<Void> contextB = new SimpleContext<>();
+        Context contextA = new SimpleContext().set("a", true).set("b", false);
+        Context contextB = new SimpleContext();
 
         contextB.copyFrom(contextA);
 
@@ -23,8 +23,8 @@ public class SimpleContextTest
     @Test
     public void copyFrom__shouldCombine()
     {
-        Context<Void> contextA = new SimpleContext<Void>().set("a", true).set("b", false);
-        Context<Void> contextB = new SimpleContext<Void>().set("c", "abcde").set("d", 123);
+        Context contextA = new SimpleContext().set("a", true).set("b", false);
+        Context contextB = new SimpleContext().set("c", "abcde").set("d", 123);
 
         contextB.copyFrom(contextA);
 
@@ -37,8 +37,8 @@ public class SimpleContextTest
     @Test
     public void copyFrom__shouldOverwrite()
     {
-        Context<Void> contextA = new SimpleContext<Void>().set("a", true).set("b", true);
-        Context<Void> contextB = new SimpleContext<Void>().set("a", false);
+        Context contextA = new SimpleContext().set("a", true).set("b", true);
+        Context contextB = new SimpleContext().set("a", false);
 
         contextB.copyFrom(contextA);
 

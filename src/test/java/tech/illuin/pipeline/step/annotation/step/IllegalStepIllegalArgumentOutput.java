@@ -12,12 +12,12 @@ import java.util.Objects;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public class IllegalStepIllegalArgumentOutput<T>
+public class IllegalStepIllegalArgumentOutput
 {
     private static final Logger logger = LoggerFactory.getLogger(IllegalStepIllegalArgumentOutput.class);
 
     @StepConfig
-    public Result execute(Output<T> output)
+    public Result execute(Output output)
     {
         logger.info("output: {}", output);
         return new TestResult("test-annotation", Objects.toString(output));

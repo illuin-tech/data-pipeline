@@ -7,5 +7,5 @@ import tech.illuin.pipeline.context.Context;
  */
 public interface TagResolver<T>
 {
-    MetricTags resolve(T input, Context<?> context);
+    MetricTags resolve(T input, Context context);
 }

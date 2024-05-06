@@ -15,7 +15,7 @@ import tech.illuin.pipeline.step.execution.wrapper.retry.RetryStep;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public class RetryWrapper<T extends Indexable, I, P> implements StepWrapper<T, I, P>, SinkWrapper<P>
+public class RetryWrapper<T extends Indexable, I> implements StepWrapper<T, I>, SinkWrapper
 {
     private final Retry retry;
 
@@ -25,14 +25,14 @@ public class RetryWrapper<T extends Indexable, I, P> implements StepWrapper<T, I
     }
 
     @Override
-    public Step<T, I, P> wrap(Step<T, I, P> step)
+    public Step<T, I> wrap(Step<T, I> step)
     {
         return new RetryStep<>(step, this.retry);
     }
 
     @Override
-    public Sink<P> wrap(Sink<P> sink)
+    public Sink wrap(Sink sink)
     {
-        return new RetrySink<>(sink, this.retry);
+        return new RetrySink(sink, this.retry);
     }
 }

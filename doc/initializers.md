@@ -153,7 +153,7 @@ You will need at least one `Indexable` for the pipeline to run, by default the `
 From there, you can register it the following way.
 
 ```java
-Pipeline<MyInput, Vehicle> pipeline = Pipeline.of("my-pipeline", new MyInitializer())
+Pipeline<MyInput> pipeline = Pipeline.of("my-pipeline", new MyInitializer())
     /* ...and others */
     .build()
 ;
@@ -215,10 +215,10 @@ public record VehicleGroup(
     List<Vehicle> vehicles
 ) {}
 
-public class MyInitializer implements Initializer<MyInput, VehicleGroup>
+public class MyInitializer implements Initializer<MyInput>
 {
     @Override
-    public VehicleGroup initialize(MyInput input, Context<Vehicle> context, UIDGenerator generator)
+    public VehicleGroup initialize(MyInput input, Context context, UIDGenerator generator)
     {
         //the code below is an illustration only
         return new VehicleGroup(input.someData().stream()
@@ -249,7 +249,7 @@ public static class MyIndexer implements MultiIndexer<VehicleGroup>
 Then build our pipeline:
 
 ```java
-Pipeline<MyInput, VehicleGroup> pipeline = Pipeline.of("my-pipeline", new MyInitializer())
+Pipeline<MyInput> pipeline = Pipeline.of("my-pipeline", new MyInitializer())
     .registerIndexer(new MyIndexer())
     /* ...and others */
     .build()
@@ -280,7 +280,7 @@ But at some point you will want finer-grained configuration at the component lev
 The `InitializerAssembler` accepts an `Initializer` (the one you would be providing directly to the pipeline) and offers you a way to plug in local tweaks:
 
 ```java
-Pipeline<MyInput, VehicleGroup> pipeline = Pipeline.of("my-pipeline", builder -> builder
+Pipeline<MyInput> pipeline = Pipeline.of("my-pipeline", builder -> builder
         .initializer(new MyInitializer())
         .withId("special-initializer")
         .withErrorHandler(mySpecialErrorHandler)
@@ -310,7 +310,7 @@ These handlers are useful:
 Error handlers also have a [dedicated documentation section](modifiers_and_hooks.md#error-handlers).
 
 ```java
-Pipeline<MyInput, VehicleGroup> pipeline = Pipeline.of("my-pipeline", builder -> builder
+Pipeline<MyInput> pipeline = Pipeline.of("my-pipeline", builder -> builder
         .initializer(new MyInitializer())
         .withErrorHandler((ex, ctx, gen) -> {
             logger.error("Error: {}", ex.getMessage());
@@ -395,7 +395,7 @@ The `Context` can be mapped by type, it gives you access to the pipeline's conte
 
 ```java
 @InitializerConfig
-public MyPayload doStuff(Context<?> context)
+public MyPayload doStuff(Context context)
 {
     //context.get("my_metadata_key", SomeType.class).orElseThrow();
 }

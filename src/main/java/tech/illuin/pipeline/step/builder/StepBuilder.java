@@ -21,12 +21,12 @@ import java.util.Optional;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public class StepBuilder<T extends Indexable, I, P> extends ComponentBuilder<T, I, P, StepDescriptor<T, I, P>, StepConfig>
+public class StepBuilder<T extends Indexable, I> extends ComponentBuilder<T, I, StepDescriptor<T, I>, StepConfig>
 {
     private String id;
-    private Step<T, I, P> step;
+    private Step<T, I> step;
     private Boolean pinned;
-    private StepWrapper<T, I, P> executionWrapper;
+    private StepWrapper<T, I> executionWrapper;
     private StepCondition executionCondition;
     private ResultEvaluator resultEvaluator;
     private StepErrorHandler errorHandler;
@@ -79,95 +79,95 @@ public class StepBuilder<T extends Indexable, I, P> extends ComponentBuilder<T, 
     }
 
     @SuppressWarnings("unchecked")
-    public StepBuilder<T, I, P> step(Step<? extends T, I, P> step)
+    public StepBuilder<T, I> step(Step<? extends T, I> step)
     {
-        this.step = (Step<T, I, P>) step;
+        this.step = (Step<T, I>) step;
         return this;
     }
 
     @SuppressWarnings("unchecked")
-    public StepBuilder<T, I, P> step(IndexableStep<? extends T> step)
+    public StepBuilder<T, I> step(IndexableStep<? extends T> step)
     {
-        this.step = (Step<T, I, P>) step;
+        this.step = (Step<T, I>) step;
         return this;
     }
 
     @SuppressWarnings("unchecked")
-    public StepBuilder<T, I, P> step(InputStep<I> step)
+    public StepBuilder<T, I> step(InputStep<I> step)
     {
-        this.step = (Step<T, I, P>) step;
+        this.step = (Step<T, I>) step;
         return this;
     }
 
     @SuppressWarnings("unchecked")
-    public StepBuilder<T, I, P> step(PayloadStep<P> step)
+    public StepBuilder<T, I> step(PayloadStep step)
     {
-        this.step = (Step<T, I, P>) step;
+        this.step = (Step<T, I>) step;
         return this;
     }
 
-    public StepBuilder<T, I, P> step(Object target)
+    public StepBuilder<T, I> step(Object target)
     {
-        if (target instanceof PipelineStep<?, ?> pipelineStep)
+        if (target instanceof PipelineStep<?> pipelineStep)
             //noinspection unchecked
-            this.step = (Step<T, I, P>) pipelineStep;
+            this.step = (Step<T, I>) pipelineStep;
         else
             this.step = Step.of(target);
         return this;
     }
 
-    public StepBuilder<T, I, P> withId(String id)
+    public StepBuilder<T, I> withId(String id)
     {
         this.id = id;
         return this;
     }
 
-    public StepBuilder<T, I, P> withWrapper(StepWrapper<T, I, P> wrapper)
+    public StepBuilder<T, I> withWrapper(StepWrapper<T, I> wrapper)
     {
         this.executionWrapper = wrapper;
         return this;
     }
 
-    public StepBuilder<T, I, P> withCondition(Class<? extends Indexable> typeCondition)
+    public StepBuilder<T, I> withCondition(Class<? extends Indexable> typeCondition)
     {
         this.executionCondition = (idx, ctx) -> typeCondition.isInstance(idx);
         return this;
     }
 
-    public StepBuilder<T, I, P> withCondition(StepCondition predicate)
+    public StepBuilder<T, I> withCondition(StepCondition predicate)
     {
         this.executionCondition = predicate;
         return this;
     }
 
-    public StepBuilder<T, I, P> withEvaluation(ResultEvaluator evaluator)
+    public StepBuilder<T, I> withEvaluation(ResultEvaluator evaluator)
     {
         this.resultEvaluator = evaluator;
         return this;
     }
 
-    public StepBuilder<T, I, P> withErrorHandler(StepErrorHandler errorHandler)
+    public StepBuilder<T, I> withErrorHandler(StepErrorHandler errorHandler)
     {
         this.errorHandler = errorHandler;
         return this;
     }
 
-    public StepBuilder<T, I, P> setPinned(boolean pin)
+    public StepBuilder<T, I> setPinned(boolean pin)
     {
         this.pinned = pin;
         return this;
     }
 
     @Override
-    protected StepDescriptor<T, I, P> build()
+    protected StepDescriptor<T, I> build()
     {
         if (this.step == null)
             throw new IllegalStateException("A StepDescriptor cannot be built from a null step");
 
         Optional<StepConfig> config;
-        if (this.step instanceof StepRunner<T, I, P> stepRunner)
+        if (this.step instanceof StepRunner<T, I> stepRunner)
         {
-            CompiledMethod<StepConfig, T, I, P> compiled = this.compiler.compile(stepRunner.target());
+            CompiledMethod<StepConfig, T, I> compiled = this.compiler.compile(stepRunner.target());
             stepRunner.build(compiled);
             config = Optional.of(compiled.config());
         }

@@ -5,7 +5,7 @@ import java.lang.annotation.Annotation;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public interface RunnerCompiler<C extends Annotation, T, I, P>
+public interface RunnerCompiler<C extends Annotation, T, I>
 {
-    CompiledMethod<C, T, I, P> compile(Object target);
+    CompiledMethod<C, T, I> compile(Object target);
 }

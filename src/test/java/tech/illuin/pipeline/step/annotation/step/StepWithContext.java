@@ -22,7 +22,7 @@ public class StepWithContext
     }
 
     @StepConfig(id = "step-with_context")
-    public Result execute(Context<?> context)
+    public Result execute(Context context)
     {
         logger.info("context: {}", context);
         return new TestResult("annotation-test", context.get(this.key, String.class).orElse(null));

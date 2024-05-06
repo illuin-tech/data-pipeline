@@ -10,11 +10,11 @@ import java.util.Set;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public interface MethodArgumentResolver<T, I, P>
+public interface MethodArgumentResolver<T, I>
 {
     Set<Class<?>> ANNOTATIONS = Set.of(
         Input.class, Object.class, Payload.class, Current.class, Latest.class, Context.class
     );
 
-    MethodArgumentMapper<T, I, P> resolveMapper(Parameter parameter);
+    MethodArgumentMapper<T, I> resolveMapper(Parameter parameter);
 }

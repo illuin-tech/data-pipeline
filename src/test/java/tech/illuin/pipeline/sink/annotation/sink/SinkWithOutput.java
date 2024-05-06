@@ -24,9 +24,9 @@ public class SinkWithOutput
     }
 
     @SinkConfig(id = "sink-with_output")
-    public void execute(Output<TestPayload> output)
+    public void execute(Output output)
     {
         logger.info("output: {}", output);
-        this.collector.update(Objects.toString(output.payload().object().uid()));
+        this.collector.update(Objects.toString(output.payload(TestPayload.class).object().uid()));
     }
 }

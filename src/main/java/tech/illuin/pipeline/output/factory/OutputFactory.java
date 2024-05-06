@@ -7,7 +7,7 @@ import tech.illuin.pipeline.output.PipelineTag;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public interface OutputFactory<I, P>
+public interface OutputFactory<I>
 {
-    Output<P> create(PipelineTag tag, I input, P payload, Context<P> context);
+    Output create(PipelineTag tag, I input, Object payload, Context context);
 }

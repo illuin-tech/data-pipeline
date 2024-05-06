@@ -42,7 +42,7 @@ public class MessagePublisher
 Much the same way as steps, `Sink` functions can be supplied to a pipeline builder "as-is", meaning you simply `registerSink` over the sink instance itself:
 
 ```java
-Pipeline<String, ?> pipeline = Pipeline.<String>of("string-processor")
+Pipeline<String> pipeline = Pipeline.<String>of("string-processor")
     .registerStep(new Tokenizer())
     /* ...and others */
     .build()
@@ -52,7 +52,7 @@ Pipeline<String, ?> pipeline = Pipeline.<String>of("string-processor")
 For finer-grained configuration, the `SinkAssembler` accepts a `Sink` (the one you would be providing directly to the pipeline) and offers you a way to plug in as many modifiers as you need:
 
 ```java
-Pipeline<String, ?> pipeline = Pipeline.<String>of("string-processor")
+Pipeline<String> pipeline = Pipeline.<String>of("string-processor")
     .registerSink(builder -> builder
         .sink(new MessagePublisher(topicName, producer))
         .withId("special-publisher")
@@ -80,7 +80,7 @@ The way it is currently handled in `data-pipeline` is by allowing the use of a `
 The `ServiceExecutor` to be used can be customized with the pipeline builder, either directly
 
 ```java
-Pipeline<String, ?> pipeline = Pipeline.<String>of("string-processor")
+Pipeline<String> pipeline = Pipeline.<String>of("string-processor")
     .setSinkExecutor(myExecutor)
     .build()
 ;
@@ -89,7 +89,7 @@ Pipeline<String, ?> pipeline = Pipeline.<String>of("string-processor")
 ...or via a supplier:
 
 ```java
-Pipeline<String, ?> pipeline = Pipeline.<String>of("string-processor")
+Pipeline<String> pipeline = Pipeline.<String>of("string-processor")
     .setSinkExecutorProvider(() -> Executors.newFixedThreadPool(32))
     .build()
 ;
@@ -105,7 +105,7 @@ public void produce(@Current SomeResult result) { /**/ }
 ...or via the `SinkAssembler`:
 
 ```java
-Pipeline<String, ?> pipeline = Pipeline.<String>of("string-processor")
+Pipeline<String> pipeline = Pipeline.<String>of("string-processor")
     .registerSink(builder -> builder
         .sink(new MessagePublisher(topicName, producer))
         .setAsync(true)
@@ -130,7 +130,7 @@ These handlers are useful:
 💡 Error handlers also have a [dedicated documentation section](modifiers_and_hooks.md#error-handlers).
 
 ```java
-Pipeline<String, ?> pipeline = Pipeline.<String>of("string-processor")
+Pipeline<String> pipeline = Pipeline.<String>of("string-processor")
     .registerSink(builder -> builder
         .sink(new MessagePublisher(topicName, producer))
         .withErrorHandler((ex, out, ctx) -> logger.error("Error: {}", ex.getMessage()))
@@ -157,10 +157,10 @@ The main use for wrappers is to apply generic policies on your business logic, o
 A simple wrapper implementation can look like this:
 
 ```java
-public static class MyWrapper<P> implements SinkWrapper<P>
+public static class MyWrapper implements SinkWrapper
 {
     @Override
-    public Sink<P> wrap(Sink<P> sink)
+    public Sink wrap(Sink sink)
     {
         return (out, ctx) -> {
             // do stuff
@@ -173,7 +173,7 @@ public static class MyWrapper<P> implements SinkWrapper<P>
 Then, the wrapper can be applied as follows:
 
 ```java
-Pipeline<String, ?> pipeline = Pipeline.<String>of("string-processor")
+Pipeline<String> pipeline = Pipeline.<String>of("string-processor")
     .registerSink(builder -> builder
         .sink(new MessagePublisher(topicName, producer))
         .withWrapper(new MyWrapper<>())
@@ -365,13 +365,13 @@ public void doStuff(ComponentTag tag)
 }
 ```
 
-### `Output<P>`
+### `Output`
 
 The `Output` can be mapped by type, it gives you access to the pipeline run's output as it is right after all step functions are executed.
 
 ```java
 @SinkConfig
-public void doStuff(Output<?> output)
+public void doStuff(Output output)
 {
     //output.tag()
     //output.payload()
@@ -381,13 +381,13 @@ public void doStuff(Output<?> output)
 
 > 🚨 This is a bit of a catch-all argument, so definitely not a first-pick, but it can be relevant especially [when combined to a custom `OutputFactory`](pipelines.md#output) for certain use-cases.
 
-### `Context<P>`
+### `Context`
 
 The `Context` can be mapped by type, it gives you access to the pipeline's context:
 
 ```java
 @SinkConfig
-public void doStuff(Context<?> context)
+public void doStuff(Context context)
 {
     //context.get("my_metadata_key", SomeType.class).orElseThrow();
 }

@@ -18,34 +18,34 @@ import java.util.function.Function;
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
 @Experimental
-public final class PipelineStep<I, P> implements Step<Indexable, I, P>
+public final class PipelineStep<I> implements Step<Indexable, I>
 {
-    private final Pipeline<I, P> pipeline;
-    private final Function<Output<P>, Result> resultMapper;
+    private final Pipeline<I> pipeline;
+    private final Function<Output, Result> resultMapper;
 
     public static final String PARENT_PIPELINE = "parent_pipeline";
 
-    public PipelineStep(Pipeline<I, P> pipeline, Function<Output<P>, Result> resultMapper)
+    public PipelineStep(Pipeline<I> pipeline, Function<Output, Result> resultMapper)
     {
         this.pipeline = pipeline;
         this.resultMapper = resultMapper;
     }
 
     @Override
-    public Result execute(Indexable object, I input, P payload, ResultView results, Context<P> context) throws Exception
+    public Result execute(Indexable object, I input, Object payload, ResultView results, Context context) throws Exception
     {
         try {
-            if (!(context instanceof LocalContext<P> localContext))
+            if (!(context instanceof LocalContext localContext))
                 throw new IllegalArgumentException("The provided context is not a LocalContext");
 
             /* TODO: Bad design -> this should be challenged ASAP */
-            Output<P> prev = new Output<>(
+            Output prev = new Output(
                 localContext.pipelineTag(),
                 payload,
                 context
             );
             prev.results().register(results);
-            Output<P> out = this.pipeline.run(input, new SimpleContext<>(prev)
+            Output out = this.pipeline.run(input, new SimpleContext(prev)
                 .copyFrom(context)
                 .set(PARENT_PIPELINE, localContext.pipelineTag())
             );

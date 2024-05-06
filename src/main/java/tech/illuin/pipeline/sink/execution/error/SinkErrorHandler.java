@@ -9,16 +9,16 @@ import tech.illuin.pipeline.output.Output;
 @FunctionalInterface
 public interface SinkErrorHandler
 {
-    void handle(Exception exception, Output<?> output, Context<?> context) throws Exception;
+    void handle(Exception exception, Output output, Context context) throws Exception;
 
-    SinkErrorHandler RETHROW_ALL = (Exception ex, Output<?> output, Context<?> ctx) -> {
+    SinkErrorHandler RETHROW_ALL = (Exception ex, Output output, Context ctx) -> {
         throw ex;
     };
 
     @SuppressWarnings("IllegalCatch")
     default SinkErrorHandler andThen(SinkErrorHandler nextErrorHandler)
     {
-        return (Exception exception, Output<?> output, Context<?> context) -> {
+        return (Exception exception, Output output, Context context) -> {
             try {
                 handle(exception, output, context);
             }

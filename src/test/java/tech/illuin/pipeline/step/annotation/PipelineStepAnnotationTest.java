@@ -6,6 +6,7 @@ import tech.illuin.pipeline.Pipeline;
 import tech.illuin.pipeline.PipelineException;
 import tech.illuin.pipeline.generic.pipeline.TestResult;
 import tech.illuin.pipeline.input.indexer.Indexable;
+import tech.illuin.pipeline.input.indexer.SingleIndexer;
 import tech.illuin.pipeline.input.initializer.Initializer;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.step.Step;
@@ -22,9 +23,9 @@ public class PipelineStepAnnotationTest
     @Test
     public void testPipeline__shouldCompile_input()
     {
-        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_input("test-input"));
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_input("test-input"));
 
-        Output<?> output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
+        Output output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
 
         Assertions.assertEquals(
@@ -36,9 +37,9 @@ public class PipelineStepAnnotationTest
     @Test
     public void testPipeline__shouldCompile_input_assembler()
     {
-        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_input_assembler("test-input"));
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_input_assembler("test-input"));
 
-        Output<?> output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
+        Output output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
 
         Assertions.assertEquals(
@@ -50,9 +51,9 @@ public class PipelineStepAnnotationTest
     @Test
     public void testPipeline__shouldCompile_input_of()
     {
-        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_input_of("test-input"));
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_input_of("test-input"));
 
-        Output<?> output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
+        Output output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
 
         Assertions.assertEquals(
@@ -64,7 +65,7 @@ public class PipelineStepAnnotationTest
     @Test
     public void testPipeline__shouldCompile_input_exception()
     {
-        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_input_exception("test-input"));
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_input_exception("test-input"));
 
         PipelineException exception = Assertions.assertThrows(PipelineException.class, () -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
@@ -75,13 +76,13 @@ public class PipelineStepAnnotationTest
     @Test
     public void testPipeline__shouldCompile_object()
     {
-        Pipeline<String, TestPayload> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_object("test-object"));
+        Pipeline<String> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_object("test-object"));
 
-        Output<TestPayload> output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
+        Output output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
 
         Assertions.assertEquals(
-            output.payload().object().uid(),
+            output.payload(TestPayload.class).object().uid(),
             output.results().current(TestResult.class).map(TestResult::status).orElse(null)
         );
     }
@@ -89,13 +90,13 @@ public class PipelineStepAnnotationTest
     @Test
     public void testPipeline__shouldCompile_payload()
     {
-        Pipeline<String, TestPayload> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_payload("test-payload"));
+        Pipeline<String> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_payload("test-payload"));
 
-        Output<TestPayload> output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
+        Output output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
 
         Assertions.assertEquals(
-            output.payload().object().uid(),
+            output.payload(TestPayload.class).object().uid(),
             output.results().current(TestResult.class).map(TestResult::status).orElse(null)
         );
     }
@@ -103,9 +104,9 @@ public class PipelineStepAnnotationTest
     @Test
     public void testPipeline__shouldCompile_current()
     {
-        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_current("test-current"));
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_current("test-current"));
 
-        Output<?> output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
+        Output output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
 
         Assertions.assertEquals(
@@ -117,9 +118,9 @@ public class PipelineStepAnnotationTest
     @Test
     public void testPipeline__shouldCompile_currentNamed()
     {
-        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_currentNamed("test-current-named"));
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_currentNamed("test-current-named"));
 
-        Output<?> output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
+        Output output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
 
         List<String> statuses = output.results().stream(TestResult.class)
@@ -140,9 +141,9 @@ public class PipelineStepAnnotationTest
     @Test
     public void testPipeline__shouldCompile_latest()
     {
-        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_latest("test-latest"));
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_latest("test-latest"));
 
-        Output<?> output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
+        Output output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
 
         Assertions.assertEquals(
@@ -154,9 +155,9 @@ public class PipelineStepAnnotationTest
     @Test
     public void testPipeline__shouldCompile_latestNamed()
     {
-        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_latestNamed("test-latest-named"));
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_latestNamed("test-latest-named"));
 
-        Output<?> output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
+        Output output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
 
         List<String> statuses = output.results().stream(TestResult.class)
@@ -177,9 +178,9 @@ public class PipelineStepAnnotationTest
     @Test
     public void testPipeline__shouldCompile_tags()
     {
-        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_tags("test-tags"));
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_tags("test-tags"));
 
-        Output<?> output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
+        Output output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
 
         Assertions.assertEquals(
@@ -191,9 +192,9 @@ public class PipelineStepAnnotationTest
     @Test
     public void testPipeline__shouldCompile_results()
     {
-        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_results("test-results"));
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_results("test-results"));
 
-        Output<?> output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
+        Output output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
 
         Assertions.assertEquals(2, output.results().stream(TestResult.class).count());
@@ -206,9 +207,9 @@ public class PipelineStepAnnotationTest
     @Test
     public void testPipeline__shouldCompile_resultView()
     {
-        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_resultView("test-result_view"));
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_resultView("test-result_view"));
 
-        Output<?> output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
+        Output output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
 
         Assertions.assertEquals(2, output.results().stream(TestResult.class).count());
@@ -224,9 +225,9 @@ public class PipelineStepAnnotationTest
         String key = "test_key";
         String value = "my_value";
 
-        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_context("test-context", key));
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_context("test-context", key));
 
-        Output<?> output = Assertions.assertDoesNotThrow(() -> pipeline.run("input", ctx -> ctx.set(key, value)));
+        Output output = Assertions.assertDoesNotThrow(() -> pipeline.run("input", ctx -> ctx.set(key, value)));
         Assertions.assertDoesNotThrow(pipeline::close);
 
         Assertions.assertEquals(
@@ -238,9 +239,9 @@ public class PipelineStepAnnotationTest
     @Test
     public void testPipeline__shouldCompile_contextKey()
     {
-        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_contextKey("test-context-key"));
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_contextKey("test-context-key"));
 
-        Output<?> output = Assertions.assertDoesNotThrow(() -> pipeline.run("input", ctx -> ctx
+        Output output = Assertions.assertDoesNotThrow(() -> pipeline.run("input", ctx -> ctx
             .set("some-metadata", "my_value")
             .set("some-primitive", 123)
         ));
@@ -263,9 +264,9 @@ public class PipelineStepAnnotationTest
     @Test
     public void testPipeline__shouldCompile_uidGenerator()
     {
-        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_uidGenerator("test-uid-generator"));
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_uidGenerator("test-uid-generator"));
 
-        Output<?> output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
+        Output output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
 
         Assertions.assertEquals(
@@ -277,9 +278,9 @@ public class PipelineStepAnnotationTest
     @Test
     public void testPipeline__shouldCompile_logMarker()
     {
-        Pipeline<Object, ?> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_logMarker("test-log-marker"));
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_logMarker("test-log-marker"));
 
-        Output<?> output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
+        Output output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
 
         Assertions.assertEquals(
@@ -288,7 +289,7 @@ public class PipelineStepAnnotationTest
         );
     }
 
-    public static Pipeline<Object, ?> createPipeline_input(String name)
+    public static Pipeline<Object> createPipeline_input(String name)
     {
         return Pipeline.of(name)
             .registerStep(new StepWithInput<>())
@@ -296,7 +297,7 @@ public class PipelineStepAnnotationTest
         ;
     }
 
-    public static Pipeline<Object, ?> createPipeline_input_assembler(String name)
+    public static Pipeline<Object> createPipeline_input_assembler(String name)
     {
         return Pipeline.of(name)
             .registerStep(builder -> builder.step(new StepWithInput<>()))
@@ -304,7 +305,7 @@ public class PipelineStepAnnotationTest
         ;
     }
 
-    public static Pipeline<Object, ?> createPipeline_input_of(String name)
+    public static Pipeline<Object> createPipeline_input_of(String name)
     {
         return Pipeline.of(name)
             .registerStep(Step.of(new StepWithInput<>()))
@@ -312,7 +313,7 @@ public class PipelineStepAnnotationTest
         ;
     }
 
-    public static Pipeline<Object, ?> createPipeline_input_exception(String name)
+    public static Pipeline<Object> createPipeline_input_exception(String name)
     {
         return Pipeline.of(name)
             .registerStep(new StepWithException<>())
@@ -320,25 +321,25 @@ public class PipelineStepAnnotationTest
         ;
     }
 
-    public static Pipeline<String, TestPayload> createPipeline_object(String name)
+    public static Pipeline<String> createPipeline_object(String name)
     {
-        return Pipeline.of(name, (Initializer<String, TestPayload>) (input, context, generator) -> new TestPayload(new TestObject(generator.generate())))
-            .registerIndexer(TestPayload::object)
+        return Pipeline.of(name, (Initializer<String>) (input, context, generator) -> new TestPayload(new TestObject(generator.generate())))
+            .registerIndexer((SingleIndexer<TestPayload>) TestPayload::object)
             .registerStep(new StepWithObject())
             .build()
         ;
     }
 
-    public static Pipeline<String, TestPayload> createPipeline_payload(String name)
+    public static Pipeline<String> createPipeline_payload(String name)
     {
-        return Pipeline.of(name, (Initializer<String, TestPayload>) (input, context, generator) -> new TestPayload(new TestObject(generator.generate())))
-            .registerIndexer(TestPayload::object)
+        return Pipeline.of(name, (Initializer<String>) (input, context, generator) -> new TestPayload(new TestObject(generator.generate())))
+            .registerIndexer((SingleIndexer<TestPayload>) TestPayload::object)
             .registerStep(new StepWithPayload())
             .build()
         ;
     }
 
-    public static Pipeline<Object, ?> createPipeline_current(String name)
+    public static Pipeline<Object> createPipeline_current(String name)
     {
         return Pipeline.of(name)
             .registerStep(new StepWithInput<>())
@@ -349,7 +350,7 @@ public class PipelineStepAnnotationTest
         ;
     }
 
-    public static Pipeline<Object, ?> createPipeline_currentNamed(String name)
+    public static Pipeline<Object> createPipeline_currentNamed(String name)
     {
         return Pipeline.of(name)
             .registerStep(new StepWithInput<>("annotation-named"))
@@ -360,7 +361,7 @@ public class PipelineStepAnnotationTest
         ;
     }
 
-    public static Pipeline<Object, ?> createPipeline_latest(String name)
+    public static Pipeline<Object> createPipeline_latest(String name)
     {
         return Pipeline.of(name)
             .registerStep(new StepWithInput<>())
@@ -371,7 +372,7 @@ public class PipelineStepAnnotationTest
         ;
     }
 
-    public static Pipeline<Object, ?> createPipeline_latestNamed(String name)
+    public static Pipeline<Object> createPipeline_latestNamed(String name)
     {
         return Pipeline.of(name)
             .registerStep(new StepWithInput<>("annotation-named"))
@@ -382,7 +383,7 @@ public class PipelineStepAnnotationTest
         ;
     }
 
-    public static Pipeline<Object, ?> createPipeline_tags(String name)
+    public static Pipeline<Object> createPipeline_tags(String name)
     {
         return Pipeline.of(name)
             .registerStep(new StepWithTags())
@@ -390,7 +391,7 @@ public class PipelineStepAnnotationTest
         ;
     }
 
-    public static Pipeline<Object, ?> createPipeline_results(String name)
+    public static Pipeline<Object> createPipeline_results(String name)
     {
         return Pipeline.of(name)
             .registerStep(new StepWithInput<>())
@@ -400,7 +401,7 @@ public class PipelineStepAnnotationTest
     }
 
 
-    public static Pipeline<Object, ?> createPipeline_resultView(String name)
+    public static Pipeline<Object> createPipeline_resultView(String name)
     {
         return Pipeline.of(name)
             .registerStep(new StepWithInput<>())
@@ -409,7 +410,7 @@ public class PipelineStepAnnotationTest
         ;
     }
 
-    public static Pipeline<Object, ?> createPipeline_context(String name, String metadataKey)
+    public static Pipeline<Object> createPipeline_context(String name, String metadataKey)
     {
         return Pipeline.of(name)
             .registerStep(new StepWithContext(metadataKey))
@@ -417,7 +418,7 @@ public class PipelineStepAnnotationTest
         ;
     }
 
-    public static Pipeline<Object, ?> createPipeline_contextKey(String name)
+    public static Pipeline<Object> createPipeline_contextKey(String name)
     {
         return Pipeline.of(name)
             .registerStep(new StepWithContextKey())
@@ -427,7 +428,7 @@ public class PipelineStepAnnotationTest
         ;
     }
 
-    public static Pipeline<Object, ?> createPipeline_uidGenerator(String name)
+    public static Pipeline<Object> createPipeline_uidGenerator(String name)
     {
         return Pipeline.of(name)
             .registerStep(new StepWithUIDGenerator())
@@ -435,7 +436,7 @@ public class PipelineStepAnnotationTest
         ;
     }
 
-    public static Pipeline<Object, ?> createPipeline_logMarker(String name)
+    public static Pipeline<Object> createPipeline_logMarker(String name)
     {
         return Pipeline.of(name)
             .registerStep(new StepWithLogMarker())

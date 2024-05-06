@@ -25,7 +25,7 @@ public class MetadataCondition implements StepCondition
     }
 
     @Override
-    public boolean canExecute(Indexable indexable, Context<?> context)
+    public boolean canExecute(Indexable indexable, Context context)
     {
         for (Map.Entry<String, Object> entry : this.conditions.entrySet())
         {

@@ -18,7 +18,7 @@ import java.util.concurrent.ForkJoinPool;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public class TimeLimiterWrapper<T extends Indexable, I, P> implements StepWrapper<T, I, P>, SinkWrapper<P>
+public class TimeLimiterWrapper<T extends Indexable, I> implements StepWrapper<T, I>, SinkWrapper
 {
     private final TimeLimiter limiter;
     private final ExecutorService executor;
@@ -35,14 +35,14 @@ public class TimeLimiterWrapper<T extends Indexable, I, P> implements StepWrappe
     }
 
     @Override
-    public Step<T, I, P> wrap(Step<T, I, P> step)
+    public Step<T, I> wrap(Step<T, I> step)
     {
         return new TimeLimiterStep<>(step, this.limiter, this.executor);
     }
 
     @Override
-    public Sink<P> wrap(Sink<P> sink)
+    public Sink wrap(Sink sink)
     {
-        return new TimeLimiterSink<>(sink, this.limiter, this.executor);
+        return new TimeLimiterSink(sink, this.limiter, this.executor);
     }
 }

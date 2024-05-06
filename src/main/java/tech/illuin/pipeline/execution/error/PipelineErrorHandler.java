@@ -4,14 +4,14 @@ import tech.illuin.pipeline.PipelineException;
 import tech.illuin.pipeline.context.Context;
 import tech.illuin.pipeline.output.Output;
 
-public interface PipelineErrorHandler<P>
+public interface PipelineErrorHandler
 {
-    Output<P> handle(Exception exception, Output<P> previous, Object input, Context<P> context) throws PipelineException;
+    Output handle(Exception exception, Output previous, Object input, Context context) throws PipelineException;
 
     @SuppressWarnings("IllegalCatch")
-    default PipelineErrorHandler<P> andThen(PipelineErrorHandler<P> nextErrorHandler)
+    default PipelineErrorHandler andThen(PipelineErrorHandler nextErrorHandler)
     {
-        return (Exception ex, Output<P> previous, Object input, Context<P> context) -> {
+        return (Exception ex, Output previous, Object input, Context context) -> {
             try {
                 return this.handle(ex, previous, input, context);
             }
@@ -21,7 +21,7 @@ public interface PipelineErrorHandler<P>
         };
     }
 
-    static <P> Output<P> wrapChecked(Exception ex, Output<P> previous, Object input, Context<P> context) throws PipelineException
+    static  Output wrapChecked(Exception ex, Output previous, Object input, Context context) throws PipelineException
     {
         if (ex instanceof RuntimeException re)
             throw re;

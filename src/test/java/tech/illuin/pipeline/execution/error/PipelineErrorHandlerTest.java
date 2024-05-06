@@ -21,7 +21,7 @@ public class PipelineErrorHandlerTest
     @Test
     public void shouldWrapChecked()
     {
-        PipelineErrorHandler<Object> handler = PipelineErrorHandler::wrapChecked;
+        PipelineErrorHandler handler = PipelineErrorHandler::wrapChecked;
 
         Assertions.assertThrows(PipelineException.class, () -> handler.handle(new Exception("checked"), null, null, null));
         Assertions.assertThrows(CustomRuntimeException.class, () -> handler.handle(new CustomRuntimeException(), null, null, null));
@@ -30,11 +30,11 @@ public class PipelineErrorHandlerTest
     @Test
     public void shouldWrap()
     {
-        PipelineErrorHandler<Object> handler0 = PipelineErrorHandlerTest::handler0;
-        PipelineErrorHandler<Object> handler1 = PipelineErrorHandlerTest::handler1;
+        PipelineErrorHandler handler0 = PipelineErrorHandlerTest::handler0;
+        PipelineErrorHandler handler1 = PipelineErrorHandlerTest::handler1;
 
         Exception ex = new Exception("test-message");
-        Output<?> out = Assertions.assertDoesNotThrow(() -> handler0.andThen(handler1).handle(ex, null, null, null));
+        Output out = Assertions.assertDoesNotThrow(() -> handler0.andThen(handler1).handle(ex, null, null, null));
 
         Assertions.assertEquals(ex.getMessage(), out.tag().pipeline());
     }
@@ -42,16 +42,16 @@ public class PipelineErrorHandlerTest
     @Test
     public void shouldTransferPreviousState() throws Exception
     {
-        Pipeline<String, VoidPayload> recovery = Pipeline.<String>of("recovery")
+        Pipeline<String> recovery = Pipeline.<String>of("recovery")
             .registerStep((in, res, ctx) -> new TestResult("def", "ko"))
             .build()
         ;
 
-        PipelineErrorHandler<VoidPayload> errorHandler = (exception, previous, input, context) -> recovery.run(
+        PipelineErrorHandler errorHandler = (exception, previous, input, context) -> recovery.run(
             (String) input,
-            new SimpleContext<>(previous).copyFrom(context)
+            new SimpleContext(previous).copyFrom(context)
         );
-        Pipeline<String, ?> pipeline = Pipeline.<String>of("pipeline")
+        Pipeline<String> pipeline = Pipeline.<String>of("pipeline")
             .registerStep((in, res, ctx) -> new TestResult("abc", "ok"))
             .registerStep((in, res, ctx) -> { throw new RuntimeException("Random error"); })
             .setErrorHandler(errorHandler)
@@ -67,18 +67,18 @@ public class PipelineErrorHandlerTest
         recovery.close();
     }
 
-    private static Output<Object> handler0(Exception exception, Output<Object> previous, Object input, Context<?> context) throws PipelineException
+    private static Output handler0(Exception exception, Output previous, Object input, Context context) throws PipelineException
     {
         throw new PipelineException(exception.getMessage(), exception);
     }
 
-    private static Output<Object> handler1(Exception exception, Output<Object> previous, Object input, Context<?> context)
+    private static Output handler1(Exception exception, Output previous, Object input, Context context)
     {
         return new DefaultOutputFactory<>().create(
             new PipelineTag(UUIDGenerator.INSTANCE.generate(), exception.getMessage(), AuthorResolver.ANONYMOUS),
             null,
             null,
-            new SimpleContext<>()
+            new SimpleContext()
         );
     }
 

@@ -3,6 +3,7 @@ package tech.illuin.pipeline.input.initializer.annotation;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import tech.illuin.pipeline.Pipeline;
+import tech.illuin.pipeline.input.initializer.Initializer;
 import tech.illuin.pipeline.input.initializer.annotation.initializer.*;
 
 /**
@@ -69,7 +70,7 @@ public class PipelineInitializerIllegalAnnotationTest
     {
         Assertions.assertThrows(IllegalStateException.class, () -> createNonCompilingPipeline(
             "test-non-compiling",
-            new IllegalInitializerIllegalArgumentOutput<>()
+            new IllegalInitializerIllegalArgumentOutput()
         ));
     }
 
@@ -91,10 +92,9 @@ public class PipelineInitializerIllegalAnnotationTest
         ));
     }
 
-    public static Pipeline<Object, ?> createNonCompilingPipeline(String name, Object illegalInitializer)
+    public static Pipeline<Object> createNonCompilingPipeline(String name, Object illegalInitializer)
     {
-        return Pipeline.of(name, Object.class)
-            .setInitializer(illegalInitializer)
+        return Pipeline.of(name, Initializer.of(illegalInitializer))
             .build()
         ;
     }

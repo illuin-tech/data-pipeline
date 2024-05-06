@@ -12,12 +12,12 @@ import tech.illuin.pipeline.step.result.ResultView;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public class CircuitBreakerStep<T extends Indexable, I, P> implements Step<T, I, P>
+public class CircuitBreakerStep<T extends Indexable, I> implements Step<T, I>
 {
-    private final Step<T, I, P> step;
+    private final Step<T, I> step;
     private final CircuitBreaker circuitBreaker;
 
-    public CircuitBreakerStep(Step<T, I, P> step, CircuitBreaker circuitBreaker)
+    public CircuitBreakerStep(Step<T, I> step, CircuitBreaker circuitBreaker)
     {
         this.step = step;
         this.circuitBreaker = circuitBreaker;
@@ -25,7 +25,7 @@ public class CircuitBreakerStep<T extends Indexable, I, P> implements Step<T, I,
 
     @Override
     @SuppressWarnings("IllegalCatch")
-    public Result execute(T object, I input, P payload, ResultView view, Context<P> context) throws Exception
+    public Result execute(T object, I input, Object payload, ResultView view, Context context) throws Exception
     {
         try {
             return this.circuitBreaker.executeCallable(() -> executeStep(object, input, payload, view, context));
@@ -39,7 +39,7 @@ public class CircuitBreakerStep<T extends Indexable, I, P> implements Step<T, I,
     }
 
     @SuppressWarnings("IllegalCatch")
-    private Result executeStep(T object, I input, P payload, ResultView view, Context<P> context) throws StepWrapperException
+    private Result executeStep(T object, I input, Object payload, ResultView view, Context context) throws StepWrapperException
     {
         try {
             return this.step.execute(object, input, payload, view, context);

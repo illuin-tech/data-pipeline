@@ -1,6 +1,5 @@
 package tech.illuin.pipeline.input.initializer;
 
-
 import tech.illuin.pipeline.commons.Reflection;
 import tech.illuin.pipeline.context.Context;
 import tech.illuin.pipeline.input.initializer.runner.InitializerRunner;
@@ -13,16 +12,11 @@ import java.util.function.Supplier;
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
 @FunctionalInterface
-public interface Initializer<I, P>
+public interface Initializer<I>
 {
-    P initialize(I input, Context<P> context, UIDGenerator generator) throws Exception;
+    Object initialize(I input, Context context, UIDGenerator generator) throws Exception;
 
-    static <I, P> P initializeFromParent(I input, Context<P> context)
-    {
-        return context.parent().map(Output::payload).orElseThrow(() -> new IllegalArgumentException("The provided context does not reference a parent output"));
-    }
-
-    static <I, P> P initializeFromParentOr(Context<P> context, Supplier<P> or)
+    static <P> Object initializeFromParentOr(Context context, Supplier<P> or)
     {
         return context.parent().map(Output::payload).orElseGet(or);
     }
@@ -36,7 +30,7 @@ public interface Initializer<I, P>
      * Create an {@link Initializer} out of a non-specific instance (i.e. not an {@link Initializer} implementation).
      * The resulting initializer will leverage reflection-based method introspection mechanisms for resolving execution configuration.
      */
-    static <I, P> Initializer<I, P> of(Object target)
+    static <I> Initializer<I> of(Object target)
     {
         return new InitializerRunner<>(target);
     }

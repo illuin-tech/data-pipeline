@@ -6,9 +6,9 @@ import java.lang.reflect.Parameter;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public interface MethodArgumentMapperFactory<T, I, P>
+public interface MethodArgumentMapperFactory<T, I>
 {
     boolean canHandle(Annotation category, Class<?> parameterType);
 
-    MethodArgumentMapper<T, I, P> produce(Annotation category, Parameter parameter);
+    MethodArgumentMapper<T, I> produce(Annotation category, Parameter parameter);
 }

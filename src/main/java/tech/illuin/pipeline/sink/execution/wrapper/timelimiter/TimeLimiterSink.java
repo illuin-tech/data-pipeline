@@ -3,7 +3,6 @@ package tech.illuin.pipeline.sink.execution.wrapper.timelimiter;
 import io.github.resilience4j.timelimiter.TimeLimiter;
 import tech.illuin.pipeline.context.Context;
 import tech.illuin.pipeline.execution.wrapper.TimeLimiterException;
-import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.sink.Sink;
 
@@ -12,13 +11,13 @@ import java.util.concurrent.ExecutorService;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public class TimeLimiterSink<T extends Indexable, I, P> implements Sink<P>
+public class TimeLimiterSink implements Sink
 {
-    private final Sink<P> sink;
+    private final Sink sink;
     private final TimeLimiter limiter;
     private final ExecutorService executor;
 
-    public TimeLimiterSink(Sink<P> sink, TimeLimiter limiter, ExecutorService executor)
+    public TimeLimiterSink(Sink sink, TimeLimiter limiter, ExecutorService executor)
     {
         this.sink = sink;
         this.limiter = limiter;
@@ -27,7 +26,7 @@ public class TimeLimiterSink<T extends Indexable, I, P> implements Sink<P>
 
     @Override
     @SuppressWarnings("IllegalCatch")
-    public void execute(Output<P> output, Context<P> context) throws Exception
+    public void execute(Output output, Context context) throws Exception
     {
         try {
             this.limiter.executeFutureSupplier(() -> this.executor.submit(() -> this.executeSink(output, context)));
@@ -42,7 +41,7 @@ public class TimeLimiterSink<T extends Indexable, I, P> implements Sink<P>
     }
 
     @SuppressWarnings("IllegalCatch")
-    private void executeSink(Output<P> output, Context<P> context) throws TimeLimiterSinkException
+    private void executeSink(Output output, Context context) throws TimeLimiterSinkException
     {
         try {
             this.sink.execute(output, context);

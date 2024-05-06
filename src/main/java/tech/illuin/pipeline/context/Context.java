@@ -8,13 +8,13 @@ import java.util.Set;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public interface Context<P>
+public interface Context
 {
-    Optional<Output<P>> parent();
+    Optional<Output> parent();
 
-    Context<P> set(String key, Object value);
+    Context set(String key, Object value);
 
-    Context<P> copyFrom(Context<P> other);
+    Context copyFrom(Context other);
 
     boolean has(String key);
 

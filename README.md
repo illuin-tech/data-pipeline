@@ -194,7 +194,7 @@ Now that we have all our building blocks, creating a `Pipeline` is simply a matt
 The `Pipeline` interface offers a builder initialization method, we'll start from there.
 
 ```java
-Pipeline<String, ?> pipeline = Pipeline.<String>of("string-processor")
+Pipeline<String> pipeline = Pipeline.<String>of("string-processor")
     .registerStep(new Tokenizer())
     .registerStep(new Matcher("mostly", "relatively"))
     .registerSink(new MatchLogger())

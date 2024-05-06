@@ -3,11 +3,11 @@ package tech.illuin.pipeline.sink.builder;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public interface SinkAssembler<P>
+public interface SinkAssembler
 {
-    void assemble(SinkBuilder<P> builder);
+    void assemble(SinkBuilder builder);
 
-    default SinkDescriptor<P> build(SinkBuilder<P> builder)
+    default SinkDescriptor build(SinkBuilder builder)
     {
         this.assemble(builder);
         return builder.build();

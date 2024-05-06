@@ -11,12 +11,12 @@ import tech.illuin.pipeline.output.Output;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public class IllegalInitializerIllegalArgumentOutput<T>
+public class IllegalInitializerIllegalArgumentOutput
 {
     private static final Logger logger = LoggerFactory.getLogger(IllegalInitializerIllegalArgumentOutput.class);
 
     @InitializerConfig
-    public TestPayload execute(Output<T> output, UIDGenerator generator)
+    public TestPayload execute(Output output, UIDGenerator generator)
     {
         logger.info("output: {}", output);
         return new TestPayload(new TestObject(generator.generate(), "illegal_output"));

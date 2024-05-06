@@ -17,7 +17,7 @@ public class SinkTest
     {
         var counter = new AtomicInteger(0);
 
-        Pipeline<?, VoidPayload> pipeline = Assertions.assertDoesNotThrow(() -> createPipelineWithSinks(counter));
+        Pipeline<?> pipeline = Assertions.assertDoesNotThrow(() -> createPipelineWithSinks(counter));
         Assertions.assertDoesNotThrow(() -> pipeline.run());
         Assertions.assertDoesNotThrow(pipeline::close);
 
@@ -29,7 +29,7 @@ public class SinkTest
     {
         var counter = new AtomicInteger(0);
 
-        Pipeline<?, VoidPayload> pipeline = Assertions.assertDoesNotThrow(() -> createPipelineWithSinks_syncException(counter));
+        Pipeline<?> pipeline = Assertions.assertDoesNotThrow(() -> createPipelineWithSinks_syncException(counter));
         Assertions.assertThrows(Exception.class, pipeline::run);
         Assertions.assertDoesNotThrow(pipeline::close);
 
@@ -41,14 +41,14 @@ public class SinkTest
     {
         var counter = new AtomicInteger(0);
 
-        Pipeline<?, VoidPayload> pipeline = Assertions.assertDoesNotThrow(() -> createPipelineWithSinks_asyncException(counter));
+        Pipeline<?> pipeline = Assertions.assertDoesNotThrow(() -> createPipelineWithSinks_asyncException(counter));
         Assertions.assertDoesNotThrow(() -> pipeline.run());
         Assertions.assertDoesNotThrow(pipeline::close);
 
         Assertions.assertEquals(3, counter.get());
     }
 
-    public static Pipeline<?, VoidPayload> createPipelineWithSinks(AtomicInteger counter)
+    public static Pipeline<?> createPipelineWithSinks(AtomicInteger counter)
     {
         return Pipeline.of("test-sink")
            .registerSink((o, ctx) -> counter.incrementAndGet())
@@ -59,7 +59,7 @@ public class SinkTest
         ;
     }
 
-    public static Pipeline<?, VoidPayload> createPipelineWithSinks_syncException(AtomicInteger counter)
+    public static Pipeline<?> createPipelineWithSinks_syncException(AtomicInteger counter)
     {
         return Pipeline.of("test-sink-sync-exception")
             .registerSink((o, ctx) -> counter.incrementAndGet())
@@ -69,7 +69,7 @@ public class SinkTest
         ;
     }
 
-    public static Pipeline<?, VoidPayload> createPipelineWithSinks_asyncException(AtomicInteger counter)
+    public static Pipeline<?> createPipelineWithSinks_asyncException(AtomicInteger counter)
     {
         return Pipeline.of("test-sink-async-exception")
             .registerSink((o, ctx) -> counter.incrementAndGet())

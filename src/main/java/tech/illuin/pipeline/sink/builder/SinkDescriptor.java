@@ -9,19 +9,19 @@ import tech.illuin.pipeline.sink.execution.wrapper.SinkWrapper;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public final class SinkDescriptor<T>
+public final class SinkDescriptor
 {
     private final String id;
-    private final Sink<T> sink;
+    private final Sink sink;
     private final boolean isAsync;
-    private final SinkWrapper<T> executionWrapper;
+    private final SinkWrapper executionWrapper;
     private final SinkErrorHandler errorHandler;
 
     SinkDescriptor(
         String id,
-        Sink<T> sink,
+        Sink sink,
         boolean isAsync,
-        SinkWrapper<T> executionWrapper,
+        SinkWrapper executionWrapper,
         SinkErrorHandler errorHandler
     ) {
         this.id = id;
@@ -31,18 +31,18 @@ public final class SinkDescriptor<T>
         this.errorHandler = errorHandler;
     }
 
-    public void execute(Output<T> output, Context<T> ctx) throws Exception
+    public void execute(Output output, Context ctx) throws Exception
     {
         this.executionWrapper.wrap(this.sink).execute(output, ctx);
     }
 
-    public void handleException(Exception ex, Output<T> output, Context<T> ctx) throws Exception
+    public void handleException(Exception ex, Output output, Context ctx) throws Exception
     {
         this.errorHandler.handle(ex, output, ctx);
     }
 
     @SuppressWarnings("IllegalCatch")
-    public void handleExceptionThenSwallow(Exception ex, Output<T> output, Context<T> ctx)
+    public void handleExceptionThenSwallow(Exception ex, Output output, Context ctx)
     {
         try {
             this.handleException(ex, output, ctx);

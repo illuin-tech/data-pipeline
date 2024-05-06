@@ -11,7 +11,7 @@ import tech.illuin.pipeline.step.execution.condition.StepCondition;
 public class IsTypeB implements StepCondition
 {
     @Override
-    public boolean canExecute(Indexable indexable, Context<?> context)
+    public boolean canExecute(Indexable indexable, Context context)
     {
         return indexable instanceof B;
     }

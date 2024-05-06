@@ -7,6 +7,7 @@ import tech.illuin.pipeline.generic.TestFactory;
 import tech.illuin.pipeline.generic.model.A;
 import tech.illuin.pipeline.generic.pipeline.TestResult;
 import tech.illuin.pipeline.generic.pipeline.step.TestStep;
+import tech.illuin.pipeline.input.indexer.MultiIndexer;
 import tech.illuin.pipeline.input.indexer.SingleIndexer;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.step.execution.evaluator.ResultEvaluator;
@@ -34,11 +35,11 @@ public class PinTest
 
     private void testPipeline_shouldHandleErrorWithPinned__runTest(ResultEvaluator evaluator, List<String> tags, int resultCount, Predicate<Optional<Result>> predicate4)
     {
-        Pipeline<Void, A> pipeline = Assertions.assertDoesNotThrow(() -> PinTest.createErrorHandledWithPinnedPipeline(evaluator));
-        Output<A> output = Assertions.assertDoesNotThrow(() -> pipeline.run());
+        Pipeline<Void> pipeline = Assertions.assertDoesNotThrow(() -> PinTest.createErrorHandledWithPinnedPipeline(evaluator));
+        Output output = Assertions.assertDoesNotThrow(() -> pipeline.run());
         Assertions.assertDoesNotThrow(pipeline::close);
 
-        Assertions.assertIterableEquals(tags, getResultTypes(output, output.payload()));
+        Assertions.assertIterableEquals(tags, getResultTypes(output, output.payload(A.class)));
 
         Assertions.assertEquals(1, output.results().size());
         Assertions.assertEquals(resultCount, output.results().current().count());
@@ -47,11 +48,11 @@ public class PinTest
         Assertions.assertTrue(output.results().current("error").isPresent());
     }
 
-    public static Pipeline<Void, A> createErrorHandledWithPinnedPipeline(ResultEvaluator evaluator)
+    public static Pipeline<Void> createErrorHandledWithPinnedPipeline(ResultEvaluator evaluator)
     {
         return Pipeline.of("test-error-handled-with-pinned", TestFactory::initializer)
            .registerIndexer(SingleIndexer.auto())
-           .registerIndexer(A::bs)
+           .registerIndexer((MultiIndexer<A>) A::bs)
            .registerStep(builder -> builder
                .step(new TestStep<>("1", "ok"))
                .withId("step-1")

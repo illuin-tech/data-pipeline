@@ -10,10 +10,10 @@ import java.util.Collections;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public class WrapAll implements InitializerErrorHandler<A>
+public class WrapAll implements InitializerErrorHandler
 {
     @Override
-    public A handle(Exception exception, Context<A> context, UIDGenerator generator)
+    public A handle(Exception exception, Context context, UIDGenerator generator)
     {
         return new A(generator.generate(), Collections.emptyList());
     }

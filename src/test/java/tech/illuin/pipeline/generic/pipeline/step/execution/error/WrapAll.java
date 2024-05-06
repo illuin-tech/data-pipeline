@@ -12,7 +12,7 @@ import tech.illuin.pipeline.step.result.Results;
 public class WrapAll implements StepErrorHandler
 {
     @Override
-    public Result handle(Exception exception, Object input, Object payload, Results results, Context<?> context)
+    public Result handle(Exception exception, Object input, Object payload, Results results, Context context)
     {
         return new TestResult("error", "ko");
     }

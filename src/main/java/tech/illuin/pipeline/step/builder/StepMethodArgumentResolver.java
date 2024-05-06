@@ -12,9 +12,9 @@ import java.util.stream.Stream;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public class StepMethodArgumentResolver<T, I, P> implements MethodArgumentResolver<T, I, P>
+public class StepMethodArgumentResolver<T, I, P> implements MethodArgumentResolver<T, I>
 {
-    private final List<MethodArgumentMapperFactory<T, I, P>> factories;
+    private final List<MethodArgumentMapperFactory<T, I>> factories;
 
     private static final Set<Class<?>> LEGAL_ANNOTATIONS = ANNOTATIONS;
 
@@ -38,7 +38,7 @@ public class StepMethodArgumentResolver<T, I, P> implements MethodArgumentResolv
     }
 
     @Override
-    public MethodArgumentMapper<T, I, P> resolveMapper(Parameter parameter)
+    public MethodArgumentMapper<T, I> resolveMapper(Parameter parameter)
     {
         Class<?> parameterType = parameter.getType();
         List<Annotation> parameterAnnotations = Stream.of(parameter.getDeclaredAnnotations())

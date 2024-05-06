@@ -8,28 +8,28 @@ import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public final class InitializerDescriptor<I, P>
+public final class InitializerDescriptor<I>
 {
     private final String id;
-    private final Initializer<I, P> initializer;
-    private final InitializerErrorHandler<P> errorHandler;
+    private final Initializer<I> initializer;
+    private final InitializerErrorHandler errorHandler;
 
     InitializerDescriptor(
         String id,
-        Initializer<I, P> initializer,
-        InitializerErrorHandler<P> errorHandler
+        Initializer<I> initializer,
+        InitializerErrorHandler errorHandler
     ) {
         this.id = id;
         this.initializer = initializer;
         this.errorHandler = errorHandler;
     }
 
-    public P execute(I input, Context<P> ctx, UIDGenerator generator) throws Exception
+    public Object execute(I input, Context ctx, UIDGenerator generator) throws Exception
     {
         return this.initializer.initialize(input, ctx, generator);
     }
 
-    public P handleException(Exception ex, Context<P> ctx, UIDGenerator generator) throws Exception
+    public Object handleException(Exception ex, Context ctx, UIDGenerator generator) throws Exception
     {
         return this.errorHandler.handle(ex, ctx, generator);
     }

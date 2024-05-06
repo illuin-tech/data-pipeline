@@ -8,7 +8,7 @@ import tech.illuin.pipeline.output.PipelineTag;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public interface LocalContext<P> extends Context<P>
+public interface LocalContext extends Context
 {
     Object input();
 

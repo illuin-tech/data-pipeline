@@ -33,15 +33,15 @@ import static tech.illuin.pipeline.step.execution.evaluator.StrategyBehaviour.*;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public class StepPhase<I, P> implements PipelinePhase<I, P>
+public class StepPhase<I> implements PipelinePhase<I>
 {
-    private final List<StepDescriptor<Indexable, I, P>> steps;
+    private final List<StepDescriptor<Indexable, I>> steps;
     private final UIDGenerator uidGenerator;
     private final MeterRegistry meterRegistry;
     
     private static final Logger logger = LoggerFactory.getLogger(StepPhase.class);
 
-    public StepPhase(List<StepDescriptor<Indexable, I, P>> steps, UIDGenerator uidGenerator, MeterRegistry meterRegistry)
+    public StepPhase(List<StepDescriptor<Indexable, I>> steps, UIDGenerator uidGenerator, MeterRegistry meterRegistry)
     {
         this.steps = steps;
         this.uidGenerator = uidGenerator;
@@ -49,11 +49,11 @@ public class StepPhase<I, P> implements PipelinePhase<I, P>
     }
 
     @Override
-    public PipelineStrategy run(I input, Output<P> output, Context<P> context, MetricTags metricTags) throws Exception
+    public PipelineStrategy run(I input, Output output, Context context, MetricTags metricTags) throws Exception
     {
         try {
             Set<Indexable> discarded = new HashSet<>();
-            STEP_LOOP: for (StepDescriptor<Indexable, I, P> step : this.steps)
+            STEP_LOOP: for (StepDescriptor<Indexable, I> step : this.steps)
             {
                 ComponentTag tag = this.createTag(output.tag(), step);
                 PipelineStepMetrics metrics = new PipelineStepMetrics(this.meterRegistry, tag, metricTags);
@@ -78,7 +78,7 @@ public class StepPhase<I, P> implements PipelinePhase<I, P>
 
                     if (strategy.hasBehaviour(REGISTER_RESULT))
                     {
-                        if (result instanceof PipelineResult<?> pResult)
+                        if (result instanceof PipelineResult pResult)
                             pResult.output().results().descriptors().current().forEach(rd -> output.results().register(indexed.uid(), rd));
                         else {
                             output.results().register(indexed.uid(), new ResultDescriptor<>(
@@ -110,9 +110,9 @@ public class StepPhase<I, P> implements PipelinePhase<I, P>
     }
 
     @SuppressWarnings("IllegalCatch")
-    private Result runStep(StepDescriptor<Indexable, I, P> step, ComponentTag tag, Indexable indexed, I input, Output<P> output, Context<P> context, PipelineStepMetrics metrics) throws Exception
+    private Result runStep(StepDescriptor<Indexable, I> step, ComponentTag tag, Indexable indexed, I input, Output output, Context context, PipelineStepMetrics metrics) throws Exception
     {
-        ComponentContext<P> componentContext = wrapContext(input, context, tag.pipelineTag(), tag, metrics);
+        ComponentContext componentContext = wrapContext(input, context, tag.pipelineTag(), tag, metrics);
         String name = getPrintableName(step);
 
         long start = System.nanoTime();
@@ -135,17 +135,17 @@ public class StepPhase<I, P> implements PipelinePhase<I, P>
         }
     }
 
-    private ComponentTag createTag(PipelineTag pipelineTag, StepDescriptor<?, ?, ?> step)
+    private ComponentTag createTag(PipelineTag pipelineTag, StepDescriptor<?, ?> step)
     {
         return new ComponentTag(this.uidGenerator.generate(), pipelineTag, step.id(), ComponentFamily.STEP);
     }
 
-    private ComponentContext<P> wrapContext(I input, Context<P> context, PipelineTag pipelineTag, ComponentTag componentTag, LogMarker marker)
+    private ComponentContext wrapContext(I input, Context context, PipelineTag pipelineTag, ComponentTag componentTag, LogMarker marker)
     {
-        return new ComponentContext<>(context, input, pipelineTag, componentTag, this.uidGenerator, marker);
+        return new ComponentContext(context, input, pipelineTag, componentTag, this.uidGenerator, marker);
     }
 
-    private static String getPrintableName(StepDescriptor<?, ?, ?> step)
+    private static String getPrintableName(StepDescriptor<?, ?> step)
     {
         return step.id() + (step.isPinned() ? " (pinned)" : "");
     }

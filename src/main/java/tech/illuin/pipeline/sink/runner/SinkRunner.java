@@ -20,11 +20,11 @@ import java.util.List;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public class SinkRunner<P> implements Sink<P>
+public class SinkRunner implements Sink
 {
     private final Object target;
     private Method method;
-    private List<MethodArgumentMapper<Object, Object, P>> argumentMappers;
+    private List<MethodArgumentMapper<Object, Object>> argumentMappers;
 
     private static final Logger logger = LoggerFactory.getLogger(SinkRunner.class);
 
@@ -36,15 +36,15 @@ public class SinkRunner<P> implements Sink<P>
     }
 
     @Override
-    public void execute(Output<P> output, Context<P> context) throws Exception
+    public void execute(Output output, Context context) throws Exception
     {
-        if (!(context instanceof LocalContext<P> localContext))
+        if (!(context instanceof LocalContext localContext))
             throw new IllegalArgumentException("Invalid context provided to a SinkRunner instance");
 
         logger.trace("{}#{} launching sink over target {}#{}", localContext.pipelineTag().pipeline(), localContext.pipelineTag().uid(), this.target.getClass().getName(), Reflection.getMethodSignature(this.method));
 
         try {
-            MethodArguments<Object, Object, P> originalArguments = new MethodArguments<>(
+            MethodArguments<Object, Object> originalArguments = new MethodArguments<>(
                 null,
                 localContext.input(),
                 output.payload(),
@@ -91,7 +91,7 @@ public class SinkRunner<P> implements Sink<P>
         return this.target;
     }
 
-    public void build(CompiledMethod<SinkConfig, Object, Object, P> compiled)
+    public void build(CompiledMethod<SinkConfig, Object, Object> compiled)
     {
         this.method = compiled.method();
         this.argumentMappers = compiled.mappers();

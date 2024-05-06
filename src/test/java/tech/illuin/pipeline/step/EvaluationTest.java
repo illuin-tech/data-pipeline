@@ -9,6 +9,7 @@ import tech.illuin.pipeline.generic.model.A;
 import tech.illuin.pipeline.generic.model.B;
 import tech.illuin.pipeline.generic.pipeline.TestResult;
 import tech.illuin.pipeline.generic.pipeline.step.TestStep;
+import tech.illuin.pipeline.input.indexer.MultiIndexer;
 import tech.illuin.pipeline.input.indexer.SingleIndexer;
 import tech.illuin.pipeline.output.Output;
 
@@ -27,13 +28,13 @@ public class EvaluationTest
     @Test
     public void testPipeline_shouldAbort()
     {
-        Pipeline<Void, A> pipeline = Assertions.assertDoesNotThrow(EvaluationTest::createAbortingPipeline);
-        Output<A> output = Assertions.assertDoesNotThrow(() -> pipeline.run());
+        Pipeline<Void> pipeline = Assertions.assertDoesNotThrow(EvaluationTest::createAbortingPipeline);
+        Output output = Assertions.assertDoesNotThrow(() -> pipeline.run());
         Assertions.assertDoesNotThrow(pipeline::close);
 
-        Assertions.assertIterableEquals(List.of("1", "4"), getResultTypes(output, output.payload()));
-        Assertions.assertIterableEquals(List.of("2", "3"), getResultTypes(output, output.payload().bs().get(0)));
-        Assertions.assertIterableEquals(List.of("2"), getResultTypes(output, output.payload().bs().get(1)));
+        Assertions.assertIterableEquals(List.of("1", "4"), getResultTypes(output, output.payload(A.class)));
+        Assertions.assertIterableEquals(List.of("2", "3"), getResultTypes(output, output.payload(A.class).bs().get(0)));
+        Assertions.assertIterableEquals(List.of("2"), getResultTypes(output, output.payload(A.class).bs().get(1)));
 
         Assertions.assertEquals(3, output.results().size());
         Assertions.assertEquals(5, output.results().current().count());
@@ -50,7 +51,7 @@ public class EvaluationTest
     {
         AtomicInteger counter = new AtomicInteger(0);
 
-        Pipeline<?, VoidPayload> pipeline = Assertions.assertDoesNotThrow(() -> Pipeline.of("test-evaluation-skip")
+        Pipeline<?> pipeline = Assertions.assertDoesNotThrow(() -> Pipeline.of("test-evaluation-skip")
             .registerStep(builder -> builder
                 .step(new TestStep<>("1", in -> {
                     counter.incrementAndGet();
@@ -61,18 +62,18 @@ public class EvaluationTest
             .build()
         );
 
-        Output<?> output = Assertions.assertDoesNotThrow(() -> pipeline.run());
+        Output output = Assertions.assertDoesNotThrow(() -> pipeline.run());
         Assertions.assertDoesNotThrow(pipeline::close);
 
         Assertions.assertEquals(1, counter.get());
         Assertions.assertEquals(0, output.results().stream().count());
     }
 
-    public static Pipeline<Void, A> createAbortingPipeline()
+    public static Pipeline<Void> createAbortingPipeline()
     {
         return Pipeline.of("test-abort", TestFactory::initializer)
            .registerIndexer(SingleIndexer.auto())
-           .registerIndexer(A::bs)
+           .registerIndexer((MultiIndexer<A>) A::bs)
            .registerStep(builder -> builder
                .step(new TestStep<>("1", "ok"))
                .withCondition(A.class)

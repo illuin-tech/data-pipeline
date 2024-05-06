@@ -11,7 +11,7 @@ import java.util.Optional;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public class CurrentMapperFactory<T, I, P> implements MethodArgumentMapperFactory<T, I, P>
+public class CurrentMapperFactory<T, I> implements MethodArgumentMapperFactory<T, I>
 {
     @Override
     public boolean canHandle(Annotation category, Class<?> parameterType)
@@ -21,7 +21,7 @@ public class CurrentMapperFactory<T, I, P> implements MethodArgumentMapperFactor
 
     @Override
     @SuppressWarnings("unchecked")
-    public MethodArgumentMapper<T, I, P> produce(Annotation category, Parameter parameter)
+    public MethodArgumentMapper<T, I> produce(Annotation category, Parameter parameter)
     {
         Current current = (Current) category;
         boolean filterByName = current.name() != null && !current.name().isBlank();

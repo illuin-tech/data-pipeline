@@ -17,7 +17,7 @@ public class TestFactory
 {
     private static final Logger logger = LoggerFactory.getLogger(TestFactory.class);
 
-    public static A initializer(Void input, Context<A> context, UIDGenerator generator)
+    public static A initializer(Void input, Context context, UIDGenerator generator)
     {
         return new A(generator.generate(), List.of(
             new B(generator.generate(), "b1"),
@@ -25,7 +25,7 @@ public class TestFactory
         ));
     }
 
-    public static A initializerOfEmpty(Void input, Context<A> context, UIDGenerator generator)
+    public static A initializerOfEmpty(Void input, Context context, UIDGenerator generator)
     {
         return new A(generator.generate(), Collections.emptyList());
     }

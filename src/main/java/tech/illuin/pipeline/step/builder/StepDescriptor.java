@@ -15,21 +15,21 @@ import tech.illuin.pipeline.step.result.Results;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public final class StepDescriptor<T extends Indexable, I, P>
+public final class StepDescriptor<T extends Indexable, I>
 {
     private final String id;
-    private final Step<T, I, P> step;
+    private final Step<T, I> step;
     private final boolean pinned;
-    private final StepWrapper<T, I, P> executionWrapper;
+    private final StepWrapper<T, I> executionWrapper;
     private final StepCondition activationPredicate;
     private final ResultEvaluator resultEvaluator;
     private final StepErrorHandler errorHandler;
 
     StepDescriptor(
         String id,
-        Step<T, I, P> step,
+        Step<T, I> step,
         boolean pinned,
-        StepWrapper<T, I, P> executionWrapper,
+        StepWrapper<T, I> executionWrapper,
         StepCondition activationPredicate,
         ResultEvaluator resultEvaluator,
         StepErrorHandler errorHandler
@@ -43,22 +43,22 @@ public final class StepDescriptor<T extends Indexable, I, P>
         this.errorHandler = errorHandler;
     }
 
-    public Result execute(T data, I input, Output<P> output, Context<P> ctx) throws Exception
+    public Result execute(T data, I input, Output output, Context ctx) throws Exception
     {
         return this.executionWrapper.wrap(this.step).execute(data, input, output, ctx);
     }
 
-    public boolean canExecute(Indexable indexable, Context<P> ctx)
+    public boolean canExecute(Indexable indexable, Context ctx)
     {
         return this.activationPredicate.canExecute(indexable, ctx);
     }
 
-    public StepStrategy postEvaluation(Result result, Indexable object, I input, Context<P> ctx)
+    public StepStrategy postEvaluation(Result result, Indexable object, I input, Context ctx)
     {
         return this.resultEvaluator.evaluate(result, object, input, ctx);
     }
 
-    public Result handleException(Exception ex, I input, P payload, Results results, Context<P> ctx) throws Exception
+    public Result handleException(Exception ex, I input, Object payload, Results results, Context ctx) throws Exception
     {
         return this.errorHandler.handle(ex, input, payload, results, ctx);
     }

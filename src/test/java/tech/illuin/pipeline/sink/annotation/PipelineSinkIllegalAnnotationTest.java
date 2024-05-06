@@ -56,7 +56,7 @@ public class PipelineSinkIllegalAnnotationTest
         ));
     }
 
-    public static Pipeline<Object, ?> createNonCompilingPipeline(String name, Object illegalSink)
+    public static Pipeline<Object> createNonCompilingPipeline(String name, Object illegalSink)
     {
         return Pipeline.of(name)
            .registerStep(builder -> builder.step(new StepWithInput<>()))

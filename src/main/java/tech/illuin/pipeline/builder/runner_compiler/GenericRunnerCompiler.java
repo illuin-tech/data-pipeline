@@ -16,20 +16,20 @@ import java.util.List;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public class GenericRunnerCompiler<C extends Annotation, T, I, P> implements RunnerCompiler<C, T, I, P>
+public class GenericRunnerCompiler<C extends Annotation, T, I> implements RunnerCompiler<C, T, I>
 {
     private final Class<C> configType;
-    private final MethodArgumentResolver<T, I, P> argumentResolver;
+    private final MethodArgumentResolver<T, I> argumentResolver;
     private final List<MethodValidator> methodValidators;
 
     private static final Logger logger = LoggerFactory.getLogger(GenericRunnerCompiler.class);
 
-    public GenericRunnerCompiler(Class<C> configType, MethodArgumentResolver<T, I, P> argumentResolver)
+    public GenericRunnerCompiler(Class<C> configType, MethodArgumentResolver<T, I> argumentResolver)
     {
         this(configType, argumentResolver, Collections.emptyList());
     }
 
-    public GenericRunnerCompiler(Class<C> configType, MethodArgumentResolver<T, I, P> argumentResolver, List<MethodValidator> additionalValidators)
+    public GenericRunnerCompiler(Class<C> configType, MethodArgumentResolver<T, I> argumentResolver, List<MethodValidator> additionalValidators)
     {
         this.configType = configType;
         this.argumentResolver = argumentResolver;
@@ -37,7 +37,7 @@ public class GenericRunnerCompiler<C extends Annotation, T, I, P> implements Run
     }
 
     @Override
-    public CompiledMethod<C, T, I, P> compile(Object target)
+    public CompiledMethod<C, T, I> compile(Object target)
     {
         logger.trace("{}: Compiling runner-based " + this.configType.getSimpleName() + " with target type " + target.getClass().getName(), this);
 
@@ -74,13 +74,13 @@ public class GenericRunnerCompiler<C extends Annotation, T, I, P> implements Run
         return candidates;
     }
 
-    private List<MethodArgumentMapper<T, I, P>> compileArguments(MethodCandidate<C> candidate)
+    private List<MethodArgumentMapper<T, I>> compileArguments(MethodCandidate<C> candidate)
     {
-        List<MethodArgumentMapper<T, I, P>> mappers = new ArrayList<>();
+        List<MethodArgumentMapper<T, I>> mappers = new ArrayList<>();
         Parameter[] parameters = candidate.method().getParameters();
         for (Parameter parameter : parameters)
         {
-            MethodArgumentMapper<T, I, P> mapper = this.argumentResolver.resolveMapper(parameter);
+            MethodArgumentMapper<T, I> mapper = this.argumentResolver.resolveMapper(parameter);
             mappers.add(mapper);
         }
         return mappers;

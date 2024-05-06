@@ -12,14 +12,14 @@ import tech.illuin.pipeline.step.result.Results;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public record MethodArguments<T, I, P>(
+public record MethodArguments<T, I>(
     T object,
     I input,
-    P payload,
-    Output<P> output,
+    Object payload,
+    Output output,
     ResultView resultView,
     Results results,
-    Context<P> context,
+    Context context,
     PipelineTag pipelineTag,
     ComponentTag componentTag,
     UIDGenerator uidGenerator,

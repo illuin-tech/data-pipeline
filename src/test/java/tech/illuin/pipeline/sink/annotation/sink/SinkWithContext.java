@@ -23,7 +23,7 @@ public class SinkWithContext
     }
 
     @SinkConfig(id = "sink-with_context")
-    public void execute(Context<?> context)
+    public void execute(Context context)
     {
         logger.info("context: {}", context);
         this.collector.update(context.get(this.key, String.class).orElse(null));

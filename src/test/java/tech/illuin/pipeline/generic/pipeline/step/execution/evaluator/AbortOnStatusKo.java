@@ -15,7 +15,7 @@ import java.util.Objects;
 public class AbortOnStatusKo implements ResultEvaluator
 {
     @Override
-    public StepStrategy evaluate(Result result, Indexable object, Object input, Context<?> ctx)
+    public StepStrategy evaluate(Result result, Indexable object, Object input, Context ctx)
     {
         return isKo(result) ? StepStrategy.ABORT : StepStrategy.CONTINUE;
     }

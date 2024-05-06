@@ -48,15 +48,15 @@ public final class SimplePipelineBuilder<I>
 {
     private String id;
     private AuthorResolver<I> authorResolver;
-    private OutputFactory<I, VoidPayload> outputFactory;
+    private OutputFactory<I> outputFactory;
     private UIDGenerator uidGenerator;
-    private final List<StepAssembler<Indexable, I, VoidPayload>> steps;
-    private final List<SinkAssembler<VoidPayload>> sinks;
+    private final List<StepAssembler<Indexable, I>> steps;
+    private final List<SinkAssembler> sinks;
     private Supplier<ExecutorService> sinkExecutorProvider;
     private int closeTimeout;
     private final List<OnCloseHandler> onCloseHandlers;
     private ResultEvaluator defaultEvaluator;
-    private PipelineErrorHandler<VoidPayload> errorHandler;
+    private PipelineErrorHandler errorHandler;
     private StepErrorHandler defaultStepErrorHandler;
     private SinkErrorHandler defaultSinkErrorHandler;
     private MeterRegistry meterRegistry;
@@ -76,7 +76,7 @@ public final class SimplePipelineBuilder<I>
         this.closeTimeout = 15;
     }
 
-    public Pipeline<I, VoidPayload> build()
+    public Pipeline<I> build()
     {
         return new CompositePipeline<>(
             this.id(),
@@ -96,28 +96,28 @@ public final class SimplePipelineBuilder<I>
         );
     }
 
-    private InitializerDescriptor<I, VoidPayload> buildInitializer()
+    private InitializerDescriptor<I> buildInitializer()
     {
-        InitializerAssembler<I, VoidPayload> initializerAssembler = builder -> builder.initializer(
+        InitializerAssembler<I> initializerAssembler = builder -> builder.initializer(
             (in, ctx, gen) -> Initializer.initializeFromParentOr(ctx, () -> new VoidPayload(gen.generate()))
         );
 
         return initializerAssembler.build(new InitializerBuilder<>());
     }
 
-    private List<StepDescriptor<Indexable, I, VoidPayload>> buildSteps()
+    private List<StepDescriptor<Indexable, I>> buildSteps()
     {
         return this.steps.stream().map(assembler -> {
-            StepBuilder<Indexable, I, VoidPayload> stepBuilder = new StepBuilder<>();
+            StepBuilder<Indexable, I> stepBuilder = new StepBuilder<>();
             this.addAssemblerDefaults(stepBuilder);
             return assembler.build(stepBuilder);
         }).toList();
     }
 
-    private List<SinkDescriptor<VoidPayload>> buildSinks()
+    private List<SinkDescriptor> buildSinks()
     {
         return this.sinks.stream().map(assembler -> {
-            SinkBuilder<VoidPayload> sinkBuilder = new SinkBuilder<>();
+            SinkBuilder sinkBuilder = new SinkBuilder();
             this.addAssemblerDefaults(sinkBuilder);
             return assembler.build(sinkBuilder);
         }).toList();
@@ -145,16 +145,16 @@ public final class SimplePipelineBuilder<I>
         return this;
     }
 
-    public SimplePipelineBuilder<I> registerSteps(List<? extends Step<?, I, ?>> steps)
+    public SimplePipelineBuilder<I> registerSteps(List<? extends Step<?, I>> steps)
     {
-        for (Step<?, I, ?> step : steps)
+        for (Step<?, I> step : steps)
             this.registerStep(step);
         return this;
     }
 
-    public <ID extends Indexable, T> SimplePipelineBuilder<I> registerStep(Step<ID, I, T> step)
+    public <ID extends Indexable> SimplePipelineBuilder<I> registerStep(Step<ID, I> step)
     {
-        return this.registerStep((StepBuilder<ID, I, T> builder) -> {
+        return this.registerStep((StepBuilder<ID, I> builder) -> {
             this.addAssemblerDefaults(builder);
             builder.step(step);
         });
@@ -162,39 +162,39 @@ public final class SimplePipelineBuilder<I>
 
     public SimplePipelineBuilder<I> registerStep(InputStep<I> step)
     {
-        return this.registerStep((Step<Indexable, I, ?>) step);
+        return this.registerStep((Step<Indexable, I>) step);
     }
 
     public SimplePipelineBuilder<I> registerStep(Object target)
     {
-        if (target instanceof PipelineStep<?, ?> pipelineStep)
+        if (target instanceof PipelineStep<?> pipelineStep)
             //noinspection unchecked
-            return this.registerStep((Step<?, I, ?>) pipelineStep);
+            return this.registerStep((Step<?, I>) pipelineStep);
         return this.registerStep(Step.of(target));
     }
 
     @SuppressWarnings("unchecked")
-    public SimplePipelineBuilder<I> registerStep(StepAssembler<?, I, ?> builder)
+    public SimplePipelineBuilder<I> registerStep(StepAssembler<?, I> builder)
     {
-        this.steps.add((StepAssembler<Indexable, I, VoidPayload>) builder);
+        this.steps.add((StepAssembler<Indexable, I>) builder);
         return this;
     }
 
     @SuppressWarnings("unchecked")
-    public SimplePipelineBuilder<I> insertStep(StepAssembler<?, I, ?> builder, int index)
+    public SimplePipelineBuilder<I> insertStep(StepAssembler<?, I> builder, int index)
     {
-        this.steps.add(index, (StepAssembler<Indexable, I, VoidPayload>) builder);
+        this.steps.add(index, (StepAssembler<Indexable, I>) builder);
         return this;
     }
 
-    public SimplePipelineBuilder<I> registerStepAssemblers(List<? extends StepAssembler<?, I, ?>> builders)
+    public SimplePipelineBuilder<I> registerStepAssemblers(List<? extends StepAssembler<?, I>> builders)
     {
-        for (StepAssembler<?, I, ?> builder : builders)
+        for (StepAssembler<?, I> builder : builders)
             this.registerStep(builder);
         return this;
     }
 
-    private void addAssemblerDefaults(StepBuilder<?, ?, ?> stepBuilder)
+    private void addAssemblerDefaults(StepBuilder<?, ?> stepBuilder)
     {
         stepBuilder
             .withEvaluation(this.defaultEvaluator())
@@ -202,55 +202,52 @@ public final class SimplePipelineBuilder<I>
         ;
     }
 
-    @SuppressWarnings("unchecked")
-    public SimplePipelineBuilder<I> registerSink(Sink<?> sink)
+    public SimplePipelineBuilder<I> registerSink(Sink sink)
     {
-        return this.registerSink(builder -> builder.sink((Sink<Object>) sink));
+        return this.registerSink(builder -> builder.sink(sink));
     }
 
-    @SuppressWarnings("unchecked")
-    public SimplePipelineBuilder<I> registerSink(Sink<?> sink, boolean async)
+    public SimplePipelineBuilder<I> registerSink(Sink sink, boolean async)
     {
         return this.registerSink(builder -> builder
-            .sink((Sink<Object>) sink)
+            .sink(sink)
             .setAsync(async)
         );
     }
 
     public SimplePipelineBuilder<I> registerSink(Object target)
     {
-        return this.registerSink(new SinkRunner<>(target));
+        return this.registerSink(new SinkRunner(target));
     }
 
-    @SuppressWarnings("unchecked")
-    public SimplePipelineBuilder<I> registerSink(SinkAssembler<?> assembler)
+    public SimplePipelineBuilder<I> registerSink(SinkAssembler assembler)
     {
-        this.sinks.add((SinkAssembler<VoidPayload>) assembler);
+        this.sinks.add(assembler);
         return this;
     }
 
-    public SimplePipelineBuilder<I> registerSinks(List<? extends Sink<?>> sinks)
+    public SimplePipelineBuilder<I> registerSinks(List<? extends Sink> sinks)
     {
-        for (Sink<?> sink : sinks)
+        for (Sink sink : sinks)
             this.registerSink(sink, false);
         return this;
     }
 
-    public SimplePipelineBuilder<I> registerSinks(List<? extends Sink<?>> sinks, boolean async)
+    public SimplePipelineBuilder<I> registerSinks(List<? extends Sink> sinks, boolean async)
     {
-        for (Sink<?> sink : sinks)
+        for (Sink sink : sinks)
             this.registerSink(sink, async);
         return this;
     }
 
-    public SimplePipelineBuilder<I> registerSinkAssemblers(List<? extends SinkAssembler<?>> assemblers)
+    public SimplePipelineBuilder<I> registerSinkAssemblers(List<? extends SinkAssembler> assemblers)
     {
-        for (SinkAssembler<?> assembler : assemblers)
+        for (SinkAssembler assembler : assemblers)
             this.registerSink(assembler);
         return this;
     }
 
-    private void addAssemblerDefaults(SinkBuilder<?> sinkBuilder)
+    private void addAssemblerDefaults(SinkBuilder sinkBuilder)
     {
         sinkBuilder.withErrorHandler(this.defaultSinkErrorHandler());
     }
@@ -305,15 +302,14 @@ public final class SimplePipelineBuilder<I>
         return this;
     }
 
-    public PipelineErrorHandler<VoidPayload> errorHandler()
+    public PipelineErrorHandler errorHandler()
     {
         return this.errorHandler;
     }
 
-    @SuppressWarnings("unchecked")
-    public SimplePipelineBuilder<I> setErrorHandler(PipelineErrorHandler<?> errorHandler)
+    public SimplePipelineBuilder<I> setErrorHandler(PipelineErrorHandler errorHandler)
     {
-        this.errorHandler = (PipelineErrorHandler<VoidPayload>) errorHandler;
+        this.errorHandler = errorHandler;
         return this;
     }
 
@@ -361,15 +357,14 @@ public final class SimplePipelineBuilder<I>
         return this;
     }
 
-    public OutputFactory<I, VoidPayload> outputFactory()
+    public OutputFactory<I> outputFactory()
     {
         return this.outputFactory;
     }
 
-    @SuppressWarnings("unchecked")
-    public SimplePipelineBuilder<I> setOutputFactory(OutputFactory<I, ?> outputFactory)
+    public SimplePipelineBuilder<I> setOutputFactory(OutputFactory<I> outputFactory)
     {
-        this.outputFactory = (OutputFactory<I, VoidPayload>) outputFactory;
+        this.outputFactory = outputFactory;
         return this;
     }
 

@@ -117,7 +117,7 @@ pipeline.run("some string", ctx -> ctx.set("my_key", "abcde"));
 
 ```java
 @StepConfig
-public MyResult doStuff(Context<?> ctx)
+public MyResult doStuff(Context ctx)
 {
     // Context getters return optionals, here myValue should contain "abcde"
     Optional<String> myValue = ctx.get("my_key", String.class);
@@ -129,14 +129,14 @@ Pipeline inheritance is covered in more details in the ["Result Data Model docum
 
 ```java
 //Output<?> output;
-pipeline.run("some string", new SimpleContext<>(output));
+pipeline.run("some string", new SimpleContext(output));
 ```
 
 `Context` is an interface, and you can create alternate implementations if needed.
 If you do that, you can instantiate your context and pass it directly as an argument:
 
 ```java
-pipeline.run("some string", new MySpecialContext<>().set("my_key", "abcde"));
+pipeline.run("some string", new MySpecialContext().set("my_key", "abcde"));
 ```
 
 ### Output
@@ -171,10 +171,10 @@ The actual implementation of `Output` can be customized by changing the pipeline
 A custom factory looks something like this:
 
 ```java
-public class MyFactory<I, P> implements OutputFactory<I, P>
+public class MyFactory<I> implements OutputFactory<I>
 {
     @Override
-    public Output<P> create(PipelineTag tag, I input, P payload, Context<P> context)
+    public Output create(PipelineTag tag, I input, Object payload, Context context)
     {
         return new MyCustomOutput<>(tag, payload, context);
     }

@@ -30,11 +30,11 @@ public class StepWrapperTest
     @Test
     public void testPipeline_shouldCombineWrappers()
     {
-        Pipeline<Void, A> pipeline = Assertions.assertDoesNotThrow(StepWrapperTest::createPipeline);
-        Output<A> output = Assertions.assertDoesNotThrow(() -> pipeline.run());
+        Pipeline<Void> pipeline = Assertions.assertDoesNotThrow(StepWrapperTest::createPipeline);
+        Output output = Assertions.assertDoesNotThrow(() -> pipeline.run());
         Assertions.assertDoesNotThrow(pipeline::close);
 
-        Assertions.assertIterableEquals(List.of("1", "2", "3"), getResultTypes(output, output.payload()));
+        Assertions.assertIterableEquals(List.of("1", "2", "3"), getResultTypes(output, output.payload(A.class)));
 
         Assertions.assertEquals(1, output.results().size());
         Assertions.assertEquals(3, output.results().current().count());
@@ -44,13 +44,13 @@ public class StepWrapperTest
         Assertions.assertTrue(output.results().current("3").isPresent());
     }
 
-    public static Pipeline<Void, A> createPipeline()
+    public static Pipeline<Void> createPipeline()
     {
-        StepWrapper<Indexable, Void, A> timeWrapper = new TimeLimiterWrapper<>(TimeLimiterConfig.custom()
+        StepWrapper<Indexable, Void> timeWrapper = new TimeLimiterWrapper<>(TimeLimiterConfig.custom()
             .timeoutDuration(Duration.ofMillis(200))
             .build()
         );
-        StepWrapper<Indexable, Void, A> retryWrapper = new RetryWrapper<>(RetryConfig.custom()
+        StepWrapper<Indexable, Void> retryWrapper = new RetryWrapper<>(RetryConfig.custom()
             .maxAttempts(3)
             .waitDuration(Duration.ofMillis(25))
             .build()

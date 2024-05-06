@@ -10,9 +10,9 @@ import java.util.Set;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public class SimpleContext<P> implements Context<P>
+public class SimpleContext implements Context
 {
-    private final Output<P> parent;
+    private final Output parent;
     private final Map<String, Object> metadata;
 
     public SimpleContext()
@@ -20,27 +20,27 @@ public class SimpleContext<P> implements Context<P>
         this(null);
     }
 
-    public SimpleContext(Output<P> parent)
+    public SimpleContext(Output parent)
     {
         this.parent = parent;
         this.metadata = new HashMap<>();
     }
 
     @Override
-    public Optional<Output<P>> parent()
+    public Optional<Output> parent()
     {
         return Optional.ofNullable(this.parent);
     }
 
     @Override
-    public Context<P> set(String key, Object value)
+    public Context set(String key, Object value)
     {
         this.metadata.put(key, value);
         return this;
     }
 
     @Override
-    public Context<P> copyFrom(Context<P> other)
+    public Context copyFrom(Context other)
     {
         for (String key : other.keys())
             this.set(key, other.get(key).orElse(null));

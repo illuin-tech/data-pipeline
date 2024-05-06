@@ -12,9 +12,9 @@ import java.util.Set;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public class ComponentContext<P> implements LocalContext<P>
+public class ComponentContext implements LocalContext
 {
-    private final Context<P> globalContext;
+    private final Context globalContext;
     private final Object input;
     private final PipelineTag pipelineTag;
     private final ComponentTag componentTag;
@@ -22,7 +22,7 @@ public class ComponentContext<P> implements LocalContext<P>
     private final LogMarker marker;
 
     public ComponentContext(
-        Context<P> globalContext,
+        Context globalContext,
         Object input,
         PipelineTag pipelineTag,
         ComponentTag componentTag,
@@ -68,19 +68,19 @@ public class ComponentContext<P> implements LocalContext<P>
     }
 
     @Override
-    public Optional<Output<P>> parent()
+    public Optional<Output> parent()
     {
         return this.globalContext.parent();
     }
 
     @Override
-    public Context<P> set(String key, Object value)
+    public Context set(String key, Object value)
     {
         return this.globalContext.set(key, value);
     }
 
     @Override
-    public Context<P> copyFrom(Context<P> other)
+    public Context copyFrom(Context other)
     {
         return this.globalContext.copyFrom(other);
     }

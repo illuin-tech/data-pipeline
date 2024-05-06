@@ -14,13 +14,13 @@ import java.util.concurrent.ExecutorService;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public class TimeLimiterStep<T extends Indexable, I, P> implements Step<T, I, P>
+public class TimeLimiterStep<T extends Indexable, I> implements Step<T, I>
 {
-    private final Step<T, I, P> step;
+    private final Step<T, I> step;
     private final TimeLimiter limiter;
     private final ExecutorService executor;
 
-    public TimeLimiterStep(Step<T, I, P> step, TimeLimiter limiter, ExecutorService executor)
+    public TimeLimiterStep(Step<T, I> step, TimeLimiter limiter, ExecutorService executor)
     {
         this.step = step;
         this.limiter = limiter;
@@ -29,7 +29,7 @@ public class TimeLimiterStep<T extends Indexable, I, P> implements Step<T, I, P>
 
     @Override
     @SuppressWarnings("IllegalCatch")
-    public Result execute(T object, I input, P payload, ResultView view, Context<P> context) throws Exception
+    public Result execute(T object, I input, Object payload, ResultView view, Context context) throws Exception
     {
         try {
             return this.limiter.executeFutureSupplier(() -> this.executor.submit(() -> executeStep(object, input, payload, view, context)));
@@ -44,7 +44,7 @@ public class TimeLimiterStep<T extends Indexable, I, P> implements Step<T, I, P>
     }
 
     @SuppressWarnings("IllegalCatch")
-    private Result executeStep(T object, I input, P payload, ResultView view, Context<P> context) throws StepWrapperException
+    private Result executeStep(T object, I input, Object payload, ResultView view, Context context) throws StepWrapperException
     {
         try {
             return this.step.execute(object, input, payload, view, context);

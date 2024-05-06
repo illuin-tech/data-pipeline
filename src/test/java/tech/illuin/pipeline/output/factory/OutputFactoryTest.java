@@ -36,9 +36,9 @@ public class OutputFactoryTest
         Assertions.assertEquals(1, counter.get());
     }
 
-    private static class CustomOutput extends Output<B>
+    private static class CustomOutput extends Output
     {
-        public CustomOutput(PipelineTag tag, Void input, B payload, Context<B> context)
+        public CustomOutput(PipelineTag tag, Void input, Object payload, Context context)
         {
             super(tag, payload, context);
         }

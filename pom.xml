@@ -5,9 +5,14 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>tech.illuin</groupId>
-    <artifactId>data-pipeline</artifactId>
-    <version>0.16</version>
-    <packaging>jar</packaging>
+    <artifactId>data-pipeline-parent</artifactId>
+    <version>0.17-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>core</module>
+        <module>resilience4j</module>
+    </modules>
 
     <name>Data Pipeline</name>
     <description>Toolkit for structuring data transformation applications</description>
@@ -57,11 +62,6 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <ksuid.version>4.1.1</ksuid.version>
-        <tsid.version>5.2.6</tsid.version>
-        <ulid.version>5.2.3</ulid.version>
-        <resilience4j.version>2.2.0</resilience4j.version>
-        <micrometer.version>1.13.0</micrometer.version>
         <slf4j.version>1.7.36</slf4j.version>
         <loki4j.version>1.4.2</loki4j.version>
         <junit.version>5.10.2</junit.version>
@@ -78,48 +78,6 @@
     </properties>
 
     <dependencies>
-        <dependency>
-            <groupId>com.github.f4b6a3</groupId>
-            <artifactId>ksuid-creator</artifactId>
-            <version>${ksuid.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.github.f4b6a3</groupId>
-            <artifactId>tsid-creator</artifactId>
-            <version>${tsid.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.github.f4b6a3</groupId>
-            <artifactId>ulid-creator</artifactId>
-            <version>${ulid.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.github.resilience4j</groupId>
-            <artifactId>resilience4j-retry</artifactId>
-            <version>${resilience4j.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.github.resilience4j</groupId>
-            <artifactId>resilience4j-circuitbreaker</artifactId>
-            <version>${resilience4j.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.github.resilience4j</groupId>
-            <artifactId>resilience4j-timelimiter</artifactId>
-            <version>${resilience4j.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.micrometer</groupId>
-            <artifactId>micrometer-core</artifactId>
-            <version>${micrometer.version}</version>
-        </dependency>
-
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
@@ -138,12 +96,6 @@
             <artifactId>junit-jupiter</artifactId>
             <version>${junit.version}</version>
             <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.github.loki4j</groupId>
-            <artifactId>loki-logback-appender</artifactId>
-            <version>${loki4j.version}</version>
         </dependency>
     </dependencies>
 

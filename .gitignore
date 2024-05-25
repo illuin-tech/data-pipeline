@@ -1,9 +1,9 @@
 **DS_Store
 .gitignore~
-/target
+**/target
 /logs
 *.iml
 .idea
 .java-version
-src/test/java/Throwaway*
-src/test/java/dev
+**/src/test/java/Throwaway*
+**/src/test/java/dev

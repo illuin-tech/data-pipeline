@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>tech.illuin</groupId>
+        <artifactId>data-pipeline-parent</artifactId>
+        <version>0.17-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>data-pipeline</artifactId>
+    <version>${parent.version}</version>
+    <packaging>jar</packaging>
+
+    <name>Data Pipeline core</name>
+
+    <properties>
+        <ksuid.version>4.1.1</ksuid.version>
+        <tsid.version>5.2.6</tsid.version>
+        <ulid.version>5.2.3</ulid.version>
+        <micrometer.version>1.13.0</micrometer.version>
+        <loki4j.version>1.4.2</loki4j.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.github.f4b6a3</groupId>
+            <artifactId>ksuid-creator</artifactId>
+            <version>${ksuid.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.f4b6a3</groupId>
+            <artifactId>tsid-creator</artifactId>
+            <version>${tsid.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.f4b6a3</groupId>
+            <artifactId>ulid-creator</artifactId>
+            <version>${ulid.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-core</artifactId>
+            <version>${micrometer.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.loki4j</groupId>
+            <artifactId>loki-logback-appender</artifactId>
+            <version>${loki4j.version}</version>
+        </dependency>
+    </dependencies>
+</project>

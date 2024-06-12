@@ -131,6 +131,18 @@ Here is an example of one such dashboard in action:
 
 `data-pipeline` comes with several implementations of [component wrappers](modifiers_and_hooks.md#wrappers), they enable typical resilience use-cases such as retrying a component in case of error, or limiting the time spent in a component. 
 
+> 🚨 These functionalities require the `data-pipeline-resilience4j` extension
+> 
+> It can be added to your `pom.xml` as follows:
+
+```xml
+<dependency>
+    <groupId>tech.illuin</groupId>
+    <artifactId>data-pipeline-resilience4j</artifactId>
+    <version>0.17</version>
+</dependency>
+```
+
 ### CircuitBreaker
 
 The CircuitBreaker wrapper can be applied on `Step` or `Sink` functions, and enables circuit-breaking capabilities for the component.

@@ -25,9 +25,12 @@ The library requires Java 17+, in order to use it, add the following in your `po
 <dependency>
     <groupId>tech.illuin</groupId>
     <artifactId>data-pipeline</artifactId>
-    <version>0.17-SNAPSHOT</version>
+    <version>0.17</version>
 </dependency>
 ```
+
+Additionally, some optional extension libraries can be added, at the time of this writing this includes:
+* `data-pipeline-resilience4j` (for the [`resilience4j` integration](doc/integrations.md#resilience4j))
 
 ## II. Core Principles
 

@@ -110,7 +110,7 @@ flowchart LR
 ```
 
 > 🚨 Currently, an `Indexer` can only return `Indexable` objects, i.e. with a declared `uid()` method.
-The `Pipeline` will consider the indexable's `uid` and only index a given value once. 
+The `Pipeline` will consider the indexable's `uid` and only index a given value once.
 
 > 💡 If no `Indexer` is specified, the default indexing strategy is `SingleIndexer.auto()` which will attempt to index the payload as a whole (as a result, the payload is expected to be `Indexable`).
 

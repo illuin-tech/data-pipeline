@@ -64,7 +64,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <slf4j.version>1.7.36</slf4j.version>
         <loki4j.version>1.4.2</loki4j.version>
-        <junit.version>5.10.3</junit.version>
+        <junit.version>5.11.0</junit.version>
         <jacoco.version>0.8.12</jacoco.version>
         <checkstyle.version>10.17.0</checkstyle.version>
         <checkstyle.config.location>checkstyle.xml</checkstyle.config.location>

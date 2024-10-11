@@ -136,7 +136,7 @@ public final class CompositePipeline<I> implements Pipeline<I>
             metrics.failureCounter().increment();
             metrics.errorCounter(e).increment();
             logger.error(metrics.mark(e), "{}: {}", this.id(), e.getMessage());
-            return this.errorHandler.handle(e, output, input, context);
+            return this.errorHandler.handle(e, output, input, context, tag);
         }
         finally {
             metrics.runTimer().record(System.nanoTime() - start, TimeUnit.NANOSECONDS);

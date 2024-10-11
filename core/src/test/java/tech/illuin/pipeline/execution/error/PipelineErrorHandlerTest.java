@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import tech.illuin.pipeline.Pipeline;
 import tech.illuin.pipeline.PipelineException;
-import tech.illuin.pipeline.builder.VoidPayload;
 import tech.illuin.pipeline.context.Context;
 import tech.illuin.pipeline.context.SimpleContext;
 import tech.illuin.pipeline.generic.pipeline.TestResult;
@@ -23,8 +22,8 @@ public class PipelineErrorHandlerTest
     {
         PipelineErrorHandler handler = PipelineErrorHandler::wrapChecked;
 
-        Assertions.assertThrows(PipelineException.class, () -> handler.handle(new Exception("checked"), null, null, null));
-        Assertions.assertThrows(CustomRuntimeException.class, () -> handler.handle(new CustomRuntimeException(), null, null, null));
+        Assertions.assertThrows(PipelineException.class, () -> handler.handle(new Exception("checked"), null, null, null, null));
+        Assertions.assertThrows(CustomRuntimeException.class, () -> handler.handle(new CustomRuntimeException(), null, null, null, null));
     }
 
     @Test
@@ -34,7 +33,7 @@ public class PipelineErrorHandlerTest
         PipelineErrorHandler handler1 = PipelineErrorHandlerTest::handler1;
 
         Exception ex = new Exception("test-message");
-        Output out = Assertions.assertDoesNotThrow(() -> handler0.andThen(handler1).handle(ex, null, null, null));
+        Output out = Assertions.assertDoesNotThrow(() -> handler0.andThen(handler1).handle(ex, null, null, null, null));
 
         Assertions.assertEquals(ex.getMessage(), out.tag().pipeline());
     }
@@ -47,7 +46,7 @@ public class PipelineErrorHandlerTest
             .build()
         ;
 
-        PipelineErrorHandler errorHandler = (exception, previous, input, context) -> recovery.run(
+        PipelineErrorHandler errorHandler = (exception, previous, input, context, tag) -> recovery.run(
             (String) input,
             new SimpleContext(previous).copyFrom(context)
         );
@@ -67,12 +66,12 @@ public class PipelineErrorHandlerTest
         recovery.close();
     }
 
-    private static Output handler0(Exception exception, Output previous, Object input, Context context) throws PipelineException
+    private static Output handler0(Exception exception, Output previous, Object input, Context context, PipelineTag tag) throws PipelineException
     {
-        throw new PipelineException(exception.getMessage(), exception);
+        throw new PipelineException(tag, context, exception.getMessage(), exception);
     }
 
-    private static Output handler1(Exception exception, Output previous, Object input, Context context)
+    private static Output handler1(Exception exception, Output previous, Object input, Context context, PipelineTag tag) throws PipelineException
     {
         return new DefaultOutputFactory<>().create(
             new PipelineTag(UUIDGenerator.INSTANCE.generate(), exception.getMessage(), AuthorResolver.ANONYMOUS),

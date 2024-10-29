@@ -4,6 +4,13 @@ import tech.illuin.pipeline.context.Context;
 import tech.illuin.pipeline.step.result.Result;
 import tech.illuin.pipeline.step.result.Results;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.function.Function;
+
+import static tech.illuin.pipeline.execution.error.PipelineErrorHandler.throwUnlessExcepted;
+
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
@@ -26,6 +33,20 @@ public interface StepErrorHandler
             catch (Exception e) {
                 return nextErrorHandler.handle(e, input, payload, results, context);
             }
+        };
+    }
+
+    @SafeVarargs
+    static StepErrorHandler rethrowAllExcept(StepErrorHandler wrapper, Class<? extends Throwable>... except)
+    {
+        return rethrowAllExcept(wrapper, Arrays.asList(except));
+    }
+
+    static StepErrorHandler rethrowAllExcept(StepErrorHandler wrapper, Collection<Class<? extends Throwable>> except)
+    {
+        return (ex, in, payload, res, ctx) -> {
+            throwUnlessExcepted(ex, except);
+            return wrapper.handle(ex, in, payload, res, ctx);
         };
     }
 }

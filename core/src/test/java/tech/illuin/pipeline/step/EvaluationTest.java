@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import tech.illuin.pipeline.Pipeline;
 import tech.illuin.pipeline.builder.VoidPayload;
+import tech.illuin.pipeline.context.ComponentContext;
+import tech.illuin.pipeline.context.Context;
 import tech.illuin.pipeline.generic.TestFactory;
 import tech.illuin.pipeline.generic.model.A;
 import tech.illuin.pipeline.generic.model.B;
@@ -11,13 +13,19 @@ import tech.illuin.pipeline.generic.pipeline.TestResult;
 import tech.illuin.pipeline.generic.pipeline.step.TestStep;
 import tech.illuin.pipeline.input.indexer.MultiIndexer;
 import tech.illuin.pipeline.input.indexer.SingleIndexer;
+import tech.illuin.pipeline.output.ComponentTag;
 import tech.illuin.pipeline.output.Output;
+import tech.illuin.pipeline.step.execution.evaluator.ResultEvaluator;
+import tech.illuin.pipeline.step.execution.interruption.Interruption;
+import tech.illuin.pipeline.step.result.Result;
+import tech.illuin.pipeline.step.result.ResultView;
+import tech.illuin.pipeline.step.variant.InputStep;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static tech.illuin.pipeline.generic.Tests.getResultTypes;
-import static tech.illuin.pipeline.step.execution.evaluator.ResultEvaluator.ALWAYS_SKIP;
+import static tech.illuin.pipeline.step.execution.evaluator.ResultEvaluator.*;
 import static tech.illuin.pipeline.step.execution.evaluator.StepStrategy.*;
 
 /**
@@ -67,6 +75,63 @@ public class EvaluationTest
 
         Assertions.assertEquals(1, counter.get());
         Assertions.assertEquals(0, output.results().stream().count());
+    }
+
+    @Test
+    public void testPipeline_shouldSkipOnInterrupt()
+    {
+        testPipeline__onInterrupt("test-evaluation-skip-on-interrupt", SKIP_ON_INTERRUPT, false, 2, TestResult.class);
+        testPipeline__onInterrupt("test-evaluation-skip-on-interrupt", SKIP_ON_INTERRUPT, true, 1, TestResult.class);
+    }
+
+    @Test
+    public void testPipeline_shouldAbortOnInterrupt()
+    {
+        testPipeline__onInterrupt("test-evaluation-abort-on-interrupt", ABORT_ON_INTERRUPT, false, 2, TestResult.class);
+        testPipeline__onInterrupt("test-evaluation-abort-on-interrupt", ABORT_ON_INTERRUPT, true, 1, Interruption.class);
+    }
+
+    @Test
+    public void testPipeline_shouldStopOnInterrupt()
+    {
+        testPipeline__onInterrupt("test-evaluation-stop-on-interrupt", STOP_ON_INTERRUPT, false, 2, TestResult.class);
+        testPipeline__onInterrupt("test-evaluation-stop-on-interrupt", STOP_ON_INTERRUPT, true, 1, Interruption.class);
+    }
+
+    @Test
+    public void testPipeline_shouldDiscardOnInterrupt()
+    {
+        testPipeline__onInterrupt("test-evaluation-discard-on-interrupt", DISCARD_ON_INTERRUPT, false,2, TestResult.class);
+        testPipeline__onInterrupt("test-evaluation-discard-on-interrupt", DISCARD_ON_INTERRUPT, true,1, Interruption.class);
+    }
+
+    private static void testPipeline__onInterrupt(String name, ResultEvaluator evaluator, boolean interrupt, int resultCount, Class<?> resultType)
+    {
+        AtomicInteger counter = new AtomicInteger(0);
+
+        Pipeline<?> pipeline = Assertions.assertDoesNotThrow(() -> Pipeline.of(name)
+            .registerStep(builder -> builder
+                .step((InputStep<Object>) (input, results, context) -> {
+                    counter.incrementAndGet();
+                    if (context.get("do_interrupt", Boolean.class).orElse(false))
+                    {
+                        ComponentTag tag = ((ComponentContext) context).componentTag();
+                        return Interruption.of(tag, context, "stop");
+                    }
+                    return new TestResult("1", "ok");
+                })
+            )
+            .registerStep(builder -> builder.step(new TestStep<>("2", "ok")))
+            .setDefaultEvaluator(evaluator)
+            .build()
+        );
+
+        Output output = Assertions.assertDoesNotThrow(() -> pipeline.run(null, ctx -> ctx.set("do_interrupt", interrupt)));
+        Assertions.assertDoesNotThrow(pipeline::close);
+
+        Assertions.assertEquals(1, counter.get());
+        Assertions.assertEquals(resultCount, output.results().stream().count());
+        Assertions.assertInstanceOf(resultType, output.results().stream().findFirst().orElse(null));
     }
 
     public static Pipeline<Void> createAbortingPipeline()

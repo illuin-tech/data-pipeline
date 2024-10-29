@@ -4,8 +4,14 @@ import tech.illuin.pipeline.context.Context;
 import tech.illuin.pipeline.output.ComponentTag;
 import tech.illuin.pipeline.step.result.Result;
 
-public record Interruption(
-    ComponentTag tag,
-    Context context,
-    String message
-) implements Result {}
+public interface Interruption extends Result
+{
+    ComponentTag tag();
+    Context context();
+    String message();
+
+    static Interruption of(ComponentTag tag, Context context, String message)
+    {
+        return new SimpleInterruption(tag, context, message);
+    }
+}

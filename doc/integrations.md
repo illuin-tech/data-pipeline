@@ -139,7 +139,7 @@ Here is an example of one such dashboard in action:
 <dependency>
     <groupId>tech.illuin</groupId>
     <artifactId>data-pipeline-resilience4j</artifactId>
-    <version>0.17</version>
+    <version>0.18-SNAPSHOT</version>
 </dependency>
 ```
 

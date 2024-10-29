@@ -116,7 +116,7 @@ public class EvaluationTest
                     if (context.get("do_interrupt", Boolean.class).orElse(false))
                     {
                         ComponentTag tag = ((ComponentContext) context).componentTag();
-                        return new Interruption(tag, context, "stop");
+                        return Interruption.of(tag, context, "stop");
                     }
                     return new TestResult("1", "ok");
                 })

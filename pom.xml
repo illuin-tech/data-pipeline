@@ -73,7 +73,7 @@
         <maven-source.version>3.3.1</maven-source.version>
         <maven-javadoc.version>3.11.1</maven-javadoc.version>
         <maven-checkstyle.version>3.6.0</maven-checkstyle.version>
-        <maven-gpg.version>3.2.5</maven-gpg.version>
+        <maven-gpg.version>3.2.7</maven-gpg.version>
         <maven-sonatype-staging.version>1.6.13</maven-sonatype-staging.version>
     </properties>
 

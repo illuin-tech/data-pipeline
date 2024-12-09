@@ -38,6 +38,12 @@ Here, the inner type is fine if it is closely tied to the `Step` logic, so it ca
 In other circumstances, you might need a common result type being its own thing.
 Together with a [`ResultEvaluator`](#result-evaluators) they can pull a lot of modeling weight.
 
+A `Step` can return several results simultaneously by using the `MultiResult` wrapper.
+Each `Result` in the wrapper will be indexed individually and considered as if they were produced by a sequence of steps.
+
+Note however that `MultiResult` outputs are considered as a single entity by any registered `ResultEvaluator`, this is so you can implement your own logic for resolving the `StepStrategy` from the result collection.
+For the same reason, if an `Interruption` is returned as part of a `MultiResult` it won't be picked up by `X_ON_INTERRUPT` default evaluator implementations. 
+
 ## Configuration
 
 `Step` functions can be supplied to a pipeline builder "as-is", meaning you simply `registerStep` the step instance itself:

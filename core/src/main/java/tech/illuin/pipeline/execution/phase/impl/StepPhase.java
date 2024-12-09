@@ -19,6 +19,7 @@ import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.output.PipelineTag;
 import tech.illuin.pipeline.step.builder.StepDescriptor;
 import tech.illuin.pipeline.step.execution.evaluator.StepStrategy;
+import tech.illuin.pipeline.step.result.MultiResult;
 import tech.illuin.pipeline.step.result.Result;
 import tech.illuin.pipeline.step.result.ResultDescriptor;
 
@@ -71,7 +72,11 @@ public class StepPhase<I> implements PipelinePhase<I>
                 for (Indexable indexed : arguments)
                 {
                     Result result = this.runStep(step, tag, indexed, input, output, context, metrics);
-                    metrics.resultCounter(result).increment();
+
+                    if (result instanceof MultiResult multi)
+                        multi.results().forEach(r -> metrics.resultCounter(r).increment());
+                    else
+                        metrics.resultCounter(result).increment();
 
                     StepStrategy strategy = step.postEvaluation(result, indexed, input, context);
                     logger.trace(metrics.mark(), "{}#{} received {} signal after step {} over argument {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), strategy, tag.id(), indexed.uid());
@@ -80,13 +85,18 @@ public class StepPhase<I> implements PipelinePhase<I>
                     {
                         if (result instanceof PipelineResult pResult)
                             pResult.output().results().descriptors().current().forEach(rd -> output.results().register(indexed.uid(), rd));
+                        else if (result instanceof MultiResult mResult)
+                            mResult.results().forEach(r -> {
+                                output.results().register(
+                                    indexed.uid(),
+                                    new ResultDescriptor<>(this.uidGenerator.generate(), tag, Instant.now(), r)
+                                );
+                            });
                         else {
-                            output.results().register(indexed.uid(), new ResultDescriptor<>(
-                                this.uidGenerator.generate(),
-                                tag,
-                                Instant.now(),
-                                result
-                            ));
+                            output.results().register(
+                                indexed.uid(),
+                                new ResultDescriptor<>(this.uidGenerator.generate(), tag, Instant.now(), result)
+                            );
                         }
                     }
                     if (strategy.hasBehaviour(EXIT_PIPELINE))

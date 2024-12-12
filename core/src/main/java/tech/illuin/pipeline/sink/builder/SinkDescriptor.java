@@ -59,4 +59,19 @@ public final class SinkDescriptor
     {
         return this.isAsync;
     }
+
+    public Sink sink()
+    {
+        return this.sink;
+    }
+
+    public SinkWrapper executionWrapper()
+    {
+        return this.executionWrapper;
+    }
+
+    public SinkErrorHandler errorHandler()
+    {
+        return this.errorHandler;
+    }
 }

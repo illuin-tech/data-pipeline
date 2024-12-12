@@ -11,6 +11,7 @@ import tech.illuin.pipeline.context.LocalContext;
 import tech.illuin.pipeline.input.initializer.Initializer;
 import tech.illuin.pipeline.input.initializer.annotation.InitializerConfig;
 import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
+import tech.illuin.pipeline.observer.descriptor.describable.Describable;
 import tech.illuin.pipeline.step.runner.StepRunnerException;
 
 import java.lang.reflect.InvocationTargetException;
@@ -20,7 +21,7 @@ import java.util.List;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public class InitializerRunner<I> implements Initializer<I>
+public class InitializerRunner<I> implements Initializer<I>, Describable
 {
     private final Object target;
     private Method method;
@@ -96,5 +97,11 @@ public class InitializerRunner<I> implements Initializer<I>
     {
         this.method = compiled.method();
         this.argumentMappers = compiled.mappers();
+    }
+
+    @Override
+    public Object describe()
+    {
+        return this.target();
     }
 }

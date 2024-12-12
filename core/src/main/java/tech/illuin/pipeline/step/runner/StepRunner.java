@@ -9,6 +9,7 @@ import tech.illuin.pipeline.commons.Reflection;
 import tech.illuin.pipeline.context.Context;
 import tech.illuin.pipeline.context.LocalContext;
 import tech.illuin.pipeline.input.indexer.Indexable;
+import tech.illuin.pipeline.observer.descriptor.describable.Describable;
 import tech.illuin.pipeline.step.Step;
 import tech.illuin.pipeline.step.annotation.StepConfig;
 import tech.illuin.pipeline.step.result.Result;
@@ -21,7 +22,7 @@ import java.util.List;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public class StepRunner<T extends Indexable, I> implements Step<T, I>
+public class StepRunner<T extends Indexable, I> implements Step<T, I>, Describable
 {
     private final java.lang.Object target;
     private Method method;
@@ -98,5 +99,11 @@ public class StepRunner<T extends Indexable, I> implements Step<T, I>
     {
         this.method = compiled.method();
         this.argumentMappers = compiled.mappers();
+    }
+
+    @Override
+    public Object describe()
+    {
+        return this.target();
     }
 }

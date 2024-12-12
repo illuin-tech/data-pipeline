@@ -17,6 +17,7 @@ import tech.illuin.pipeline.input.uid_generator.KSUIDGenerator;
 import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
 import tech.illuin.pipeline.metering.tag.MetricTags;
 import tech.illuin.pipeline.metering.tag.TagResolver;
+import tech.illuin.pipeline.observer.Observer;
 import tech.illuin.pipeline.output.factory.DefaultOutputFactory;
 import tech.illuin.pipeline.output.factory.OutputFactory;
 import tech.illuin.pipeline.sink.Sink;
@@ -64,6 +65,7 @@ public final class PayloadPipelineBuilder<I>
     private TagResolver<I> tagResolver;
     private InitializerAssembler<I> initializer;
     private final List<Indexer<?>> indexers;
+    private final List<Observer> observers;
 
     public PayloadPipelineBuilder()
     {
@@ -79,6 +81,7 @@ public final class PayloadPipelineBuilder<I>
         this.initializer = null;
         this.indexers = new ArrayList<>();
         this.closeTimeout = 15;
+        this.observers = new ArrayList<>();
     }
 
     public Pipeline<I> build()
@@ -102,7 +105,8 @@ public final class PayloadPipelineBuilder<I>
             this.closeTimeout(),
             this.onCloseHandlers(),
             this.meterRegistry() == null ? new SimpleMeterRegistry() : this.meterRegistry(),
-            this.tagResolver() == null ? (in, ctx) -> new MetricTags() : this.tagResolver()
+            this.tagResolver() == null ? (in, ctx) -> new MetricTags() : this.tagResolver(),
+            this.observers()
         );
     }
 
@@ -419,6 +423,17 @@ public final class PayloadPipelineBuilder<I>
     public PayloadPipelineBuilder<I> setUidGenerator(UIDGenerator uidGenerator)
     {
         this.uidGenerator = uidGenerator;
+        return this;
+    }
+
+    public List<Observer> observers()
+    {
+        return this.observers;
+    }
+
+    public PayloadPipelineBuilder<I> registerObserver(Observer supplier)
+    {
+        this.observers.add(supplier);
         return this;
     }
 }

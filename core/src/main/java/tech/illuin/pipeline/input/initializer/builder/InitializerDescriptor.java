@@ -36,6 +36,16 @@ public final class InitializerDescriptor<I>
 
     public String id()
     {
-        return id;
+        return this.id;
+    }
+
+    public Initializer<I> initializer()
+    {
+        return this.initializer;
+    }
+
+    public InitializerErrorHandler errorHandler()
+    {
+        return this.errorHandler;
     }
 }

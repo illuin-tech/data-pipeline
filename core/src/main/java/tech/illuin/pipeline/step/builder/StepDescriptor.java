@@ -72,4 +72,29 @@ public final class StepDescriptor<T extends Indexable, I>
     {
         return this.pinned;
     }
+
+    public Step<T, I> step()
+    {
+        return this.step;
+    }
+
+    public StepWrapper<T, I> executionWrapper()
+    {
+        return this.executionWrapper;
+    }
+
+    public StepCondition activationPredicate()
+    {
+        return this.activationPredicate;
+    }
+
+    public ResultEvaluator resultEvaluator()
+    {
+        return this.resultEvaluator;
+    }
+
+    public StepErrorHandler errorHandler()
+    {
+        return this.errorHandler;
+    }
 }

@@ -1,18 +1,24 @@
 package tech.illuin.pipeline.builder;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import tech.illuin.pipeline.Pipeline;
 import tech.illuin.pipeline.close.OnCloseHandler;
 import tech.illuin.pipeline.context.Context;
 import tech.illuin.pipeline.context.SimpleContext;
+import tech.illuin.pipeline.execution.error.PipelineErrorHandler;
 import tech.illuin.pipeline.input.author_resolver.AuthorResolver;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.input.initializer.Initializer;
 import tech.illuin.pipeline.input.initializer.builder.InitializerAssembler;
+import tech.illuin.pipeline.input.initializer.builder.InitializerDescriptor;
+import tech.illuin.pipeline.observer.Observer;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.sink.Sink;
+import tech.illuin.pipeline.sink.builder.SinkDescriptor;
 import tech.illuin.pipeline.sink.execution.error.SinkErrorHandler;
+import tech.illuin.pipeline.step.builder.StepDescriptor;
 import tech.illuin.pipeline.step.execution.error.StepErrorHandler;
 import tech.illuin.pipeline.step.execution.evaluator.ResultEvaluator;
 import tech.illuin.pipeline.step.execution.evaluator.StepStrategy;
@@ -44,6 +50,7 @@ public class PipelineBuilderTest
     @Test
     public void test__simple()
     {
+        var stepCounter = new StepCountObserver();
         var builder = Assertions.assertDoesNotThrow(() -> Pipeline.of("test-simple")
             .setAuthorResolver(authorResolver)
             .setDefaultStepErrorHandler(stepErrorHandler)
@@ -58,6 +65,7 @@ public class PipelineBuilderTest
             ))
             .registerSink(sink)
             .registerSinks(List.of(sink, sink))
+            .registerObserver(stepCounter)
             .registerOnCloseHandler(closeHandler)
         );
 
@@ -71,11 +79,13 @@ public class PipelineBuilderTest
         Assertions.assertEquals("1", output.results().stream().findFirst().map(Result::name).orElse(null));
         Assertions.assertEquals("6", output.results().latest(TestResult.class).map(TestResult::name).orElse(null));
         Assertions.assertEquals(3, ctx.get("sink", AtomicInteger.class).map(AtomicInteger::get).orElse(0));
+        Assertions.assertEquals(6, stepCounter.count());
     }
 
     @Test
     public void test__payload()
     {
+        var stepCounter = new StepCountObserver();
         var builder = Assertions.assertDoesNotThrow(() -> Pipeline.of(
                 "test-payload",
                 (input, context, generator) -> new TestIndexable(generator.generate())
@@ -91,6 +101,7 @@ public class PipelineBuilderTest
             ))
             .registerSink(sink)
             .registerSinks(List.of(sink, sink))
+            .registerObserver(stepCounter)
             .registerOnCloseHandler(closeHandler)
         );
 
@@ -105,6 +116,7 @@ public class PipelineBuilderTest
         Assertions.assertEquals("1", output.results().stream().findFirst().map(Result::name).orElse(null));
         Assertions.assertEquals("3", output.results().latest(TestResult.class).map(TestResult::name).orElse(null));
         Assertions.assertEquals(3, ctx.get("sink", AtomicInteger.class).map(AtomicInteger::get).orElse(0));
+        Assertions.assertEquals(3, stepCounter.count());
     }
 
     @Test
@@ -213,4 +225,27 @@ public class PipelineBuilderTest
     public record TestResult(
         String name
     ) implements Result {}
+
+    private static class StepCountObserver implements Observer
+    {
+        private final AtomicInteger counter = new AtomicInteger(0);
+
+        @Override
+        public <I> void init(
+            String id,
+            InitializerDescriptor<I> initializer,
+            List<StepDescriptor<Indexable, I>> steps,
+            List<SinkDescriptor> sinks,
+            PipelineErrorHandler errorHandler,
+            List<OnCloseHandler> onCloseHandlers,
+            MeterRegistry meterRegistry
+        ) {
+            this.counter.addAndGet(steps.size());
+        }
+
+        public int count()
+        {
+            return this.counter.get();
+        }
+    }
 }

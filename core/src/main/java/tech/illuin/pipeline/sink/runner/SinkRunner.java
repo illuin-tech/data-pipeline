@@ -8,6 +8,7 @@ import tech.illuin.pipeline.builder.runner_compiler.CompiledMethod;
 import tech.illuin.pipeline.commons.Reflection;
 import tech.illuin.pipeline.context.Context;
 import tech.illuin.pipeline.context.LocalContext;
+import tech.illuin.pipeline.observer.descriptor.describable.Describable;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.sink.Sink;
 import tech.illuin.pipeline.sink.annotation.SinkConfig;
@@ -20,7 +21,7 @@ import java.util.List;
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public class SinkRunner implements Sink
+public class SinkRunner implements Sink, Describable
 {
     private final Object target;
     private Method method;
@@ -95,5 +96,11 @@ public class SinkRunner implements Sink
     {
         this.method = compiled.method();
         this.argumentMappers = compiled.mappers();
+    }
+
+    @Override
+    public Object describe()
+    {
+        return this.target();
     }
 }

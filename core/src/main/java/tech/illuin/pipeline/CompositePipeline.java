@@ -21,6 +21,9 @@ import tech.illuin.pipeline.metering.PipelineMetrics;
 import tech.illuin.pipeline.metering.marker.LogMarker;
 import tech.illuin.pipeline.metering.tag.MetricTags;
 import tech.illuin.pipeline.metering.tag.TagResolver;
+import tech.illuin.pipeline.observer.Observer;
+import tech.illuin.pipeline.observer.descriptor.DescriptorObserver;
+import tech.illuin.pipeline.observer.descriptor.model.PipelineDescription;
 import tech.illuin.pipeline.output.ComponentFamily;
 import tech.illuin.pipeline.output.ComponentTag;
 import tech.illuin.pipeline.output.Output;
@@ -33,6 +36,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 /**
  * <p>The CompositePipeline works by separating its run implementation into predefined categories of components:</p>
@@ -62,6 +66,8 @@ public final class CompositePipeline<I> implements Pipeline<I>
     private final List<OnCloseHandler> onCloseHandlers;
     private final MeterRegistry meterRegistry;
     private final TagResolver<I> tagResolver;
+    private final DescriptorObserver descriptorObserver;
+    private final List<Observer> observers;
 
     private static final Logger logger = LoggerFactory.getLogger(CompositePipeline.class);
 
@@ -80,7 +86,8 @@ public final class CompositePipeline<I> implements Pipeline<I>
         int closeTimeout,
         List<OnCloseHandler> onCloseHandlers,
         MeterRegistry meterRegistry,
-        TagResolver<I> tagResolver
+        TagResolver<I> tagResolver,
+        List<Observer> observers
     ) {
         this.id = id;
         this.uidGenerator = uidGenerator;
@@ -92,6 +99,14 @@ public final class CompositePipeline<I> implements Pipeline<I>
         this.onCloseHandlers = onCloseHandlers;
         this.meterRegistry = meterRegistry;
         this.tagResolver = tagResolver;
+        this.descriptorObserver = new DescriptorObserver();
+        this.observers = Stream.concat(
+            Stream.of(this.descriptorObserver),
+            observers.stream()
+        ).toList();
+        this.observers.forEach(s -> s.init(
+            id, initializer, steps, sinks, errorHandler, onCloseHandlers, meterRegistry
+        ));
         this.phases = List.of(
             new StepPhase<>(steps, uidGenerator, meterRegistry),
             new SinkPhase<>(this, sinks, sinkExecutorProvider, closeTimeout, uidGenerator, meterRegistry)
@@ -205,6 +220,10 @@ public final class CompositePipeline<I> implements Pipeline<I>
         logger.trace("{} closing, closing {} phases", this.id(), this.phases.size());
         for (PipelinePhase<I> phase : this.phases)
             phase.close();
+
+        logger.trace("{} closing, closing {} observers", this.id(), this.observers.size());
+        for (Observer observer : this.observers)
+            observer.close();
     }
 
     private PipelineTag createTag(I input, Context context)
@@ -220,5 +239,11 @@ public final class CompositePipeline<I> implements Pipeline<I>
     private ComponentContext wrapContext(I input, Context context, PipelineTag pipelineTag, ComponentTag componentTag, LogMarker marker)
     {
         return new ComponentContext(context, input, pipelineTag, componentTag, this.uidGenerator, marker);
+    }
+
+    @Override
+    public PipelineDescription describe()
+    {
+        return this.descriptorObserver.describe();
     }
 }

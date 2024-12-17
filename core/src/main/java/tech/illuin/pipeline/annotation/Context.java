@@ -9,7 +9,7 @@ import java.lang.annotation.*;
  */
 @Documented
 @Inherited
-@Label("Experimental")
+@Label("Context")
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.PARAMETER})
 public @interface Context

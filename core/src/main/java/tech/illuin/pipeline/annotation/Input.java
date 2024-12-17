@@ -9,7 +9,7 @@ import java.lang.annotation.*;
  */
 @Documented
 @Inherited
-@Label("Experimental")
+@Label("Input")
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.PARAMETER})
 public @interface Input

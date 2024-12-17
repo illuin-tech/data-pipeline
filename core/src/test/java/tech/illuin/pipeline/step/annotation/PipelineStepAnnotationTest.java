@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import tech.illuin.pipeline.Pipeline;
 import tech.illuin.pipeline.PipelineException;
+import tech.illuin.pipeline.builder.SimplePipelineBuilder;
 import tech.illuin.pipeline.generic.pipeline.TestResult;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.input.indexer.SingleIndexer;
@@ -14,6 +15,7 @@ import tech.illuin.pipeline.step.annotation.step.*;
 import tech.illuin.pipeline.step.annotation.step.StepWithException.StepWithExceptionException;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
@@ -363,13 +365,20 @@ public class PipelineStepAnnotationTest
 
     public static Pipeline<Object> createPipeline_latest(String name)
     {
-        return Pipeline.of(name)
+        return createPipeline_latest(name, builder -> {});
+    }
+
+    public static Pipeline<Object> createPipeline_latest(String name, Consumer<SimplePipelineBuilder<Object>> adjuster)
+    {
+        var builder = Pipeline.of(name)
             .registerStep(new StepWithInput<>())
             .registerStep(new StepWithInputAndLatest<>())
             .registerStep(new StepWithInputAndLatestOptional<>())
-            .registerStep(new StepWithInputAndLatestStream<>())
-            .build()
-        ;
+            .registerStep(new StepWithInputAndLatestStream<>());
+
+        adjuster.accept(builder);
+
+        return builder.build();
     }
 
     public static Pipeline<Object> createPipeline_latestNamed(String name)

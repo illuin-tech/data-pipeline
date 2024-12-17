@@ -10,6 +10,7 @@ import tech.illuin.pipeline.metering.MeterRegistryKey;
 import tech.illuin.pipeline.observer.Observer;
 import tech.illuin.pipeline.observer.descriptor.describable.DefaultDescribable;
 import tech.illuin.pipeline.observer.descriptor.describable.Describable;
+import tech.illuin.pipeline.observer.descriptor.describable.Description;
 import tech.illuin.pipeline.observer.descriptor.model.*;
 import tech.illuin.pipeline.sink.builder.SinkDescriptor;
 import tech.illuin.pipeline.step.builder.StepDescriptor;
@@ -119,16 +120,10 @@ public class DescriptorObserver implements Observer
     private static Object compileDescription(Object property)
     {
         if (property instanceof Describable describable)
-            return compileDescription(describable);
+            return compileDescription(describable.describe());
+        if (property instanceof Description description)
+            return description;
         return new DefaultDescribable(property).describe();
-    }
-
-    private static Object compileDescription(Describable describable)
-    {
-        var next = describable.describe();
-        if (next instanceof Describable nextDescribable)
-            return compileDescription(nextDescribable);
-        return next;
     }
 
     private static Map<String, Metric> compileMetrics(MeterRegistry meterRegistry, MeterRegistryKey... keys)
@@ -153,7 +148,7 @@ public class DescriptorObserver implements Observer
     private static Number getValue(Meter meter)
     {
         return switch (meter.getId().getType()) {
-            case COUNTER -> Double.valueOf(((Counter) meter).count()).longValue();
+            case COUNTER -> ((Counter) meter).count();
             case TIMER -> ((Timer) meter).count();
             case GAUGE -> ((Gauge) meter).value();
             default -> throw new UnsupportedOperationException("Unsupported meter type: " + meter.getId().getType());

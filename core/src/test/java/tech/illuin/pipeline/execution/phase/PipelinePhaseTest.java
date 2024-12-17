@@ -3,6 +3,7 @@ package tech.illuin.pipeline.execution.phase;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import tech.illuin.pipeline.Pipeline;
+import tech.illuin.pipeline.builder.SimplePipelineBuilder;
 import tech.illuin.pipeline.builder.VoidPayload;
 import tech.illuin.pipeline.generic.pipeline.TestResult;
 import tech.illuin.pipeline.step.execution.evaluator.ResultEvaluator;
@@ -10,6 +11,7 @@ import tech.illuin.pipeline.step.execution.evaluator.StepStrategy;
 import tech.illuin.pipeline.step.variant.InputStep;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
@@ -82,32 +84,40 @@ public class PipelinePhaseTest
 
     public static Pipeline<Object> createPipeline(String name, ResultEvaluator evaluator, Counters counters)
     {
-        return Assertions.assertDoesNotThrow(() -> Pipeline.of(name)
-            .registerStep(builder -> builder
-                .step((InputStep<Object>) (in, res, ctx) -> {
-                    counters.step_evaluated.incrementAndGet();
-                    return new TestResult("evaluated", "ok");
+        return createPipeline(name, evaluator, counters, builder -> {});
+    }
+
+    public static Pipeline<Object> createPipeline(String name, ResultEvaluator evaluator, Counters counters, Consumer<SimplePipelineBuilder<Object>> adjuster)
+    {
+        return Assertions.assertDoesNotThrow(() -> {
+            var pipelineBuilder = Pipeline.of(name)
+                .registerStep(builder -> builder
+                    .step((InputStep<Object>) (in, res, ctx) -> {
+                        counters.step_evaluated.incrementAndGet();
+                        return new TestResult("evaluated", "ok");
+                    })
+                    .withEvaluation(evaluator)
+                )
+                .registerStep((in, res, ctx) -> {
+                    counters.step_standard.incrementAndGet();
+                    return new TestResult("standard", "ok");
                 })
-                .withEvaluation(evaluator)
-            )
-            .registerStep((in, res, ctx) -> {
-                counters.step_standard.incrementAndGet();
-                return new TestResult("standard", "ok");
-            })
-            .registerStep(builder -> builder
-                .step((InputStep<Object>) (in, res, ctx) -> {
-                    counters.step_pinned.incrementAndGet();
-                    return new TestResult("pinned", "ok");
-                })
-                .setPinned(true)
-            )
-            .registerSink((out, ctx) -> counters.sink_sync.incrementAndGet())
-            .registerSink(builder -> builder
-                .sink((out, ctx) -> counters.sink_async.incrementAndGet())
-                .setAsync(true)
-            )
-            .build()
-        );
+                .registerStep(builder -> builder
+                    .step((InputStep<Object>) (in, res, ctx) -> {
+                        counters.step_pinned.incrementAndGet();
+                        return new TestResult("pinned", "ok");
+                    })
+                    .setPinned(true)
+                )
+                .registerSink((out, ctx) -> counters.sink_sync.incrementAndGet())
+                .registerSink(builder -> builder
+                    .sink((out, ctx) -> counters.sink_async.incrementAndGet())
+                    .setAsync(true)
+                );
+            adjuster.accept(pipelineBuilder);
+            return pipelineBuilder.build();
+        });
+
     }
 
     public static class Counters

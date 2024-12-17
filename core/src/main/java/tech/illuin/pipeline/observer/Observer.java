@@ -22,5 +22,5 @@ public interface Observer
         MeterRegistry meterRegistry
     );
 
-    void close() throws Exception;
+    default void close() throws Exception {}
 }

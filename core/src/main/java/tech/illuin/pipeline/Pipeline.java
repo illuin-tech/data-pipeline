@@ -7,6 +7,8 @@ import tech.illuin.pipeline.context.Context;
 import tech.illuin.pipeline.context.SimpleContext;
 import tech.illuin.pipeline.input.initializer.Initializer;
 import tech.illuin.pipeline.input.initializer.builder.InitializerAssembler;
+import tech.illuin.pipeline.observer.descriptor.DescriptionNotAvailableException;
+import tech.illuin.pipeline.observer.descriptor.model.PipelineDescription;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.step.Step;
 import tech.illuin.pipeline.step.result.Result;
@@ -153,5 +155,10 @@ public interface Pipeline<I> extends AutoCloseable
     default Context newContext(Output parent)
     {
         return new SimpleContext(parent);
+    }
+
+    default PipelineDescription describe()
+    {
+        throw new DescriptionNotAvailableException("Not implemented");
     }
 }

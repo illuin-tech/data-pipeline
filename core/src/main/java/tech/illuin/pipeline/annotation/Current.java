@@ -9,7 +9,7 @@ import java.lang.annotation.*;
  */
 @Documented
 @Inherited
-@Label("Experimental")
+@Label("Current")
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.PARAMETER})
 public @interface Current

@@ -2,11 +2,12 @@ package tech.illuin.pipeline.observer.descriptor;
 
 import io.micrometer.core.instrument.*;
 import io.micrometer.core.instrument.Meter.Id;
+import io.micrometer.core.instrument.Timer;
 import tech.illuin.pipeline.close.OnCloseHandler;
 import tech.illuin.pipeline.execution.error.PipelineErrorHandler;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.input.initializer.builder.InitializerDescriptor;
-import tech.illuin.pipeline.metering.MeterRegistryKey;
+import tech.illuin.pipeline.metering.*;
 import tech.illuin.pipeline.observer.Observer;
 import tech.illuin.pipeline.observer.descriptor.describable.DefaultDescribable;
 import tech.illuin.pipeline.observer.descriptor.describable.Describable;
@@ -15,14 +16,12 @@ import tech.illuin.pipeline.observer.descriptor.model.*;
 import tech.illuin.pipeline.sink.builder.SinkDescriptor;
 import tech.illuin.pipeline.step.builder.StepDescriptor;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.util.Arrays.asList;
 import static tech.illuin.pipeline.metering.MeterRegistryKey.*;
 
 public class DescriptorObserver implements Observer
@@ -41,11 +40,12 @@ public class DescriptorObserver implements Observer
     ) {
         this.supplier = () -> new PipelineDescription(
             id,
-            createInitializer(initializer, meterRegistry),
-            createSteps(steps, meterRegistry),
-            createSinks(sinks, meterRegistry),
+            createInitializer(id, initializer, meterRegistry),
+            createSteps(id, steps, meterRegistry),
+            createSinks(id, sinks, meterRegistry),
             compileMetrics(
                 meterRegistry,
+                asList(PipelineMetrics.computeDiscriminants(id)),
                 PIPELINE_RUN_KEY,
                 PIPELINE_RUN_TOTAL_KEY,
                 PIPELINE_RUN_SUCCESS_KEY,
@@ -55,7 +55,7 @@ public class DescriptorObserver implements Observer
         );
     }
 
-    private static InitializerDescription createInitializer(InitializerDescriptor<?> descriptor, MeterRegistry meterRegistry)
+    private static InitializerDescription createInitializer(String pipelineId, InitializerDescriptor<?> descriptor, MeterRegistry meterRegistry)
     {
         return new InitializerDescription(
             descriptor.id(),
@@ -63,6 +63,7 @@ public class DescriptorObserver implements Observer
             compileDescription(descriptor.errorHandler()),
             compileMetrics(
                 meterRegistry,
+                asList(PipelineInitializationMetrics.computeDiscriminants(pipelineId, descriptor.id())),
                 PIPELINE_INITIALIZATION_RUN_KEY,
                 PIPELINE_INITIALIZATION_RUN_TOTAL_KEY,
                 PIPELINE_INITIALIZATION_RUN_SUCCESS_KEY,
@@ -72,7 +73,7 @@ public class DescriptorObserver implements Observer
         );
     }
 
-    private static <I> List<StepDescription> createSteps(List<StepDescriptor<Indexable, I>> descriptors, MeterRegistry meterRegistry)
+    private static <I> List<StepDescription> createSteps(String pipelineId, List<StepDescriptor<Indexable, I>> descriptors, MeterRegistry meterRegistry)
     {
         return descriptors.stream()
             .map(sd -> new StepDescription(
@@ -85,6 +86,7 @@ public class DescriptorObserver implements Observer
                 compileDescription(sd.errorHandler()),
                 compileMetrics(
                     meterRegistry,
+                    asList(PipelineStepMetrics.computeDiscriminants(pipelineId, sd.id())),
                     PIPELINE_STEP_RUN_KEY,
                     PIPELINE_STEP_RUN_TOTAL_KEY,
                     PIPELINE_STEP_RUN_SUCCESS_KEY,
@@ -96,7 +98,7 @@ public class DescriptorObserver implements Observer
             .toList();
     }
 
-    private static List<SinkDescription> createSinks(List<SinkDescriptor> descriptors, MeterRegistry meterRegistry)
+    private static List<SinkDescription> createSinks(String pipelineId, List<SinkDescriptor> descriptors, MeterRegistry meterRegistry)
     {
         return descriptors.stream()
             .map(sd -> new SinkDescription(
@@ -107,6 +109,7 @@ public class DescriptorObserver implements Observer
                 compileDescription(sd.errorHandler()),
                 compileMetrics(
                     meterRegistry,
+                    asList(PipelineSinkMetrics.computeDiscriminants(pipelineId, sd.id())),
                     PIPELINE_SINK_RUN_KEY,
                     PIPELINE_SINK_RUN_TOTAL_KEY,
                     PIPELINE_SINK_RUN_SUCCESS_KEY,
@@ -126,12 +129,12 @@ public class DescriptorObserver implements Observer
         return new DefaultDescribable(property).describe();
     }
 
-    private static Map<String, Metric> compileMetrics(MeterRegistry meterRegistry, MeterRegistryKey... keys)
+    private static Map<String, Metric> compileMetrics(MeterRegistry meterRegistry, List<Tag> discriminants, MeterRegistryKey... keys)
     {
         return Stream.of(keys).collect(Collectors.toMap(
             MeterRegistryKey::id,
             k -> {
-                Collection<Meter> meters = meterRegistry.find(k.id()).meters();
+                Collection<Meter> meters = meterRegistry.find(k.id()).tags(discriminants).meters();
 
                 Map<Id, Number> values = meters.isEmpty()
                     ? Collections.emptyMap()

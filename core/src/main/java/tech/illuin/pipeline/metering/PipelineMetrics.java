@@ -34,7 +34,8 @@ public class PipelineMetrics implements LogMarker
         this.meterRegistry = meterRegistry;
         this.tag = tag;
         this.metricTags = metricTags;
-        Collection<Tag> meterTags = compileTags(this.metricTags, Tag.of("pipeline", tag.pipeline()));
+        Tag[] discriminants = computeDiscriminants(tag.pipeline());
+        Collection<Tag> meterTags = compileTags(this.metricTags, discriminants);
         this.runTimer = meterRegistry.timer(PIPELINE_RUN_KEY.id(), fill(PIPELINE_RUN_KEY, meterTags));
         this.totalCounter = meterRegistry.counter(PIPELINE_RUN_TOTAL_KEY.id(), fill(PIPELINE_RUN_TOTAL_KEY, meterTags));
         this.successCounter = meterRegistry.counter(PIPELINE_RUN_SUCCESS_KEY.id(), fill(PIPELINE_RUN_SUCCESS_KEY, meterTags));
@@ -99,5 +100,10 @@ public class PipelineMetrics implements LogMarker
             ),
             emptyMap()
         ));
+    }
+
+    public static Tag[] computeDiscriminants(String identifier)
+    {
+        return new Tag[]{Tag.of("pipeline", identifier)};
     }
 }

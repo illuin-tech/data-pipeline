@@ -20,26 +20,26 @@ public class GenericRunnerCompiler<C extends Annotation, T, I> implements Runner
 {
     private final Class<C> configType;
     private final MethodArgumentResolver<T, I> argumentResolver;
-    private final List<MethodValidator> methodValidators;
+    private final MethodValidator methodValidator;
 
     private static final Logger logger = LoggerFactory.getLogger(GenericRunnerCompiler.class);
 
     public GenericRunnerCompiler(Class<C> configType, MethodArgumentResolver<T, I> argumentResolver)
     {
-        this(configType, argumentResolver, Collections.emptyList());
+        this(configType, argumentResolver, MethodValidator.any());
     }
 
-    public GenericRunnerCompiler(Class<C> configType, MethodArgumentResolver<T, I> argumentResolver, List<MethodValidator> additionalValidators)
+    public GenericRunnerCompiler(Class<C> configType, MethodArgumentResolver<T, I> argumentResolver, MethodValidator methodValidator)
     {
         this.configType = configType;
         this.argumentResolver = argumentResolver;
-        this.methodValidators = additionalValidators;
+        this.methodValidator = methodValidator;
     }
 
     @Override
     public CompiledMethod<C, T, I> compile(Object target)
     {
-        logger.trace("{}: Compiling runner-based " + this.configType.getSimpleName() + " with target type " + target.getClass().getName(), this);
+        logger.trace("{}: Compiling runner-based {} with target type {}", this.configType.getSimpleName(), this, target.getClass().getName());
 
         Class<?> c = target.getClass();
         List<MethodCandidate<C>> candidates = this.lookupStepMethods(c);
@@ -51,9 +51,8 @@ public class GenericRunnerCompiler<C extends Annotation, T, I> implements Runner
 
         MethodCandidate<C> candidate = candidates.get(0);
         logger.trace("{}: Found method candidate {}", this, Reflection.getMethodSignature(candidate.method()));
-
-        for (MethodValidator validator : this.methodValidators)
-            validator.validate(candidate.method());
+        if (!this.methodValidator.validate(candidate.method()))
+            throw new IllegalStateException(this.methodValidator.description());
 
         return new CompiledMethod<>(
             candidate.method(),

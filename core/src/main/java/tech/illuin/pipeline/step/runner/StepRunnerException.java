@@ -5,6 +5,11 @@ package tech.illuin.pipeline.step.runner;
  */
 public class StepRunnerException extends Exception
 {
+    public StepRunnerException(String message)
+    {
+        super(message);
+    }
+
     public StepRunnerException(String message, Throwable cause)
     {
         super(message, cause);

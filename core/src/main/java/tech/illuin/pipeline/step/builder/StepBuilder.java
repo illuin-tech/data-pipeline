@@ -33,7 +33,7 @@ public class StepBuilder<T extends Indexable, I> extends ComponentBuilder<T, I, 
 
     public StepBuilder()
     {
-        super(StepConfig.class, new StepMethodArgumentResolver<>(), StepMethodValidators.validators);
+        super(StepConfig.class, new StepMethodArgumentResolver<>(), StepMethodValidators.validator);
     }
 
     @Override

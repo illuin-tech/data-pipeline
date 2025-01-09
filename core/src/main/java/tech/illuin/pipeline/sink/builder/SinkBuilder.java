@@ -24,7 +24,7 @@ public class SinkBuilder extends ComponentBuilder<Object, Object, SinkDescriptor
 
     public SinkBuilder()
     {
-        super(SinkConfig.class, new SinkMethodArgumentResolver<>(), SinkMethodValidators.validators);
+        super(SinkConfig.class, new SinkMethodArgumentResolver<>(), SinkMethodValidators.validator);
     }
 
     @Override

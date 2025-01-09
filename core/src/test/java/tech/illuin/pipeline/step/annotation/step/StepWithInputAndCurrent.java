@@ -31,4 +31,14 @@ public class StepWithInputAndCurrent<T>
             return new TestResult("annotation-test", result.status() + "->single(" + data + ")");
         }
     }
+
+    public static class Self<T>
+    {
+        @StepConfig(id = "step-with_input+current")
+        public Result execute(@Input T data, @Current(self = true) TestResult result)
+        {
+            logger.info("input: {} current: {}", data, result.status());
+            return new TestResult("annotation-test", result.status() + "->single(" + data + ")");
+        }
+    }
 }

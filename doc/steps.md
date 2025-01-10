@@ -41,6 +41,8 @@ Together with a [`ResultEvaluator`](#result-evaluators) they can pull a lot of m
 A `Step` can return several results simultaneously by using the `MultiResult` wrapper.
 Each `Result` in the wrapper will be indexed individually and considered as if they were produced by a sequence of steps.
 
+Returning a collection of `Result` subtypes directly is also a possibility, in which case the `MultiResult` wrapper will be automatically created by `data-pipeline` and behave as if you returned one yourself.
+
 Note however that `MultiResult` outputs are considered as a single entity by any registered `ResultEvaluator`, this is so you can implement your own logic for resolving the `StepStrategy` from the result collection.
 For the same reason, if an `Interruption` is returned as part of a `MultiResult` it won't be picked up by `X_ON_INTERRUPT` default evaluator implementations. 
 

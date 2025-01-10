@@ -36,4 +36,15 @@ public class StepWithInputAndCurrentStream<T>
             return new TestResult("annotation-test", statuses + "->stream(" + data + ")");
         }
     }
+
+    public static class Self<T>
+    {
+        @StepConfig(id = "step-with_input+current-stream")
+        public Result execute(@Input T data, @Current(self = true) Stream<TestResult> result)
+        {
+            String statuses = result.map(TestResult::status).collect(Collectors.joining("+"));
+            logger.info("input: {} currents: {}", data, statuses);
+            return new TestResult("annotation-test", statuses + "->stream(" + data + ")");
+        }
+    }
 }

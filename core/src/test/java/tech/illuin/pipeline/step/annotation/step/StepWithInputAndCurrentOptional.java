@@ -35,4 +35,15 @@ public class StepWithInputAndCurrentOptional<T>
             return new TestResult("annotation-test", status + "->optional(" + data + ")");
         }
     }
+
+    public static class Self<T>
+    {
+        @StepConfig(id = "step-with_input+current-optional")
+        public Result execute(@Input T data, @Current(self = true) Optional<TestResult> result)
+        {
+            String status = result.map(TestResult::status).orElse(null);
+            logger.info("input: {} current: {}", data, status);
+            return new TestResult("annotation-test", status + "->optional(" + data + ")");
+        }
+    }
 }

@@ -7,12 +7,14 @@ import tech.illuin.pipeline.PipelineException;
 import tech.illuin.pipeline.builder.SimplePipelineBuilder;
 import tech.illuin.pipeline.generic.pipeline.TestResult;
 import tech.illuin.pipeline.input.indexer.Indexable;
+import tech.illuin.pipeline.input.indexer.MultiIndexer;
 import tech.illuin.pipeline.input.indexer.SingleIndexer;
 import tech.illuin.pipeline.input.initializer.Initializer;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.step.Step;
 import tech.illuin.pipeline.step.annotation.step.*;
 import tech.illuin.pipeline.step.annotation.step.StepWithException.StepWithExceptionException;
+import tech.illuin.pipeline.step.result.Results;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -86,6 +88,43 @@ public class PipelineStepAnnotationTest
         Assertions.assertEquals(
             output.payload(TestPayload.class).object().uid(),
             output.results().current(TestResult.class).map(TestResult::status).orElse(null)
+        );
+    }
+
+    @Test
+    public void testPipeline__shouldCompile_objectMulti()
+    {
+        Pipeline<String> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_objectMulti("test-object-multi"));
+
+        Output output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
+        Assertions.assertDoesNotThrow(pipeline::close);
+
+        List<TestObject> objects = output.payload(TestPayloadMulti.class).objects();
+
+        TestObject object0 = objects.get(0);
+        List<TestResult> result0 = output.results(objects.get(0)).stream(TestResult.class).toList();
+        Assertions.assertEquals(object0.uid(), result0.get(0).status());
+        Assertions.assertEquals(object0.uid() + "->single(input)", result0.get(1).status());
+        Assertions.assertEquals(result0.get(1).status() + "->optional(input)", result0.get(2).status());
+        Assertions.assertEquals(
+            result0.get(0).status()
+            + "+" + result0.get(1).status()
+            + "+" + result0.get(2).status()
+            + "->stream(input)",
+            result0.get(3).status()
+        );
+
+        TestObject object1 = objects.get(1);
+        List<TestResult> result1 = output.results(objects.get(1)).stream(TestResult.class).toList();
+        Assertions.assertEquals(object1.uid(), result1.get(0).status());
+        Assertions.assertEquals(object1.uid() + "->single(input)", result1.get(1).status());
+        Assertions.assertEquals(result1.get(1).status() + "->optional(input)", result1.get(2).status());
+        Assertions.assertEquals(
+            result1.get(0).status()
+                + "+" + result1.get(1).status()
+                + "+" + result1.get(2).status()
+                + "->stream(input)",
+            result1.get(3).status()
         );
     }
 
@@ -342,6 +381,20 @@ public class PipelineStepAnnotationTest
             .build();
     }
 
+    public static Pipeline<String> createPipeline_objectMulti(String name)
+    {
+        return Pipeline.of(name, (Initializer<String>) (input, context, generator) -> new TestPayloadMulti(List.of(
+                new TestObject(generator.generate()),
+                new TestObject(generator.generate())
+            )))
+            .registerIndexer((MultiIndexer<TestPayloadMulti>) TestPayloadMulti::objects)
+            .registerStep(new StepWithObject())
+            .registerStep(new StepWithInputAndCurrent.Self<>())
+            .registerStep(new StepWithInputAndCurrentOptional.Self<>())
+            .registerStep(new StepWithInputAndCurrentStream.Self<>())
+            .build();
+    }
+
     public static Pipeline<String> createPipeline_payload(String name)
     {
         return Pipeline.of(name, (Initializer<String>) (input, context, generator) -> new TestPayload(new TestObject(generator.generate())))
@@ -461,6 +514,10 @@ public class PipelineStepAnnotationTest
 
     public record TestPayload(
         TestObject object
+    ) {}
+
+    public record TestPayloadMulti(
+        List<TestObject> objects
     ) {}
 
     public record TestObject(

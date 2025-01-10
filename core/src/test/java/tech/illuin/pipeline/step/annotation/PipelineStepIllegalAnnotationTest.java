@@ -55,6 +55,15 @@ public class PipelineStepIllegalAnnotationTest
         ));
     }
 
+    @Test
+    public void testPipeline__illegalReturnType_collectionGeneric_shouldNotCompile()
+    {
+        Assertions.assertThrows(IllegalStateException.class, () -> createNonCompilingPipeline(
+            "test-non-compiling",
+            new IllegalStepCollectionGenericMethod<>()
+        ));
+    }
+
     public static Pipeline<Object> createNonCompilingPipeline(String name, Object illegalStep)
     {
         return Pipeline.of(name)

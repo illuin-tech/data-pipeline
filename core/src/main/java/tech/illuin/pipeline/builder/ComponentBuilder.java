@@ -17,9 +17,9 @@ public abstract class ComponentBuilder<T, I, CD, CC extends Annotation>
     protected final RunnerCompiler<CC, T, I> compiler;
     private final Class<CC> configType;
 
-    protected ComponentBuilder(Class<CC> configType, MethodArgumentResolver<T, I> methodArgumentResolver, List<MethodValidator> methodValidators)
+    protected ComponentBuilder(Class<CC> configType, MethodArgumentResolver<T, I> methodArgumentResolver, MethodValidator methodValidator)
     {
-        this.compiler = new GenericRunnerCompiler<>(configType, methodArgumentResolver, methodValidators);
+        this.compiler = new GenericRunnerCompiler<>(configType, methodArgumentResolver, methodValidator);
         this.configType = configType;
     }
 

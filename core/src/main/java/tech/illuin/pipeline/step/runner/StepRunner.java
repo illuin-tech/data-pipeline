@@ -12,11 +12,14 @@ import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.observer.descriptor.describable.Describable;
 import tech.illuin.pipeline.step.Step;
 import tech.illuin.pipeline.step.annotation.StepConfig;
+import tech.illuin.pipeline.step.result.MultiResult;
 import tech.illuin.pipeline.step.result.Result;
 import tech.illuin.pipeline.step.result.ResultView;
+import tech.illuin.pipeline.step.result.Results;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -63,7 +66,19 @@ public class StepRunner<T extends Indexable, I> implements Step<T, I>, Describab
                 .map(mapper -> mapper.map(originalArguments))
                 .toArray()
             ;
-            return (Result) this.method.invoke(this.target, arguments);
+
+            Object result = this.method.invoke(this.target, arguments);
+
+            /* Valid cases should have corresponding MethodValidators */
+            if (result instanceof Result)
+                return (Result) result;
+            if (result instanceof Collection<?> cResult)
+                //noinspection unchecked
+                return MultiResult.of((Collection<? extends Result>) cResult);
+
+            if (result == null)
+                throw new StepRunnerException("Step method returned a null result");
+            throw new StepRunnerException("Step method returned an unexpected result type " + result.getClass().getName());
         }
         catch (InvocationTargetException e) {
             if (e.getTargetException() instanceof Exception)

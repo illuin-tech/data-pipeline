@@ -21,7 +21,7 @@ public class InitializerBuilder<I> extends ComponentBuilder<Object, I, Initializ
 
     public InitializerBuilder()
     {
-        super(InitializerConfig.class, new InitializerMethodArgumentResolver<>(), InitializerMethodValidators.validators);
+        super(InitializerConfig.class, new InitializerMethodArgumentResolver<>(), InitializerMethodValidators.validator);
     }
 
     @Override

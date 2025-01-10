@@ -9,7 +9,7 @@ import java.util.List;
  */
 public final class SinkMethodValidators
 {
-    public static final List<MethodValidator> validators = List.of();
+    public static final MethodValidator validator = MethodValidator.any();
 
     private SinkMethodValidators() {}
 }

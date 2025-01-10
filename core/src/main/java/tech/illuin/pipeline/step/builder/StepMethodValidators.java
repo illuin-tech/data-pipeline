@@ -1,9 +1,9 @@
 package tech.illuin.pipeline.step.builder;
 
 import tech.illuin.pipeline.builder.runner_compiler.MethodValidator;
-import tech.illuin.pipeline.step.result.Result;
+import tech.illuin.pipeline.step.builder.runner_compiler.ResultCollectionReturnType;
+import tech.illuin.pipeline.step.builder.runner_compiler.ResultReturnType;
 
-import java.lang.reflect.Method;
 import java.util.List;
 
 /**
@@ -11,15 +11,10 @@ import java.util.List;
  */
 public final class StepMethodValidators
 {
-    public static final List<MethodValidator> validators = List.of(
-        StepMethodValidators::hasAResultReturnType
+    public static final MethodValidator validator = MethodValidator.or(
+        new ResultReturnType(),
+        new ResultCollectionReturnType()
     );
 
     private StepMethodValidators() {}
-
-    public static void hasAResultReturnType(Method method)
-    {
-        if (!Result.class.isAssignableFrom(method.getReturnType()))
-            throw new IllegalStateException("The return value of a step method has to be a Result subtype");
-    }
 }

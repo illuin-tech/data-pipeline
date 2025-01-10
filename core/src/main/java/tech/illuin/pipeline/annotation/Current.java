@@ -15,4 +15,6 @@ import java.lang.annotation.*;
 public @interface Current
 {
     String name() default "";
+
+    boolean self() default false;
 }

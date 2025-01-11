@@ -31,4 +31,14 @@ public class StepWithInputAndLatest<T>
             return new TestResult("annotation-test", result.status() + "->single(" + data + ")");
         }
     }
+
+    public static class Self<T>
+    {
+        @StepConfig(id = "step-with_input+latest")
+        public Result execute(@Input T data, @Latest(self = true) TestResult result)
+        {
+            logger.info("input: {} latest: {}", data, result.status());
+            return new TestResult("annotation-test", result.status() + "->single(" + data + ")");
+        }
+    }
 }

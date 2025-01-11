@@ -14,7 +14,6 @@ import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.step.Step;
 import tech.illuin.pipeline.step.annotation.step.*;
 import tech.illuin.pipeline.step.annotation.step.StepWithException.StepWithExceptionException;
-import tech.illuin.pipeline.step.result.Results;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -92,9 +91,9 @@ public class PipelineStepAnnotationTest
     }
 
     @Test
-    public void testPipeline__shouldCompile_objectMulti()
+    public void testPipeline__shouldCompile_objectMulti_current()
     {
-        Pipeline<String> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_objectMulti("test-object-multi"));
+        Pipeline<String> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_objectMulti_current("test-object-multi-current"));
 
         Output output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
         Assertions.assertDoesNotThrow(pipeline::close);
@@ -111,6 +110,43 @@ public class PipelineStepAnnotationTest
             + "+" + result0.get(1).status()
             + "+" + result0.get(2).status()
             + "->stream(input)",
+            result0.get(3).status()
+        );
+
+        TestObject object1 = objects.get(1);
+        List<TestResult> result1 = output.results(objects.get(1)).stream(TestResult.class).toList();
+        Assertions.assertEquals(object1.uid(), result1.get(0).status());
+        Assertions.assertEquals(object1.uid() + "->single(input)", result1.get(1).status());
+        Assertions.assertEquals(result1.get(1).status() + "->optional(input)", result1.get(2).status());
+        Assertions.assertEquals(
+            result1.get(0).status()
+                + "+" + result1.get(1).status()
+                + "+" + result1.get(2).status()
+                + "->stream(input)",
+            result1.get(3).status()
+        );
+    }
+
+    @Test
+    public void testPipeline__shouldCompile_objectMulti_latest()
+    {
+        Pipeline<String> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_objectMulti_latest("test-object-multi-latest"));
+
+        Output output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
+        Assertions.assertDoesNotThrow(pipeline::close);
+
+        List<TestObject> objects = output.payload(TestPayloadMulti.class).objects();
+
+        TestObject object0 = objects.get(0);
+        List<TestResult> result0 = output.results(objects.get(0)).stream(TestResult.class).toList();
+        Assertions.assertEquals(object0.uid(), result0.get(0).status());
+        Assertions.assertEquals(object0.uid() + "->single(input)", result0.get(1).status());
+        Assertions.assertEquals(result0.get(1).status() + "->optional(input)", result0.get(2).status());
+        Assertions.assertEquals(
+            result0.get(0).status()
+                + "+" + result0.get(1).status()
+                + "+" + result0.get(2).status()
+                + "->stream(input)",
             result0.get(3).status()
         );
 
@@ -381,7 +417,7 @@ public class PipelineStepAnnotationTest
             .build();
     }
 
-    public static Pipeline<String> createPipeline_objectMulti(String name)
+    public static Pipeline<String> createPipeline_objectMulti_current(String name)
     {
         return Pipeline.of(name, (Initializer<String>) (input, context, generator) -> new TestPayloadMulti(List.of(
                 new TestObject(generator.generate()),
@@ -392,6 +428,20 @@ public class PipelineStepAnnotationTest
             .registerStep(new StepWithInputAndCurrent.Self<>())
             .registerStep(new StepWithInputAndCurrentOptional.Self<>())
             .registerStep(new StepWithInputAndCurrentStream.Self<>())
+            .build();
+    }
+
+    public static Pipeline<String> createPipeline_objectMulti_latest(String name)
+    {
+        return Pipeline.of(name, (Initializer<String>) (input, context, generator) -> new TestPayloadMulti(List.of(
+                new TestObject(generator.generate()),
+                new TestObject(generator.generate())
+            )))
+            .registerIndexer((MultiIndexer<TestPayloadMulti>) TestPayloadMulti::objects)
+            .registerStep(new StepWithObject())
+            .registerStep(new StepWithInputAndLatest.Self<>())
+            .registerStep(new StepWithInputAndLatestOptional.Self<>())
+            .registerStep(new StepWithInputAndLatestStream.Self<>())
             .build();
     }
 

@@ -21,7 +21,7 @@
         <tsid.version>5.2.6</tsid.version>
         <ulid.version>5.2.3</ulid.version>
         <micrometer.version>1.14.3</micrometer.version>
-        <loki4j.version>1.5.2</loki4j.version>
+        <loki4j.version>1.6.0</loki4j.version>
     </properties>
 
     <dependencies>

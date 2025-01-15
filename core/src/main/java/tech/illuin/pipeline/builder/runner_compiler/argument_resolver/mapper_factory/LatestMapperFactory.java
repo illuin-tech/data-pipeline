@@ -60,9 +60,9 @@ public class LatestMapperFactory<T, I> implements MethodArgumentMapperFactory<T,
         throw new IllegalStateException("@Latest can only be assigned to a Result subtype or an Optional or Stream of a Result subtype");
     }
 
-    private static Results getResults(MethodArguments<?, ?> args, Latest current)
+    private static Results getResults(MethodArguments<?, ?> args, Latest latest)
     {
-        if (current.self())
+        if (latest.self())
             return args.resultView().self();
         return args.results();
     }

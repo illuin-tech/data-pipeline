@@ -36,4 +36,15 @@ public class StepWithInputAndLatestStream<T>
             return new TestResult("annotation-test", statuses + "->stream(" + data + ")");
         }
     }
+
+    public static class Self<T>
+    {
+        @StepConfig(id = "step-with_input+latest-stream")
+        public Result execute(@Input T data, @Latest(self = true) Stream<TestResult> result)
+        {
+            String statuses = result.map(TestResult::status).collect(Collectors.joining("+"));
+            logger.info("input: {} latests: {}", data, statuses);
+            return new TestResult("annotation-test", statuses + "->stream(" + data + ")");
+        }
+    }
 }

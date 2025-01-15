@@ -35,4 +35,15 @@ public class StepWithInputAndLatestOptional<T>
             return new TestResult("annotation-test", status + "->optional(" + data + ")");
         }
     }
+
+    public static class Self<T>
+    {
+        @StepConfig(id = "step-with_input+latest-optional")
+        public Result execute(@Input T data, @Latest(self = true) Optional<TestResult> result)
+        {
+            String status = result.map(TestResult::status).orElse(null);
+            logger.info("input: {} latest: {}", data, status);
+            return new TestResult("annotation-test", status + "->optional(" + data + ")");
+        }
+    }
 }

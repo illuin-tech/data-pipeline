@@ -7,6 +7,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public class ReflectionTest
@@ -44,7 +45,7 @@ public class ReflectionTest
     @Test
     public void testGetOptionalParameter() throws NoSuchMethodException
     {
-        Method method = ReflectionTest.class.getMethod("acceptOptional", Optional.class, Optional.class, Object.class);
+        Method method = ReflectionTest.class.getMethod("acceptOptional", Optional.class, Optional.class, Optional.class, Object.class);
 
         Parameter arg0 = method.getParameters()[0];
         Optional<Class<Object>> optionalArg0 = Assertions.assertDoesNotThrow(() -> Reflection.getOptionalParameter(arg0, Object.class));
@@ -60,6 +61,11 @@ public class ReflectionTest
         Assertions.assertTrue(optionalArg1Generic.isPresent());
         Assertions.assertEquals(ReturnTrue.class, optionalArg1Generic.get());
 
+        Parameter arg2 = method.getParameters()[2];
+        Optional<Class<Supplier>> optionalArg2 = Assertions.assertDoesNotThrow(() -> Reflection.getOptionalParameter(arg2, Supplier.class));
+        Assertions.assertTrue(optionalArg2.isPresent());
+        Assertions.assertEquals(Supplier.class, optionalArg2.get());
+
         Optional<Class<Integer>> optionalArg1Mismatch = Assertions.assertDoesNotThrow(() -> Reflection.getOptionalParameter(arg1, Integer.class));
         Assertions.assertTrue(optionalArg1Mismatch.isEmpty());
     }
@@ -67,8 +73,8 @@ public class ReflectionTest
     @Test
     public void testGetOptionalParameter__shouldReturnEmptyForNonOptional() throws NoSuchMethodException
     {
-        Method method = ReflectionTest.class.getMethod("acceptOptional", Optional.class, Optional.class, Object.class);
-        Parameter arg2 = method.getParameters()[2];
+        Method method = ReflectionTest.class.getMethod("acceptOptional", Optional.class, Optional.class, Optional.class, Object.class);
+        Parameter arg2 = method.getParameters()[3];
 
         Optional<Class<?>> optionalArg2 = Assertions.assertDoesNotThrow(() -> Reflection.getOptionalParameter(arg2, Object.class));
         Assertions.assertTrue(optionalArg2.isEmpty());
@@ -77,7 +83,7 @@ public class ReflectionTest
     @Test
     public void testGetStreamParameter() throws NoSuchMethodException
     {
-        Method method = ReflectionTest.class.getMethod("acceptStream", Stream.class, Stream.class, Object.class);
+        Method method = ReflectionTest.class.getMethod("acceptStream", Stream.class, Stream.class, Stream.class, Object.class);
 
         Parameter arg0 = method.getParameters()[0];
         Optional<Class<Object>> streamArg0 = Assertions.assertDoesNotThrow(() -> Reflection.getStreamParameter(arg0, Object.class));
@@ -93,6 +99,11 @@ public class ReflectionTest
         Assertions.assertTrue(streamArg1Generic.isPresent());
         Assertions.assertEquals(ReturnTrue.class, streamArg1Generic.get());
 
+        Parameter arg2 = method.getParameters()[2];
+        Optional<Class<Supplier>> streamArg2 = Assertions.assertDoesNotThrow(() -> Reflection.getStreamParameter(arg2, Supplier.class));
+        Assertions.assertTrue(streamArg2.isPresent());
+        Assertions.assertEquals(Supplier.class, streamArg2.get());
+
         Optional<Class<Integer>> streamArg1Mismatch = Assertions.assertDoesNotThrow(() -> Reflection.getStreamParameter(arg1, Integer.class));
         Assertions.assertTrue(streamArg1Mismatch.isEmpty());
     }
@@ -100,8 +111,8 @@ public class ReflectionTest
     @Test
     public void testGetStreamParameter__shouldReturnEmptyForNonStream() throws NoSuchMethodException
     {
-        Method method = ReflectionTest.class.getMethod("acceptStream", Stream.class, Stream.class, Object.class);
-        Parameter arg2 = method.getParameters()[2];
+        Method method = ReflectionTest.class.getMethod("acceptStream", Stream.class, Stream.class, Stream.class, Object.class);
+        Parameter arg2 = method.getParameters()[3];
 
         Optional<Class<?>> streamArg2 = Assertions.assertDoesNotThrow(() -> Reflection.getStreamParameter(arg2, Object.class));
         Assertions.assertTrue(streamArg2.isEmpty());
@@ -125,12 +136,14 @@ public class ReflectionTest
     public static void acceptOptional(
         Optional<Object> optionalObject,
         Optional<ReturnTrue> optionalTyped,
+        Optional<Supplier<Integer>> optionalGeneric,
         Object nonOptional
     ) {}
 
     public static void acceptStream(
         Stream<Object> streamObject,
         Stream<ReturnTrue> streamTyped,
+        Stream<Supplier<Integer>> streamGeneric,
         Object nonOptional
     ) {}
 }

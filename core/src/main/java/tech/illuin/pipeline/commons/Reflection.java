@@ -60,14 +60,14 @@ public final class Reflection
             throw new IllegalStateException("Argument of type Optional of a " + expectedSuperclass.getSimpleName() + " subtype are expected to be declared with a single explicit bound");
 
         Type typeParam = typeParams[0];
-        if (!(typeParam instanceof Class<?> typeParamClass))
+        Optional<Class<?>> typeParamClass = asClass(typeParam);
+        if (typeParamClass.isEmpty())
             throw new IllegalStateException("Argument of type Optional uses an unexpected type " + typeParam.getClass());
 
         //noinspection unchecked
-        return expectedSuperclass.isAssignableFrom(typeParamClass)
-            ? Optional.of((C) typeParamClass)
-            : Optional.empty()
-        ;
+        return typeParamClass
+            .filter(expectedSuperclass::isAssignableFrom)
+            .map(c -> (C) c);
     }
 
     public static <C extends Class<?>> Optional<C> getStreamParameter(Parameter parameter, C expectedSuperclass)
@@ -80,14 +80,14 @@ public final class Reflection
             throw new IllegalStateException("Argument of type Stream of a " + expectedSuperclass.getSimpleName() + " subtype are expected to be declared with a single explicit bound");
 
         Type typeParam = typeParams[0];
-        if (!(typeParam instanceof Class<?> typeParamClass))
+        Optional<Class<?>> typeParamClass = asClass(typeParam);
+        if (typeParamClass.isEmpty())
             throw new IllegalStateException("Argument of type Stream uses an unexpected type " + typeParam.getClass());
 
         //noinspection unchecked
-        return expectedSuperclass.isAssignableFrom(typeParamClass)
-            ? Optional.of((C) typeParamClass)
-            : Optional.empty()
-        ;
+        return typeParamClass
+            .filter(expectedSuperclass::isAssignableFrom)
+            .map(c -> (C) c);
     }
 
     public static Class<?> getWrapperType(Class<?> primitiveType)
@@ -96,5 +96,14 @@ public final class Reflection
             throw new IllegalArgumentException("The provided type is not a primitive type");
 
         return PRIMITIVE_MAP.get(primitiveType);
+    }
+
+    private static Optional<Class<?>> asClass(Type type)
+    {
+        if (type instanceof Class<?> c)
+            return Optional.of(c);
+        if (type instanceof ParameterizedType p)
+            return asClass(p.getRawType());
+        return Optional.empty();
     }
 }

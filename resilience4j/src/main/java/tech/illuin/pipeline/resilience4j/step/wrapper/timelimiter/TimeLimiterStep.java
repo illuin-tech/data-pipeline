@@ -1,6 +1,7 @@
 package tech.illuin.pipeline.resilience4j.step.wrapper.timelimiter;
 
 import io.github.resilience4j.timelimiter.TimeLimiter;
+import org.slf4j.MDC;
 import tech.illuin.pipeline.context.Context;
 import tech.illuin.pipeline.resilience4j.execution.wrapper.TimeLimiterException;
 import tech.illuin.pipeline.input.indexer.Indexable;
@@ -9,6 +10,7 @@ import tech.illuin.pipeline.step.execution.wrapper.StepWrapperException;
 import tech.illuin.pipeline.step.result.Result;
 import tech.illuin.pipeline.step.result.ResultView;
 
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -32,7 +34,11 @@ public class TimeLimiterStep<T extends Indexable, I> implements Step<T, I>
     public Result execute(T object, I input, Object payload, ResultView view, Context context) throws Exception
     {
         try {
-            return this.limiter.executeFutureSupplier(() -> this.executor.submit(() -> executeStep(object, input, payload, view, context)));
+            Map<String, String> mdc = MDC.getCopyOfContextMap();
+            return this.limiter.executeFutureSupplier(() -> this.executor.submit(() -> {
+                MDC.setContextMap(mdc);
+                return executeStep(object, input, payload, view, context);
+            }));
         }
         catch (StepWrapperException e) {
             throw (Exception) e.getCause();

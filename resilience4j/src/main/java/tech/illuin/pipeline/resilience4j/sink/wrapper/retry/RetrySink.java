@@ -1,11 +1,14 @@
 package tech.illuin.pipeline.resilience4j.sink.wrapper.retry;
 
 import io.github.resilience4j.retry.Retry;
+import org.slf4j.MDC;
 import tech.illuin.pipeline.context.Context;
 import tech.illuin.pipeline.resilience4j.execution.wrapper.RetryException;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.sink.Sink;
 import tech.illuin.pipeline.sink.execution.wrapper.SinkWrapperException;
+
+import java.util.Map;
 
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
@@ -26,7 +29,11 @@ public class RetrySink implements Sink
     public void execute(Output output, Context context) throws Exception
     {
         try {
-            this.retry.executeCallable(() -> executeSink(output, context));
+            Map<String, String> mdc = MDC.getCopyOfContextMap();
+            this.retry.executeCallable(() -> {
+                MDC.setContextMap(mdc);
+                return executeSink(output, context);
+            });
         }
         catch (SinkWrapperException e) {
             throw (Exception) e.getCause();

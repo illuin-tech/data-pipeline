@@ -55,8 +55,7 @@ public class SinkRunner implements Sink, Describable
                 localContext,
                 localContext.pipelineTag(),
                 localContext.componentTag(),
-                localContext.uidGenerator(),
-                localContext.logMarker()
+                localContext.uidGenerator()
             );
             Object[] arguments = this.argumentMappers.stream()
                 .map(mapper -> mapper.map(originalArguments))

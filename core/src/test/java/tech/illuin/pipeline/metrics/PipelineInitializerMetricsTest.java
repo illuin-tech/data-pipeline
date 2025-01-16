@@ -3,6 +3,8 @@ package tech.illuin.pipeline.metrics;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.slf4j.helpers.BasicMDCAdapter;
+import org.slf4j.spi.MDCAdapter;
 import tech.illuin.pipeline.input.uid_generator.TSIDGenerator;
 import tech.illuin.pipeline.metering.PipelineInitializationMetrics;
 import tech.illuin.pipeline.metering.tag.MetricTags;
@@ -30,56 +32,50 @@ public class PipelineInitializerMetricsTest
     }
 
     @Test
-    public void testMark()
+    public void testMDC()
     {
+        MDCAdapter adapter = new BasicMDCAdapter();
         PipelineInitializationMetrics metrics = Assertions.assertDoesNotThrow(() -> new PipelineInitializationMetrics(
             new SimpleMeterRegistry(),
-            createTag("test-mark", "test-mark-initializer"),
-            new MetricTags().put("test", "true")
+            createTag("test-mdc", "test-mdc-initializer"),
+            new MetricTags().put("test", "true"),
+            new DebugMDCManager(adapter)
         ));
 
-        Map<String, String> labels = metrics.mark().getLabels();
+        metrics.setMDC();
+        Map<String, String> ctx0 = adapter.getCopyOfContextMap();
 
-        Assertions.assertEquals("test-mark", labels.get("pipeline"));
-        Assertions.assertEquals("test-mark-initializer", labels.get("initializer"));
-        Assertions.assertEquals(ANONYMOUS, labels.get("author"));
-        Assertions.assertEquals("true", labels.get("test"));
+        Assertions.assertTrue(ctx0.containsKey("initializer"));
+        Assertions.assertEquals("test-mdc-initializer", ctx0.get("initializer"));
+
+        metrics.unsetMDC();
+        Map<String, String> ctx1 = adapter.getCopyOfContextMap();
+
+        Assertions.assertFalse(ctx1.containsKey("initializer"));
     }
 
     @Test
-    public void testMarkDynamic()
+    public void testMDCException()
     {
+        MDCAdapter adapter = new BasicMDCAdapter();
         PipelineInitializationMetrics metrics = Assertions.assertDoesNotThrow(() -> new PipelineInitializationMetrics(
             new SimpleMeterRegistry(),
-            createTag("test-mark", "test-mark-initializer"),
-            new MetricTags().put("test", "true")
+            createTag("test-mdc-exception", "test-mdc-initializer-exception"),
+            new MetricTags().put("test", "true"),
+            new DebugMDCManager(adapter)
         ));
 
-        Map<String, String> labels = metrics.mark("dynamic", "true").getLabels();
+        metrics.setMDC(new Exception());
+        Map<String, String> ctx0 = adapter.getCopyOfContextMap();
 
-        Assertions.assertEquals("test-mark", labels.get("pipeline"));
-        Assertions.assertEquals("test-mark-initializer", labels.get("initializer"));
-        Assertions.assertEquals(ANONYMOUS, labels.get("author"));
-        Assertions.assertEquals("true", labels.get("test"));
-        Assertions.assertEquals("true", labels.get("dynamic"));
-    }
+        Assertions.assertTrue(ctx0.containsKey("error"));
+        Assertions.assertEquals("java.lang.Exception", ctx0.get("error"));
 
-    @Test
-    public void testMarkException()
-    {
-        PipelineInitializationMetrics metrics = Assertions.assertDoesNotThrow(() -> new PipelineInitializationMetrics(
-            new SimpleMeterRegistry(),
-            createTag("test-mark-exception", "test-mark-initializer-exception"),
-            new MetricTags().put("test", "true")
-        ));
+        metrics.unsetMDC();
+        Map<String, String> ctx1 = adapter.getCopyOfContextMap();
 
-        Map<String, String> labels = metrics.mark(new Exception()).getLabels();
-
-        Assertions.assertEquals("test-mark-exception", labels.get("pipeline"));
-        Assertions.assertEquals("test-mark-initializer-exception", labels.get("initializer"));
-        Assertions.assertEquals(ANONYMOUS, labels.get("author"));
-        Assertions.assertEquals("java.lang.Exception", labels.get("error"));
-        Assertions.assertEquals("true", labels.get("test"));
+        Assertions.assertFalse(ctx1.containsKey("initializer"));
+        Assertions.assertFalse(ctx1.containsKey("error"));
     }
     
     private static ComponentTag createTag(String pipeline, String initializer)

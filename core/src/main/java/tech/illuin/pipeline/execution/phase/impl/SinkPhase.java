@@ -3,6 +3,7 @@ package tech.illuin.pipeline.execution.phase.impl;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import tech.illuin.pipeline.Pipeline;
 import tech.illuin.pipeline.context.ComponentContext;
 import tech.illuin.pipeline.context.Context;
@@ -10,7 +11,6 @@ import tech.illuin.pipeline.execution.phase.PipelinePhase;
 import tech.illuin.pipeline.execution.phase.PipelineStrategy;
 import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
 import tech.illuin.pipeline.metering.PipelineSinkMetrics;
-import tech.illuin.pipeline.metering.marker.LogMarker;
 import tech.illuin.pipeline.metering.tag.MetricTags;
 import tech.illuin.pipeline.output.ComponentFamily;
 import tech.illuin.pipeline.output.ComponentTag;
@@ -19,6 +19,7 @@ import tech.illuin.pipeline.output.PipelineTag;
 import tech.illuin.pipeline.sink.builder.SinkDescriptor;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -75,16 +76,18 @@ public class SinkPhase<I> implements PipelinePhase<I>
     @SuppressWarnings("IllegalCatch")
     private void runSinkSynchronously(SinkDescriptor sink, ComponentTag tag, I input, Output output, Context context, PipelineSinkMetrics metrics) throws Exception
     {
-        ComponentContext componentContext = wrapContext(input, context, tag.pipelineTag(), tag, metrics);
+        ComponentContext componentContext = wrapContext(input, context, tag.pipelineTag(), tag);
 
         long start = System.nanoTime();
+        metrics.setMDC();
         try {
-            logger.trace(metrics.mark(), "{}#{} launching sink {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), tag.id());
+            logger.trace("{}#{} launching sink {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), tag.id());
             sink.execute(output, componentContext);
             metrics.successCounter().increment();
         }
         catch (Exception e) {
-            logger.error(metrics.mark(e), "{}#{} sink {} threw an {}: {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), tag.id(), e.getClass().getName(), e.getMessage());
+            metrics.setMDC(e);
+            logger.error("{}#{} sink {} threw an {}: {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), tag.id(), e.getClass().getName(), e.getMessage());
             metrics.failureCounter().increment();
             metrics.errorCounter(e).increment();
             sink.handleException(e, output, context);
@@ -92,6 +95,7 @@ public class SinkPhase<I> implements PipelinePhase<I>
         finally {
             metrics.runTimer().record(System.nanoTime() - start, TimeUnit.NANOSECONDS);
             metrics.totalCounter().increment();
+            metrics.unsetMDC();
         }
     }
 
@@ -101,18 +105,22 @@ public class SinkPhase<I> implements PipelinePhase<I>
         if (this.sinkExecutor == null)
             throw new IllegalStateException("An asynchronous run has been initiated but there is no active executor");
 
-        ComponentContext componentContext = wrapContext(input, context, tag.pipelineTag(), tag, metrics);
+        ComponentContext componentContext = wrapContext(input, context, tag.pipelineTag(), tag);
 
-        logger.trace(metrics.mark(), "{}#{} queuing sink {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), tag.id());
+        logger.trace("{}#{} queuing sink {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), tag.id());
+        Map<String, String> mdc = MDC.getCopyOfContextMap();
         CompletableFuture.runAsync(() -> {
             long start = System.nanoTime();
+            MDC.setContextMap(mdc);
+            metrics.setMDC();
             try {
-                logger.trace(metrics.mark(), "{}#{} launching sink {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), tag.id());
+                logger.trace("{}#{} launching sink {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), tag.id());
                 sink.execute(output, componentContext);
                 metrics.successCounter().increment();
             }
             catch (Exception e) {
-                logger.error(metrics.mark(e), "{}#{} sink {} threw an {}: {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), tag.id(), e.getClass().getName(), e.getMessage());
+                metrics.setMDC(e);
+                logger.error("{}#{} sink {} threw an {}: {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), tag.id(), e.getClass().getName(), e.getMessage());
                 metrics.failureCounter().increment();
                 metrics.errorCounter(e).increment();
                 sink.handleExceptionThenSwallow(e, output, componentContext);
@@ -120,6 +128,7 @@ public class SinkPhase<I> implements PipelinePhase<I>
             finally {
                 metrics.runTimer().record(System.nanoTime() - start, TimeUnit.NANOSECONDS);
                 metrics.totalCounter().increment();
+                metrics.unsetMDC();
             }
         }, this.sinkExecutor);
     }
@@ -129,9 +138,9 @@ public class SinkPhase<I> implements PipelinePhase<I>
         return new ComponentTag(this.uidGenerator.generate(), pipelineTag, sink.id(), ComponentFamily.SINK);
     }
 
-    private ComponentContext wrapContext(I input, Context context, PipelineTag pipelineTag, ComponentTag componentTag, LogMarker marker)
+    private ComponentContext wrapContext(I input, Context context, PipelineTag pipelineTag, ComponentTag componentTag)
     {
-        return new ComponentContext(context, input, pipelineTag, componentTag, this.uidGenerator, marker);
+        return new ComponentContext(context, input, pipelineTag, componentTag, this.uidGenerator);
     }
 
     private ExecutorService initExecutor(Supplier<ExecutorService> provider)

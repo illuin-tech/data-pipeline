@@ -178,7 +178,7 @@ Authorship is used in pipeline and component tags, respectively produced at each
 
 ## Tag Resolvers
 
-A `TagResolver` is a component that is used upon launching a pipeline for generating custom tags that will be used in metrics (micrometer / prometheus) and log markers (slf4j / logback). 
+A `TagResolver` is a component that is used upon launching a pipeline for generating custom tags that will be used in metrics (micrometer / prometheus) and log markers (slf4j / logback / log4j). 
 
 A typical `TagResolver` may look like this:
 
@@ -207,13 +207,16 @@ pipeline_run_success_total{other_tag="bcd",pipeline="my-pipeline",some_tag="123"
 pipeline_run_success_total{other_tag="bcd",pipeline="my-pipeline",some_tag="234",} 1571632.0
 ```
 
-...and the following labels in loki (only displaying data-pipeline labels):
+These same labels will be used for MDC logging, see the [integrations documentation](integrations.md#mdc-logging) for a setup example.
+
+User-provided tags will then be included along with default pipeline and component related tags:
 
 ```
 Log labels
-  author    anonymous
-  other_tag abc
   level     INFO
+  app       my-app
   pipeline  my-pipeline
+  author    anonymous
   some_tag  123
+  other_tag abc
 ```

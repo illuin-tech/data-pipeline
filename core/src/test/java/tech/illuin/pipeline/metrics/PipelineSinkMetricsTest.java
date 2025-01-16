@@ -3,6 +3,8 @@ package tech.illuin.pipeline.metrics;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.slf4j.helpers.BasicMDCAdapter;
+import org.slf4j.spi.MDCAdapter;
 import tech.illuin.pipeline.input.uid_generator.TSIDGenerator;
 import tech.illuin.pipeline.metering.PipelineSinkMetrics;
 import tech.illuin.pipeline.metering.tag.MetricTags;
@@ -30,56 +32,49 @@ public class PipelineSinkMetricsTest
     }
 
     @Test
-    public void testMark()
+    public void testMDC()
     {
+        MDCAdapter adapter = new BasicMDCAdapter();
         PipelineSinkMetrics metrics = Assertions.assertDoesNotThrow(() -> new PipelineSinkMetrics(
             new SimpleMeterRegistry(),
-            createTag("test-mark", "test-mark-sink"),
-            new MetricTags().put("test", "true")
+            createTag("test-mdc", "test-mdc-sink"),
+            new MetricTags().put("test", "true"),
+            new DebugMDCManager(adapter)
         ));
 
-        Map<String, String> labels = metrics.mark().getLabels();
+        metrics.setMDC();
+        Map<String, String> ctx0 = adapter.getCopyOfContextMap();
 
-        Assertions.assertEquals("test-mark", labels.get("pipeline"));
-        Assertions.assertEquals("test-mark-sink", labels.get("sink"));
-        Assertions.assertEquals(ANONYMOUS, labels.get("author"));
-        Assertions.assertEquals("true", labels.get("test"));
+        Assertions.assertTrue(ctx0.containsKey("sink"));
+        Assertions.assertEquals("test-mdc-sink", ctx0.get("sink"));
+
+        metrics.unsetMDC();
+        Map<String, String> ctx1 = adapter.getCopyOfContextMap();
+
+        Assertions.assertFalse(ctx1.containsKey("sink"));
     }
 
     @Test
-    public void testMarkDynamic()
+    public void testMDCException()
     {
+        MDCAdapter adapter = new BasicMDCAdapter();
         PipelineSinkMetrics metrics = Assertions.assertDoesNotThrow(() -> new PipelineSinkMetrics(
             new SimpleMeterRegistry(),
-            createTag("test-mark", "test-mark-sink"),
-            new MetricTags().put("test", "true")
+            createTag("test-mdc-exception", "test-mdc-sink-exception"),
+            new MetricTags().put("test", "true"),
+            new DebugMDCManager(adapter)
         ));
 
-        Map<String, String> labels = metrics.mark("dynamic", "true").getLabels();
+        metrics.setMDC(new Exception());
+        Map<String, String> ctx0 = adapter.getCopyOfContextMap();
 
-        Assertions.assertEquals("test-mark", labels.get("pipeline"));
-        Assertions.assertEquals("test-mark-sink", labels.get("sink"));
-        Assertions.assertEquals(ANONYMOUS, labels.get("author"));
-        Assertions.assertEquals("true", labels.get("test"));
-        Assertions.assertEquals("true", labels.get("dynamic"));
-    }
+        Assertions.assertTrue(ctx0.containsKey("error"));
+        Assertions.assertEquals("java.lang.Exception", ctx0.get("error"));
 
-    @Test
-    public void testMarkException()
-    {
-        PipelineSinkMetrics metrics = Assertions.assertDoesNotThrow(() -> new PipelineSinkMetrics(
-            new SimpleMeterRegistry(),
-            createTag("test-mark-exception", "test-mark-sink-exception"),
-            new MetricTags().put("test", "true")
-        ));
+        metrics.unsetMDC();
+        Map<String, String> ctx1 = adapter.getCopyOfContextMap();
 
-        Map<String, String> labels = metrics.mark(new Exception()).getLabels();
-
-        Assertions.assertEquals("test-mark-exception", labels.get("pipeline"));
-        Assertions.assertEquals("test-mark-sink-exception", labels.get("sink"));
-        Assertions.assertEquals(ANONYMOUS, labels.get("author"));
-        Assertions.assertEquals("java.lang.Exception", labels.get("error"));
-        Assertions.assertEquals("true", labels.get("test"));
+        Assertions.assertFalse(ctx1.containsKey("error"));
     }
     
     private static ComponentTag createTag(String pipeline, String sink)

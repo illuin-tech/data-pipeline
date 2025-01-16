@@ -15,7 +15,6 @@ import tech.illuin.pipeline.step.annotation.StepConfig;
 import tech.illuin.pipeline.step.result.MultiResult;
 import tech.illuin.pipeline.step.result.Result;
 import tech.illuin.pipeline.step.result.ResultView;
-import tech.illuin.pipeline.step.result.Results;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -59,8 +58,7 @@ public class StepRunner<T extends Indexable, I> implements Step<T, I>, Describab
                 context,
                 localContext.pipelineTag(),
                 localContext.componentTag(),
-                localContext.uidGenerator(),
-                localContext.logMarker()
+                localContext.uidGenerator()
             );
             java.lang.Object[] arguments = this.argumentMappers.stream()
                 .map(mapper -> mapper.map(originalArguments))

@@ -91,11 +91,10 @@ In which case, the following metrics should become available:
 | `pipeline_sink_run_failure_total`           | `pipeline.sink.run.failure`           | `counter` | `pipeline` `sink`                   | Total count of failed sink runs                    |
 | `pipeline_sink_run_error_total`             | `pipeline.sink.run.error`             | `counter` | `pipeline` `sink` `error`           | Total count of sink exceptions                     |
 
-## Logback Loki
+## MDC Logging
 
-As it currently stands, `data-pipeline` comes with a logback-loki dependency.
-
-If you don't use [logback](https://logback.qos.ch) nor [Loki](https://grafana.com/oss/loki/) at all this should be transparent, but if you do a simple tweak in your `logback.xml` enables log marker processing:
+`data-pipeline` leverages MDC [through slf4j](https://www.slf4j.org/manual.html#mdc) for labelling logs with contextual information such as [pipeline](result_data_model.md#pipelinetag) and [component](result_data_model.md#componenttag) tags.
+For instance, using [logback](https://logback.qos.ch) with [Loki4jAppender](https://github.com/loki4j/loki-logback-appender), doing a simple tweak in your `logback.xml` enables log marker processing:
 
 ```xml
 <configuration>
@@ -105,8 +104,10 @@ If you don't use [logback](https://logback.qos.ch) nor [Loki](https://grafana.co
         </http>
         <format>
             <label>
-                <pattern>app=my-app,job=pipeline,level=%level</pattern>
-                <readMarkers>true</readMarkers> <!-- this is the relevant part -->
+                <!-- if you add %mdc all tags will be passed as labels -->
+                <!-- you can also require specific keys, see https://logback.qos.ch/manual/layouts.html#mdc for more info -->
+                <pattern>app=my-app,level=%level,%mdc</pattern>
+                <readMarkers>true</readMarkers> 
             </label>
             <!-- ...along with the rest of your configuration -->
         </format>

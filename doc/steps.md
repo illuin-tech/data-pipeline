@@ -498,21 +498,6 @@ This can be useful if you want to harmonize the generation of UIDs between `data
 Typically, if data-lineage is a concern, you might want to persist the [`PipelineTag`](#pipelinetag) or [`ComponentTag`](#componenttag) in some data store.
 It may then be relevant to use the same UID generation strategy for other data models, as these UIDs can have properties such as being [time-stamped](https://github.com/twitter-archive/snowflake/tree/snowflake-2010) or [lexicographically sortable](https://github.com/ulid/spec).
 
-### `LogMarker`
-
-The `LogMarker` is a component that can produce a `LabelMarker` out of the `TagResolver` currently in use by the pipeline. 
-
-Its use is encouraged for annotating your own logs with contextual information (💡 see [the relevant `TagResolver` section](modifiers_and_hooks.md#tag-resolvers)).
-
-```java
-@StepConfig
-public MyResult doStuff(LogMarker marker)
-{
-    logger.info(marker.mark(), "This is my log: {}", 123);
-    logger.info(marker.mark("my_local_key", "my_value"), "This is my log: {}", 234);
-}
-```
-
 ## Results
 
 All step functions' `Result` are tracked by the pipeline, and can be used by subsequent steps, sinks, or returned as part of [the final `Output`](pipelines.md#output).

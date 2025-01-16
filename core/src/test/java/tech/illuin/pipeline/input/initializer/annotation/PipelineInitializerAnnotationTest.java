@@ -5,17 +5,11 @@ import org.junit.jupiter.api.Test;
 import tech.illuin.pipeline.Pipeline;
 import tech.illuin.pipeline.PipelineException;
 import tech.illuin.pipeline.input.indexer.Indexable;
-import tech.illuin.pipeline.input.indexer.Indexer;
 import tech.illuin.pipeline.input.indexer.SingleIndexer;
 import tech.illuin.pipeline.input.initializer.Initializer;
 import tech.illuin.pipeline.input.initializer.annotation.initializer.*;
 import tech.illuin.pipeline.input.initializer.annotation.initializer.InitializerWithException.InitializerWithExceptionException;
 import tech.illuin.pipeline.output.Output;
-import tech.illuin.pipeline.sink.annotation.sink.SinkWithContextKey;
-import tech.illuin.pipeline.sink.annotation.sink.SinkWithContextKeyOptional;
-import tech.illuin.pipeline.sink.annotation.sink.SinkWithContextKeyPrimitive;
-
-import java.util.List;
 
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
@@ -122,20 +116,6 @@ public class PipelineInitializerAnnotationTest
         Assertions.assertEquals("primitive(123)", output.payload(TestPayload.class).object().value());
     }
 
-    @Test
-    public void testPipeline__shouldCompile_logMarker()
-    {
-        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_logMarker("test-log-marker"));
-
-        Output output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
-        Assertions.assertDoesNotThrow(pipeline::close);
-
-        Assertions.assertEquals(
-            "init-with_log-marker",
-            output.payload(TestPayload.class).object().value()
-        );
-    }
-
     public static Pipeline<Object> createPipeline_input(String name)
     {
         return Pipeline.of(name, Initializer.of(new InitializerWithInput<>()))
@@ -195,14 +175,6 @@ public class PipelineInitializerAnnotationTest
     public static Pipeline<Object> createPipeline_contextKeyPrimitive(String name)
     {
         return Pipeline.of(name, Initializer.of(new InitializerWithContextKeyPrimitive()))
-            .registerIndexer((SingleIndexer<TestPayload>) TestPayload::object)
-            .build()
-        ;
-    }
-
-    public static Pipeline<Object> createPipeline_logMarker(String name)
-    {
-        return Pipeline.of(name, Initializer.of(new InitializerWithLogMarker()))
             .registerIndexer((SingleIndexer<TestPayload>) TestPayload::object)
             .build()
         ;

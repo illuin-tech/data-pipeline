@@ -11,7 +11,6 @@ import tech.illuin.pipeline.execution.phase.PipelineStrategy;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
 import tech.illuin.pipeline.metering.PipelineStepMetrics;
-import tech.illuin.pipeline.metering.marker.LogMarker;
 import tech.illuin.pipeline.metering.tag.MetricTags;
 import tech.illuin.pipeline.output.ComponentFamily;
 import tech.illuin.pipeline.output.ComponentTag;
@@ -66,7 +65,7 @@ public class StepPhase<I> implements PipelinePhase<I>
                     .toList()
                 ;
 
-                logger.trace(metrics.mark(), "{}#{} retrieved {} arguments for step {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), arguments.size(), tag.id());
+                logger.trace("{}#{} retrieved {} arguments for step {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), arguments.size(), tag.id());
 
                 /* For each argument we perform the step and register the produced Result */
                 for (Indexable indexed : arguments)
@@ -79,7 +78,7 @@ public class StepPhase<I> implements PipelinePhase<I>
                         metrics.resultCounter(result).increment();
 
                     StepStrategy strategy = step.postEvaluation(result, indexed, input, context);
-                    logger.trace(metrics.mark(), "{}#{} received {} signal after step {} over argument {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), strategy, tag.id(), indexed.uid());
+                    logger.trace("{}#{} received {} signal after step {} over argument {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), strategy, tag.id(), indexed.uid());
 
                     if (strategy.hasBehaviour(REGISTER_RESULT))
                     {
@@ -122,19 +121,21 @@ public class StepPhase<I> implements PipelinePhase<I>
     @SuppressWarnings("IllegalCatch")
     private Result runStep(StepDescriptor<Indexable, I> step, ComponentTag tag, Indexable indexed, I input, Output output, Context context, PipelineStepMetrics metrics) throws Exception
     {
-        ComponentContext componentContext = wrapContext(input, context, tag.pipelineTag(), tag, metrics);
+        ComponentContext componentContext = wrapContext(input, context, tag.pipelineTag(), tag);
         String name = getPrintableName(step);
 
         long start = System.nanoTime();
+        metrics.setMDC();
         try {
-            logger.trace(metrics.mark(), "{}#{} running step {} over argument {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), name, indexed.uid());
+            logger.trace("{}#{} running step {} over argument {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), name, indexed.uid());
             Result result = step.execute(indexed, input, output, componentContext);
 
             metrics.successCounter().increment();
             return result;
         }
         catch (Exception e) {
-            logger.trace(metrics.mark(e), "{}#{} step {} threw an {}: {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), name, e.getClass().getName(), e.getMessage());
+            metrics.setMDC(e);
+            logger.trace("{}#{} step {} threw an {}: {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), name, e.getClass().getName(), e.getMessage());
             metrics.failureCounter().increment();
             metrics.errorCounter(e).increment();
             return step.handleException(e, input, output.payload(), output.results(), componentContext);
@@ -142,6 +143,7 @@ public class StepPhase<I> implements PipelinePhase<I>
         finally {
             metrics.runTimer().record(System.nanoTime() - start, TimeUnit.NANOSECONDS);
             metrics.totalCounter().increment();
+            metrics.unsetMDC();
         }
     }
 
@@ -150,9 +152,9 @@ public class StepPhase<I> implements PipelinePhase<I>
         return new ComponentTag(this.uidGenerator.generate(), pipelineTag, step.id(), ComponentFamily.STEP);
     }
 
-    private ComponentContext wrapContext(I input, Context context, PipelineTag pipelineTag, ComponentTag componentTag, LogMarker marker)
+    private ComponentContext wrapContext(I input, Context context, PipelineTag pipelineTag, ComponentTag componentTag)
     {
-        return new ComponentContext(context, input, pipelineTag, componentTag, this.uidGenerator, marker);
+        return new ComponentContext(context, input, pipelineTag, componentTag, this.uidGenerator);
     }
 
     private static String getPrintableName(StepDescriptor<?, ?> step)

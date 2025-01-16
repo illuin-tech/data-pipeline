@@ -178,7 +178,7 @@ Authorship is used in pipeline and component tags, respectively produced at each
 
 ## Tag Resolvers
 
-A `TagResolver` is a component that is used upon launching a pipeline for generating custom tags that will be used in metrics (micrometer / prometheus) and log markers (slf4j / logback). 
+A `TagResolver` is a component that is used upon launching a pipeline for generating custom tags that will be used in metrics (micrometer / prometheus) and log markers (slf4j / logback / log4j). 
 
 A typical `TagResolver` may look like this:
 
@@ -207,13 +207,38 @@ pipeline_run_success_total{other_tag="bcd",pipeline="my-pipeline",some_tag="123"
 pipeline_run_success_total{other_tag="bcd",pipeline="my-pipeline",some_tag="234",} 1571632.0
 ```
 
-...and the following labels in loki (only displaying data-pipeline labels):
+These same labels will be used for MDC logging and so can be made available as labels in you configuration, for instance with the `Loki4jAppender`:
+
+```xml
+<!-- ... -->
+<appender name="LOKI" class="com.github.loki4j.logback.Loki4jAppender">
+    <http>
+        <url>${LOKI_HOST}${LOKI_ENDPOINT}</url>
+    </http>
+    <format>
+        <label>
+            <!-- if you add %mdc all tags will be passed as labels -->
+            <!-- you can also require specific keys, see https://logback.qos.ch/manual/layouts.html#mdc for more info -->
+            <pattern>app=my-app,%level,%mdc</pattern>
+            <readMarkers>true</readMarkers>
+        </label>
+        <message>
+            <pattern>l=%level c=%logger{20} t=%thread | %msg %ex</pattern>
+        </message>
+        <sortByTime>true</sortByTime>
+    </format>
+</appender>
+<!-- ... -->
+```
+
+Then the following will be available in Loki:
 
 ```
 Log labels
-  author    anonymous
-  other_tag abc
   level     INFO
+  app       my-app
   pipeline  my-pipeline
+  author    anonymous
   some_tag  123
+  other_tag abc
 ```

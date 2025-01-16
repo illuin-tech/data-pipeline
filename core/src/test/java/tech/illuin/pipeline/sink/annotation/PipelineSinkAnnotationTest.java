@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import tech.illuin.pipeline.Pipeline;
 import tech.illuin.pipeline.PipelineException;
-import tech.illuin.pipeline.generic.pipeline.TestResult;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.input.indexer.SingleIndexer;
 import tech.illuin.pipeline.input.initializer.Initializer;
@@ -12,9 +11,6 @@ import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.sink.Sink;
 import tech.illuin.pipeline.sink.annotation.sink.*;
 import tech.illuin.pipeline.sink.annotation.sink.SinkWithException.SinkWithExceptionException;
-import tech.illuin.pipeline.step.annotation.step.StepWithContextKey;
-import tech.illuin.pipeline.step.annotation.step.StepWithContextKeyOptional;
-import tech.illuin.pipeline.step.annotation.step.StepWithContextKeyPrimitive;
 import tech.illuin.pipeline.step.annotation.step.StepWithInput;
 
 import java.util.ArrayList;
@@ -323,18 +319,6 @@ public class PipelineSinkAnnotationTest
         Assertions.assertEquals("KSUIDGenerator", collector.get());
     }
 
-    @Test
-    public void testPipeline__shouldCompile_logMarker()
-    {
-        StringCollector collector = new StringCollector();
-        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_logMarker("test-log-marker", collector));
-
-        Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
-        Assertions.assertDoesNotThrow(pipeline::close);
-
-        Assertions.assertEquals("sink-with_log-marker", collector.get());
-    }
-
     public static Pipeline<Object> createPipeline_input(String name, StringCollector collector)
     {
         return Pipeline.of(name)
@@ -540,14 +524,6 @@ public class PipelineSinkAnnotationTest
     {
         return Pipeline.of(name)
             .registerSink(new SinkWithUIDGenerator(collector))
-            .build()
-        ;
-    }
-
-    public static Pipeline<Object> createPipeline_logMarker(String name, StringCollector collector)
-    {
-        return Pipeline.of(name)
-            .registerSink(new SinkWithLogMarker(collector))
             .build()
         ;
     }

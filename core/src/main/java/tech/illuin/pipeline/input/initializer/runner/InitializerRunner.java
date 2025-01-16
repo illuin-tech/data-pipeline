@@ -55,8 +55,7 @@ public class InitializerRunner<I> implements Initializer<I>, Describable
                 localContext,
                 localContext.pipelineTag(),
                 localContext.componentTag(),
-                generator,
-                localContext.logMarker()
+                generator
             );
             Object[] arguments = this.argumentMappers.stream()
                 .map(mapper -> mapper.map(originalArguments))

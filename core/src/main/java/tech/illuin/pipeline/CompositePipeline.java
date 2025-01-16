@@ -18,7 +18,6 @@ import tech.illuin.pipeline.input.initializer.builder.InitializerDescriptor;
 import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
 import tech.illuin.pipeline.metering.PipelineInitializationMetrics;
 import tech.illuin.pipeline.metering.PipelineMetrics;
-import tech.illuin.pipeline.metering.marker.LogMarker;
 import tech.illuin.pipeline.metering.tag.MetricTags;
 import tech.illuin.pipeline.metering.tag.TagResolver;
 import tech.illuin.pipeline.observer.Observer;
@@ -129,8 +128,9 @@ public final class CompositePipeline<I> implements Pipeline<I>
         Output output = null;
 
         long start = System.nanoTime();
+        metrics.setMDC();
         try {
-            logger.debug(metrics.mark(), "{}: launching pipeline over input of type {}", this.id(), input != null ? input.getClass().getName() : "null");
+            logger.debug("{}: launching pipeline over input of type {}", this.id(), input != null ? input.getClass().getName() : "null");
 
             output = this.runInitialization(input, context, tag);
 
@@ -142,20 +142,22 @@ public final class CompositePipeline<I> implements Pipeline<I>
                     break;
             }
 
-            logger.trace(metrics.mark(), "{}#{} finished", this.id(), output.tag().uid());
+            logger.trace("{}#{} finished", this.id(), output.tag().uid());
             metrics.successCounter().increment();
 
             return output;
         }
         catch (Exception e) {
+            metrics.setMDC(e);
             metrics.failureCounter().increment();
             metrics.errorCounter(e).increment();
-            logger.error(metrics.mark(e), "{}: {}", this.id(), e.getMessage());
+            logger.error("{}: {}", this.id(), e.getMessage());
             return this.errorHandler.handle(e, output, input, context, tag);
         }
         finally {
             metrics.runTimer().record(System.nanoTime() - start, TimeUnit.NANOSECONDS);
             metrics.totalCounter().increment();
+            metrics.unsetMDC();
         }
     }
 
@@ -170,6 +172,7 @@ public final class CompositePipeline<I> implements Pipeline<I>
         PipelineInitializationMetrics metrics = new PipelineInitializationMetrics(this.meterRegistry, componentTag, metricTags);
 
         long start = System.nanoTime();
+        metrics.setMDC();
         try {
             Object payload = this.runInitializer(input, componentTag, context, metrics);
             Output output = this.outputFactory.create(tag, input, payload, context);
@@ -178,7 +181,7 @@ public final class CompositePipeline<I> implements Pipeline<I>
             {
                 @SuppressWarnings("unchecked")
                 Indexer<Object> objectIndexer = (Indexer<Object>) indexer;
-                logger.trace(metrics.mark(), "{}#{} launching indexer {}", this.id(), tag.uid(), indexer.getClass().getName());
+                logger.trace("{}#{} launching indexer {}", this.id(), tag.uid(), indexer.getClass().getName());
                 objectIndexer.index(payload, output.index());
             }
 
@@ -186,6 +189,7 @@ public final class CompositePipeline<I> implements Pipeline<I>
             return output;
         }
         catch (Exception e) {
+            metrics.setMDC(e);
             metrics.failureCounter().increment();
             metrics.errorCounter(e).increment();
             throw e;
@@ -193,19 +197,21 @@ public final class CompositePipeline<I> implements Pipeline<I>
         finally {
             metrics.runTimer().record(System.nanoTime() - start, TimeUnit.NANOSECONDS);
             metrics.totalCounter().increment();
+            metrics.unsetMDC();
         }
     }
 
     @SuppressWarnings("IllegalCatch")
     private Object runInitializer(I input, ComponentTag tag, Context context, PipelineInitializationMetrics metrics) throws Exception
     {
-        ComponentContext componentContext = wrapContext(input, context, tag.pipelineTag(), tag, metrics);
+        ComponentContext componentContext = wrapContext(input, context, tag.pipelineTag(), tag);
         try {
-            logger.trace(metrics.mark(), "{}#{} initializing payload", tag.pipelineTag().pipeline(), tag.pipelineTag().uid());
+            logger.trace("{}#{} initializing payload", tag.pipelineTag().pipeline(), tag.pipelineTag().uid());
             return this.initializer.execute(input, componentContext, this.uidGenerator);
         }
         catch (Exception e) {
-            logger.trace(metrics.mark(e), "{}#{} initializer {} threw an {}: {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), tag.id(), e.getClass().getName(), e.getMessage());
+            metrics.setMDC(e);
+            logger.trace("{}#{} initializer {} threw an {}: {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), tag.id(), e.getClass().getName(), e.getMessage());
             return this.initializer.handleException(e, componentContext, this.uidGenerator);
         }
     }
@@ -236,9 +242,9 @@ public final class CompositePipeline<I> implements Pipeline<I>
         return new ComponentTag(this.uidGenerator.generate(), pipelineTag, initializer.id(), ComponentFamily.INITIALIZER);
     }
 
-    private ComponentContext wrapContext(I input, Context context, PipelineTag pipelineTag, ComponentTag componentTag, LogMarker marker)
+    private ComponentContext wrapContext(I input, Context context, PipelineTag pipelineTag, ComponentTag componentTag)
     {
-        return new ComponentContext(context, input, pipelineTag, componentTag, this.uidGenerator, marker);
+        return new ComponentContext(context, input, pipelineTag, componentTag, this.uidGenerator);
     }
 
     @Override

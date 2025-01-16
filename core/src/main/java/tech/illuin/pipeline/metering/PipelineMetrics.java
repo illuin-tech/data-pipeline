@@ -1,11 +1,12 @@
 package tech.illuin.pipeline.metering;
 
-import com.github.loki4j.slf4j.marker.LabelMarker;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Timer;
-import tech.illuin.pipeline.metering.marker.LogMarker;
+import tech.illuin.pipeline.metering.marker.DefaultMDCManager;
+import tech.illuin.pipeline.metering.marker.MDCManager;
+import tech.illuin.pipeline.metering.marker.MDCMarker;
 import tech.illuin.pipeline.metering.tag.MetricTags;
 import tech.illuin.pipeline.output.PipelineTag;
 
@@ -14,12 +15,13 @@ import java.util.Map;
 
 import static java.util.Collections.emptyMap;
 import static tech.illuin.pipeline.metering.MeterRegistryKey.*;
-import static tech.illuin.pipeline.metering.MetricFunctions.*;
+import static tech.illuin.pipeline.metering.MetricFunctions.compileAndFillTags;
+import static tech.illuin.pipeline.metering.MetricFunctions.compileTags;
 
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public class PipelineMetrics implements LogMarker
+public class PipelineMetrics extends MDCMarker
 {
     private final MeterRegistry meterRegistry;
     private final PipelineTag tag;
@@ -31,6 +33,12 @@ public class PipelineMetrics implements LogMarker
 
     public PipelineMetrics(MeterRegistry meterRegistry, PipelineTag tag, MetricTags metricTags)
     {
+        this(meterRegistry, tag, metricTags, new DefaultMDCManager());
+    }
+
+    public PipelineMetrics(MeterRegistry meterRegistry, PipelineTag tag, MetricTags metricTags, MDCManager mdc)
+    {
+        super(mdc);
         this.meterRegistry = meterRegistry;
         this.tag = tag;
         this.metricTags = metricTags;
@@ -75,35 +83,21 @@ public class PipelineMetrics implements LogMarker
         );
     }
 
-    @Override
-    public LabelMarker mark(Map<String, String> labels)
+    public static Tag[] computeDiscriminants(String identifier)
     {
-        return LabelMarker.of(() -> compileMarkers(
+        return new Tag[]{Tag.of("pipeline", identifier)};
+    }
+
+    @Override
+    public Map<String, String> compileMarkers()
+    {
+        return MetricFunctions.compileMarkers(
             this.metricTags,
             Map.of(
                 "pipeline", this.tag.pipeline(),
                 "author", this.tag.author()
             ),
-            labels
-        ));
-    }
-
-    @Override
-    public LabelMarker mark(Exception exception)
-    {
-        return LabelMarker.of(() -> compileMarkers(
-            this.metricTags,
-            Map.of(
-                "pipeline", this.tag.pipeline(),
-                "author", this.tag.author(),
-                "error", exception.getClass().getName()
-            ),
             emptyMap()
-        ));
-    }
-
-    public static Tag[] computeDiscriminants(String identifier)
-    {
-        return new Tag[]{Tag.of("pipeline", identifier)};
+        );
     }
 }

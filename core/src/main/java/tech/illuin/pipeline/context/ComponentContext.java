@@ -1,7 +1,6 @@
 package tech.illuin.pipeline.context;
 
 import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
-import tech.illuin.pipeline.metering.marker.LogMarker;
 import tech.illuin.pipeline.output.ComponentTag;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.output.PipelineTag;
@@ -19,22 +18,19 @@ public class ComponentContext implements LocalContext
     private final PipelineTag pipelineTag;
     private final ComponentTag componentTag;
     private final UIDGenerator uidGenerator;
-    private final LogMarker marker;
 
     public ComponentContext(
         Context globalContext,
         Object input,
         PipelineTag pipelineTag,
         ComponentTag componentTag,
-        UIDGenerator uidGenerator,
-        LogMarker marker
+        UIDGenerator uidGenerator
     ) {
         this.globalContext = globalContext;
         this.input = input;
         this.pipelineTag = pipelineTag;
         this.componentTag = componentTag;
         this.uidGenerator = uidGenerator;
-        this.marker = marker;
     }
 
     @Override
@@ -59,12 +55,6 @@ public class ComponentContext implements LocalContext
     public UIDGenerator uidGenerator()
     {
         return this.uidGenerator;
-    }
-
-    @Override
-    public LogMarker logMarker()
-    {
-        return this.marker;
     }
 
     @Override

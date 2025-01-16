@@ -207,31 +207,9 @@ pipeline_run_success_total{other_tag="bcd",pipeline="my-pipeline",some_tag="123"
 pipeline_run_success_total{other_tag="bcd",pipeline="my-pipeline",some_tag="234",} 1571632.0
 ```
 
-These same labels will be used for MDC logging and so can be made available as labels in you configuration, for instance with the `Loki4jAppender`:
+These same labels will be used for MDC logging, see the [integrations documentation](integrations.md#mdc-logging) for a setup example.
 
-```xml
-<!-- ... -->
-<appender name="LOKI" class="com.github.loki4j.logback.Loki4jAppender">
-    <http>
-        <url>${LOKI_HOST}${LOKI_ENDPOINT}</url>
-    </http>
-    <format>
-        <label>
-            <!-- if you add %mdc all tags will be passed as labels -->
-            <!-- you can also require specific keys, see https://logback.qos.ch/manual/layouts.html#mdc for more info -->
-            <pattern>app=my-app,%level,%mdc</pattern>
-            <readMarkers>true</readMarkers>
-        </label>
-        <message>
-            <pattern>l=%level c=%logger{20} t=%thread | %msg %ex</pattern>
-        </message>
-        <sortByTime>true</sortByTime>
-    </format>
-</appender>
-<!-- ... -->
-```
-
-Then the following will be available in Loki:
+User-provided tags will then be included along with default pipeline and component related tags:
 
 ```
 Log labels

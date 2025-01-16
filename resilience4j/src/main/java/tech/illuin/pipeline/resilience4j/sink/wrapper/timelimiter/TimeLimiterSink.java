@@ -1,11 +1,13 @@
 package tech.illuin.pipeline.resilience4j.sink.wrapper.timelimiter;
 
 import io.github.resilience4j.timelimiter.TimeLimiter;
+import org.slf4j.MDC;
 import tech.illuin.pipeline.context.Context;
 import tech.illuin.pipeline.resilience4j.execution.wrapper.TimeLimiterException;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.sink.Sink;
 
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -29,7 +31,11 @@ public class TimeLimiterSink implements Sink
     public void execute(Output output, Context context) throws Exception
     {
         try {
-            this.limiter.executeFutureSupplier(() -> this.executor.submit(() -> this.executeSink(output, context)));
+            Map<String, String> mdc = MDC.getCopyOfContextMap();
+            this.limiter.executeFutureSupplier(() -> this.executor.submit(() -> {
+                MDC.setContextMap(mdc);
+                this.executeSink(output, context);
+            }));
         }
         catch (TimeLimiterSinkException e) {
             throw e.getCause();

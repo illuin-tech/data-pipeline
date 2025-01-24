@@ -177,6 +177,7 @@ public class StepBuilder<T extends Indexable, I> extends ComponentBuilder<T, I, 
         config.ifPresent(this::fillFromAnnotation);
 
         this.fillDefaults();
+        this.validate();
 
         return new StepDescriptor<>(
             this.id,
@@ -187,5 +188,11 @@ public class StepBuilder<T extends Indexable, I> extends ComponentBuilder<T, I, 
             this.resultEvaluator,
             this.errorHandler
         );
+    }
+
+    private void validate()
+    {
+        if (this.id == null)
+            throw new IllegalStateException("A step cannot have a null id, make sure the defaultId() return value is not null");
     }
 }

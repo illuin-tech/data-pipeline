@@ -11,6 +11,7 @@ import tech.illuin.pipeline.metering.tag.MetricTags;
 import tech.illuin.pipeline.output.PipelineTag;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 
 import static java.util.Collections.emptyMap;
@@ -91,12 +92,13 @@ public class PipelineMetrics extends MDCMarker
     @Override
     public Map<String, String> compileMarkers()
     {
+        Map<String, String> markers = new HashMap<>();
+        markers.put("pipeline", this.tag.pipeline());
+        /* The author value can be null, thus Map.of cannot be used here */
+        markers.put("author", this.tag.author());
         return MetricFunctions.compileMarkers(
             this.metricTags,
-            Map.of(
-                "pipeline", this.tag.pipeline(),
-                "author", this.tag.author()
-            ),
+            markers,
             emptyMap()
         );
     }

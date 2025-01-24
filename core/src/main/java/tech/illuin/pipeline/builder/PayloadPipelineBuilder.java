@@ -90,6 +90,8 @@ public final class PayloadPipelineBuilder<I>
             throw new IllegalStateException("A payload-based pipeline cannot be built without an initializer");
         if (this.indexers().isEmpty())
             this.indexers.add(new SingleAutoIndexer<>());
+        if (this.id == null)
+            throw new IllegalStateException("The pipeline id cannot be null");
 
         return new CompositePipeline<>(
             this.id(),

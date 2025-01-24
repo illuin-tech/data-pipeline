@@ -111,6 +111,7 @@ public class SinkBuilder extends ComponentBuilder<Object, Object, SinkDescriptor
         config.ifPresent(this::fillFromAnnotation);
 
         this.fillDefaults();
+        this.validate();
 
         return new SinkDescriptor(
             this.id,
@@ -119,5 +120,11 @@ public class SinkBuilder extends ComponentBuilder<Object, Object, SinkDescriptor
             this.executionWrapper,
             this.errorHandler
         );
+    }
+
+    private void validate()
+    {
+        if (this.id == null)
+            throw new IllegalStateException("A sink cannot have a null id, make sure the defaultId() return value is not null");
     }
 }

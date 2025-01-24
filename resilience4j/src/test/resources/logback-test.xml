@@ -1,0 +1,16 @@
+<configuration>
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%cyan(%d{HH:mm:ss.SSS}) %gray([%thread]) %highlight(%-5level) %magenta(%logger{36}) %green(%mdc) - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="STDOUT" />
+    </root>
+
+    <logger name="tech.illuin" level="DEBUG" />
+    <logger name="tech.illuin.pipeline" level="TRACE" />
+    <logger name="dev.illuin" level="INFO" />
+    <logger name="io.micrometer.core" level="INFO" />
+</configuration>

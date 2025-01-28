@@ -6,7 +6,7 @@
 
     <groupId>tech.illuin</groupId>
     <artifactId>data-pipeline-parent</artifactId>
-    <version>0.23.1</version>
+    <version>0.23.2</version>
     <packaging>pom</packaging>
 
     <modules>

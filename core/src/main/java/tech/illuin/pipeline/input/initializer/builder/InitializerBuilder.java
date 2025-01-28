@@ -90,11 +90,18 @@ public class InitializerBuilder<I> extends ComponentBuilder<Object, I, Initializ
         config.ifPresent(this::fillFromAnnotation);
 
         this.fillDefaults();
+        this.validate();
 
         return new InitializerDescriptor<>(
             this.id,
             this.initializer,
             this.errorHandler
         );
+    }
+
+    private void validate()
+    {
+        if (this.id == null)
+            throw new IllegalStateException("An initializer cannot have a null id, make sure the defaultId() return value is not null");
     }
 }

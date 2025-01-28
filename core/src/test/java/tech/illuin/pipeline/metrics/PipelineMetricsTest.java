@@ -59,6 +59,28 @@ public class PipelineMetricsTest
     }
 
     @Test
+    public void testMDC_shouldHandleNulls()
+    {
+        MDCAdapter adapter = new BasicMDCAdapter();
+        PipelineMetrics metrics = Assertions.assertDoesNotThrow(() -> new PipelineMetrics(
+            new SimpleMeterRegistry(),
+            new PipelineTag(TSIDGenerator.INSTANCE.generate(), "test-mdc-nullable", null),
+            new MetricTags().put("test", "true"),
+            new DebugMDCManager(adapter)
+        ));
+
+        metrics.setMDC();
+        Map<String, String> ctx0 = adapter.getCopyOfContextMap();
+
+        Assertions.assertTrue(ctx0.containsKey("pipeline"));
+        Assertions.assertTrue(ctx0.containsKey("author"));
+        Assertions.assertTrue(ctx0.containsKey("test"));
+        Assertions.assertEquals("test-mdc-nullable", ctx0.get("pipeline"));
+        Assertions.assertNull(ctx0.get("author"));
+        Assertions.assertEquals("true", ctx0.get("test"));
+    }
+
+    @Test
     public void testMDCException()
     {
         MDCAdapter adapter = new BasicMDCAdapter();

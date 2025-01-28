@@ -54,6 +54,8 @@ public final class MetricTags
 
     public Collection<Tag> asTags()
     {
-        return this.data.entrySet().stream().map(e -> Tag.of(e.getKey(), e.getValue())).toList();
+        return this.data.entrySet().stream()
+            .map(e -> Tag.of(e.getKey(), e.getValue() == null ? "" : e.getValue()))
+            .toList();
     }
 }

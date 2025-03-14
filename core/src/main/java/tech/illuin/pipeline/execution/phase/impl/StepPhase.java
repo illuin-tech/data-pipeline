@@ -135,7 +135,7 @@ public class StepPhase<I> implements PipelinePhase<I>
         }
         catch (Exception e) {
             metrics.setMDC(e);
-            logger.trace("{}#{} step {} threw an {}: {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), name, e.getClass().getName(), e.getMessage());
+            logger.error("{}#{} step {} threw an {}: {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), name, e.getClass().getName(), e.getMessage());
             metrics.failureCounter().increment();
             metrics.errorCounter(e).increment();
             return step.handleException(e, input, output.payload(), output.results(), componentContext);

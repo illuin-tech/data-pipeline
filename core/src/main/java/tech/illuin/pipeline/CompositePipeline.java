@@ -211,7 +211,7 @@ public final class CompositePipeline<I> implements Pipeline<I>
         }
         catch (Exception e) {
             metrics.setMDC(e);
-            logger.trace("{}#{} initializer {} threw an {}: {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), tag.id(), e.getClass().getName(), e.getMessage());
+            logger.error("{}#{} initializer {} threw an {}: {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), tag.id(), e.getClass().getName(), e.getMessage());
             return this.initializer.handleException(e, componentContext, this.uidGenerator);
         }
     }

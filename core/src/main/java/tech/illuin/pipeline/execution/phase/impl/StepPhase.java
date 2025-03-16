@@ -1,6 +1,7 @@
 package tech.illuin.pipeline.execution.phase.impl;
 
-import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.Tracer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tech.illuin.pipeline.PipelineResult;
@@ -12,6 +13,7 @@ import tech.illuin.pipeline.execution.phase.PipelineStrategy;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
 import tech.illuin.pipeline.metering.PipelineStepMetrics;
+import tech.illuin.pipeline.metering.manager.ObservabilityManager;
 import tech.illuin.pipeline.metering.tag.MetricTags;
 import tech.illuin.pipeline.output.ComponentFamily;
 import tech.illuin.pipeline.output.ComponentTag;
@@ -37,15 +39,15 @@ public class StepPhase<I> implements PipelinePhase<I>
 {
     private final List<StepDescriptor<Indexable, I>> steps;
     private final UIDGenerator uidGenerator;
-    private final MeterRegistry meterRegistry;
+    private final ObservabilityManager observabilityManager;
     
     private static final Logger logger = LoggerFactory.getLogger(StepPhase.class);
 
-    public StepPhase(List<StepDescriptor<Indexable, I>> steps, UIDGenerator uidGenerator, MeterRegistry meterRegistry)
+    public StepPhase(List<StepDescriptor<Indexable, I>> steps, UIDGenerator uidGenerator, ObservabilityManager observabilityManager)
     {
         this.steps = steps;
         this.uidGenerator = uidGenerator;
-        this.meterRegistry = meterRegistry;
+        this.observabilityManager = observabilityManager;
     }
 
     @Override
@@ -56,7 +58,7 @@ public class StepPhase<I> implements PipelinePhase<I>
             STEP_LOOP: for (StepDescriptor<Indexable, I> step : this.steps)
             {
                 ComponentTag tag = this.createTag(io.output().tag(), step);
-                PipelineStepMetrics metrics = new PipelineStepMetrics(this.meterRegistry, tag, metricTags);
+                PipelineStepMetrics metrics = new PipelineStepMetrics(this.observabilityManager.meterRegistry(), tag, metricTags);
 
                 /* Arguments are a list of Indexable which satisfy the step's execution predicate */
                 List<Indexable> arguments = io.output().index().stream()
@@ -126,10 +128,16 @@ public class StepPhase<I> implements PipelinePhase<I>
 
         long start = System.nanoTime();
         metrics.setMDC();
-        try {
+        Span span = this.observabilityManager.tracer().nextSpan().name(tag.id());
+        try (Tracer.SpanInScope scope = this.observabilityManager.tracer().withSpan(span.start()))
+        {
+            span.tag("uid", tag.uid());
+
+            span.event("run_step");
             logger.trace("{}#{} running step {} over argument {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), name, indexed.uid());
             Result result = step.execute(indexed, io.input(), io.output(), componentContext);
 
+            span.tag("result_type", result.getClass().getName());
             metrics.successCounter().increment();
             return result;
         }
@@ -144,6 +152,7 @@ public class StepPhase<I> implements PipelinePhase<I>
             metrics.runTimer().record(System.nanoTime() - start, TimeUnit.NANOSECONDS);
             metrics.totalCounter().increment();
             metrics.unsetMDC();
+            span.end();
         }
     }
 

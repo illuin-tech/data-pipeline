@@ -21,6 +21,7 @@
         <tsid.version>5.2.6</tsid.version>
         <ulid.version>5.2.3</ulid.version>
         <micrometer.version>1.14.5</micrometer.version>
+        <micrometer-tracing.version>1.4.4</micrometer-tracing.version>
     </properties>
 
     <dependencies>
@@ -46,6 +47,12 @@
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-core</artifactId>
             <version>${micrometer.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-tracing</artifactId>
+            <version>${micrometer-tracing.version}</version>
         </dependency>
     </dependencies>
 </project>

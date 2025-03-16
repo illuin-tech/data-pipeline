@@ -42,7 +42,7 @@ public class PipelineTest
             "composite-describe",
             ALWAYS_CONTINUE,
             new Counters(),
-            builder -> builder.setMeterRegistry(meterRegistry)
+            builder -> builder.addObservabilityComponent(meterRegistry)
         );
 
         Assertions.assertDoesNotThrow(() -> pipeline.run());

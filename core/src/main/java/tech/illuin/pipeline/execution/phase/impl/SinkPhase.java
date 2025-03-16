@@ -1,6 +1,7 @@
 package tech.illuin.pipeline.execution.phase.impl;
 
-import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.Tracer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -11,6 +12,7 @@ import tech.illuin.pipeline.execution.phase.PipelinePhase;
 import tech.illuin.pipeline.execution.phase.PipelineStrategy;
 import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
 import tech.illuin.pipeline.metering.PipelineSinkMetrics;
+import tech.illuin.pipeline.metering.manager.ObservabilityManager;
 import tech.illuin.pipeline.metering.tag.MetricTags;
 import tech.illuin.pipeline.output.ComponentFamily;
 import tech.illuin.pipeline.output.ComponentTag;
@@ -35,7 +37,7 @@ public class SinkPhase<I> implements PipelinePhase<I>
     private final ExecutorService sinkExecutor;
     private final int closeTimeout;
     private final UIDGenerator uidGenerator;
-    private final MeterRegistry meterRegistry;
+    private final ObservabilityManager observabilityManager;
 
     private static final Logger logger = LoggerFactory.getLogger(SinkPhase.class);
 
@@ -45,14 +47,14 @@ public class SinkPhase<I> implements PipelinePhase<I>
         Supplier<ExecutorService> sinkExecutorProvider,
         int closeTimeout,
         UIDGenerator uidGenerator,
-        MeterRegistry meterRegistry
+        ObservabilityManager observabilityManager
     ) {
         this.pipelineId = pipelineId;
         this.sinks = sinks;
         this.sinkExecutor = this.initExecutor(sinkExecutorProvider);
         this.closeTimeout = closeTimeout;
         this.uidGenerator = uidGenerator;
-        this.meterRegistry = meterRegistry;
+        this.observabilityManager = observabilityManager;
     }
 
     @Override
@@ -61,7 +63,7 @@ public class SinkPhase<I> implements PipelinePhase<I>
         for (SinkDescriptor descriptor : this.sinks)
         {
             ComponentTag tag = this.createTag(io.output().tag(), descriptor);
-            PipelineSinkMetrics metrics = new PipelineSinkMetrics(this.meterRegistry, tag, metricTags);
+            PipelineSinkMetrics metrics = new PipelineSinkMetrics(this.observabilityManager.meterRegistry(), tag, metricTags);
 
             if (descriptor.isAsync())
                 this.runSinkAsynchronously(descriptor, tag, io, context, metrics);
@@ -79,7 +81,12 @@ public class SinkPhase<I> implements PipelinePhase<I>
 
         long start = System.nanoTime();
         metrics.setMDC();
-        try {
+        Span span = this.observabilityManager.tracer().nextSpan().name(tag.id());
+        try (Tracer.SpanInScope scope = this.observabilityManager.tracer().withSpan(span.start()))
+        {
+            span.tag("uid", tag.uid());
+
+            span.event("run_sink_sync");
             logger.trace("{}#{} launching sink {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), tag.id());
             sink.execute(io.output(), componentContext);
             metrics.successCounter().increment();
@@ -95,6 +102,7 @@ public class SinkPhase<I> implements PipelinePhase<I>
             metrics.runTimer().record(System.nanoTime() - start, TimeUnit.NANOSECONDS);
             metrics.totalCounter().increment();
             metrics.unsetMDC();
+            span.end();
         }
     }
 
@@ -112,7 +120,12 @@ public class SinkPhase<I> implements PipelinePhase<I>
             long start = System.nanoTime();
             MDC.setContextMap(mdc);
             metrics.setMDC();
-            try {
+            Span span = this.observabilityManager.tracer().nextSpan().name(tag.id());
+            try (Tracer.SpanInScope scope = this.observabilityManager.tracer().withSpan(span.start()))
+            {
+                span.tag("uid", tag.uid());
+
+                span.event("run_sink_async");
                 logger.trace("{}#{} launching sink {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), tag.id());
                 sink.execute(io.output(), componentContext);
                 metrics.successCounter().increment();
@@ -128,6 +141,7 @@ public class SinkPhase<I> implements PipelinePhase<I>
                 metrics.runTimer().record(System.nanoTime() - start, TimeUnit.NANOSECONDS);
                 metrics.totalCounter().increment();
                 metrics.unsetMDC();
+                span.end();
             }
         }, this.sinkExecutor);
     }

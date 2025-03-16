@@ -2,6 +2,7 @@ package tech.illuin.pipeline.builder;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import io.micrometer.tracing.Tracer;
 import tech.illuin.pipeline.CompositePipeline;
 import tech.illuin.pipeline.Pipeline;
 import tech.illuin.pipeline.close.OnCloseHandler;
@@ -15,6 +16,8 @@ import tech.illuin.pipeline.input.initializer.builder.InitializerDescriptor;
 import tech.illuin.pipeline.input.initializer.runner.InitializerRunner;
 import tech.illuin.pipeline.input.uid_generator.KSUIDGenerator;
 import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
+import tech.illuin.pipeline.metering.manager.DefaultObservabilityManager;
+import tech.illuin.pipeline.metering.manager.ObservabilityManager;
 import tech.illuin.pipeline.metering.tag.MetricTags;
 import tech.illuin.pipeline.metering.tag.TagResolver;
 import tech.illuin.pipeline.observer.Observer;
@@ -61,7 +64,7 @@ public final class PayloadPipelineBuilder<I>
     private PipelineErrorHandler errorHandler;
     private StepErrorHandler defaultStepErrorHandler;
     private SinkErrorHandler defaultSinkErrorHandler;
-    private MeterRegistry meterRegistry;
+    private ObservabilityManager.Builder observabilityManagerBuilder;
     private TagResolver<I> tagResolver;
     private InitializerAssembler<I> initializer;
     private final List<Indexer<?>> indexers;
@@ -77,7 +80,9 @@ public final class PayloadPipelineBuilder<I>
         this.sinks = new ArrayList<>();
         this.errorHandler = PipelineErrorHandler::wrapChecked;
         this.onCloseHandlers = new ArrayList<>();
-        this.meterRegistry = null;
+        this.observabilityManagerBuilder = new DefaultObservabilityManager.Builder();
+        this.observabilityManagerBuilder.setMeterRegistry(new SimpleMeterRegistry());
+        this.observabilityManagerBuilder.setTracer(Tracer.NOOP);
         this.initializer = null;
         this.indexers = new ArrayList<>();
         this.closeTimeout = 15;
@@ -106,7 +111,7 @@ public final class PayloadPipelineBuilder<I>
             this.errorHandler(),
             this.closeTimeout(),
             this.onCloseHandlers(),
-            this.meterRegistry() == null ? new SimpleMeterRegistry() : this.meterRegistry(),
+            this.observabilityManagerBuilder.build(),
             this.tagResolver() == null ? (in, ctx) -> new MetricTags() : this.tagResolver(),
             this.observers()
         );
@@ -351,14 +356,39 @@ public final class PayloadPipelineBuilder<I>
         return this;
     }
 
+    @Deprecated
     public MeterRegistry meterRegistry()
     {
-        return meterRegistry;
+        return this.observabilityManagerBuilder.meterRegistry();
     }
 
+    @Deprecated
     public PayloadPipelineBuilder<I> setMeterRegistry(MeterRegistry meterRegistry)
     {
-        this.meterRegistry = meterRegistry;
+        this.addObservabilityComponent(meterRegistry);
+        return this;
+    }
+
+    public ObservabilityManager.Builder observabilityManager()
+    {
+        return this.observabilityManagerBuilder;
+    }
+
+    public PayloadPipelineBuilder<I> setObservabilityManager(ObservabilityManager.Builder builder)
+    {
+        this.observabilityManagerBuilder = builder;
+        return this;
+    }
+
+    public PayloadPipelineBuilder<I> addObservabilityComponent(MeterRegistry meterRegistry)
+    {
+        this.observabilityManagerBuilder.setMeterRegistry(meterRegistry);
+        return this;
+    }
+
+    public PayloadPipelineBuilder<I> addObservabilityComponent(Tracer tracer)
+    {
+        this.observabilityManagerBuilder.setTracer(tracer);
         return this;
     }
 

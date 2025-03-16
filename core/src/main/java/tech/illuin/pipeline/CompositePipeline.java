@@ -4,11 +4,12 @@ import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tech.illuin.pipeline.close.OnCloseHandler;
-import tech.illuin.pipeline.context.ComponentContext;
 import tech.illuin.pipeline.context.Context;
 import tech.illuin.pipeline.execution.error.PipelineErrorHandler;
+import tech.illuin.pipeline.execution.phase.IO;
 import tech.illuin.pipeline.execution.phase.PipelinePhase;
 import tech.illuin.pipeline.execution.phase.PipelineStrategy;
+import tech.illuin.pipeline.execution.phase.impl.InitializerPhase;
 import tech.illuin.pipeline.execution.phase.impl.SinkPhase;
 import tech.illuin.pipeline.execution.phase.impl.StepPhase;
 import tech.illuin.pipeline.input.author_resolver.AuthorResolver;
@@ -16,15 +17,12 @@ import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.input.indexer.Indexer;
 import tech.illuin.pipeline.input.initializer.builder.InitializerDescriptor;
 import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
-import tech.illuin.pipeline.metering.PipelineInitializationMetrics;
 import tech.illuin.pipeline.metering.PipelineMetrics;
 import tech.illuin.pipeline.metering.tag.MetricTags;
 import tech.illuin.pipeline.metering.tag.TagResolver;
 import tech.illuin.pipeline.observer.Observer;
 import tech.illuin.pipeline.observer.descriptor.DescriptorObserver;
 import tech.illuin.pipeline.observer.descriptor.model.PipelineDescription;
-import tech.illuin.pipeline.output.ComponentFamily;
-import tech.illuin.pipeline.output.ComponentTag;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.output.PipelineTag;
 import tech.illuin.pipeline.output.factory.OutputFactory;
@@ -56,10 +54,7 @@ public final class CompositePipeline<I> implements Pipeline<I>
 {
     private final String id;
     private final UIDGenerator uidGenerator;
-    private final InitializerDescriptor<I> initializer;
     private final AuthorResolver<I> authorResolver;
-    private final List<Indexer<?>> indexers;
-    private final OutputFactory<I> outputFactory;
     private final List<PipelinePhase<I>> phases;
     private final PipelineErrorHandler errorHandler;
     private final List<OnCloseHandler> onCloseHandlers;
@@ -90,10 +85,7 @@ public final class CompositePipeline<I> implements Pipeline<I>
     ) {
         this.id = id;
         this.uidGenerator = uidGenerator;
-        this.initializer = initializer;
         this.authorResolver = authorResolver;
-        this.indexers = indexers;
-        this.outputFactory = outputFactory;
         this.errorHandler = errorHandler;
         this.onCloseHandlers = onCloseHandlers;
         this.meterRegistry = meterRegistry;
@@ -107,8 +99,9 @@ public final class CompositePipeline<I> implements Pipeline<I>
             id, initializer, steps, sinks, errorHandler, onCloseHandlers, meterRegistry
         ));
         this.phases = List.of(
+            new InitializerPhase<>(initializer, tagResolver, indexers, outputFactory, uidGenerator, meterRegistry),
             new StepPhase<>(steps, uidGenerator, meterRegistry),
-            new SinkPhase<>(this, sinks, sinkExecutorProvider, closeTimeout, uidGenerator, meterRegistry)
+            new SinkPhase<>(id, sinks, sinkExecutorProvider, closeTimeout, uidGenerator, meterRegistry)
         );
     }
 
@@ -125,94 +118,37 @@ public final class CompositePipeline<I> implements Pipeline<I>
         PipelineTag tag = this.createTag(input, context);
         MetricTags metricTags = this.tagResolver.resolve(input, context);
         PipelineMetrics metrics = new PipelineMetrics(this.meterRegistry, tag, metricTags);
-        Output output = null;
+        IO<I> io = new IO<>(tag, input);
 
         long start = System.nanoTime();
         metrics.setMDC();
         try {
             logger.debug("{}: launching pipeline over input of type {}", this.id(), input != null ? input.getClass().getName() : "null");
 
-            output = this.runInitialization(input, context, tag);
-
             /* We will go iteratively through each phase, if one requires a pipeline exit we will skip remaining phases */
             for (PipelinePhase<I> phase : this.phases)
             {
-                PipelineStrategy strategy = phase.run(input, output, context, metricTags);
+                PipelineStrategy strategy = phase.run(io, context, metricTags);
                 if (strategy == PipelineStrategy.EXIT)
                     break;
             }
 
-            logger.trace("{}#{} finished", this.id(), output.tag().uid());
+            logger.trace("{}#{} finished", this.id(), io.output().tag().uid());
             metrics.successCounter().increment();
 
-            return output;
+            return io.output();
         }
         catch (Exception e) {
             metrics.setMDC(e);
             metrics.failureCounter().increment();
             metrics.errorCounter(e).increment();
             logger.error("{}: {}", this.id(), e.getMessage());
-            return this.errorHandler.handle(e, output, input, context, tag);
+            return this.errorHandler.handle(e, io.output(), input, context, tag);
         }
         finally {
             metrics.runTimer().record(System.nanoTime() - start, TimeUnit.NANOSECONDS);
             metrics.totalCounter().increment();
             metrics.unsetMDC();
-        }
-    }
-
-    @SuppressWarnings("IllegalCatch")
-    private Output runInitialization(I input, Context context, PipelineTag tag) throws Exception
-    {
-        if (context == null)
-            throw new IllegalArgumentException("Runtime context cannot be null");
-
-        ComponentTag componentTag = this.createTag(tag, this.initializer);
-        MetricTags metricTags = this.tagResolver.resolve(input, context);
-        PipelineInitializationMetrics metrics = new PipelineInitializationMetrics(this.meterRegistry, componentTag, metricTags);
-
-        long start = System.nanoTime();
-        metrics.setMDC();
-        try {
-            Object payload = this.runInitializer(input, componentTag, context, metrics);
-            Output output = this.outputFactory.create(tag, input, payload, context);
-
-            for (Indexer<?> indexer : this.indexers)
-            {
-                @SuppressWarnings("unchecked")
-                Indexer<Object> objectIndexer = (Indexer<Object>) indexer;
-                logger.trace("{}#{} launching indexer {}", this.id(), tag.uid(), indexer.getClass().getName());
-                objectIndexer.index(payload, output.index());
-            }
-
-            metrics.successCounter().increment();
-            return output;
-        }
-        catch (Exception e) {
-            metrics.setMDC(e);
-            metrics.failureCounter().increment();
-            metrics.errorCounter(e).increment();
-            throw e;
-        }
-        finally {
-            metrics.runTimer().record(System.nanoTime() - start, TimeUnit.NANOSECONDS);
-            metrics.totalCounter().increment();
-            metrics.unsetMDC();
-        }
-    }
-
-    @SuppressWarnings("IllegalCatch")
-    private Object runInitializer(I input, ComponentTag tag, Context context, PipelineInitializationMetrics metrics) throws Exception
-    {
-        ComponentContext componentContext = wrapContext(input, context, tag.pipelineTag(), tag);
-        try {
-            logger.trace("{}#{} initializing payload", tag.pipelineTag().pipeline(), tag.pipelineTag().uid());
-            return this.initializer.execute(input, componentContext, this.uidGenerator);
-        }
-        catch (Exception e) {
-            metrics.setMDC(e);
-            logger.error("{}#{} initializer {} threw an {}: {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), tag.id(), e.getClass().getName(), e.getMessage());
-            return this.initializer.handleException(e, componentContext, this.uidGenerator);
         }
     }
 
@@ -235,16 +171,6 @@ public final class CompositePipeline<I> implements Pipeline<I>
     private PipelineTag createTag(I input, Context context)
     {
         return new PipelineTag(this.uidGenerator.generate(), this.id(), this.authorResolver.resolve(input, context));
-    }
-
-    private ComponentTag createTag(PipelineTag pipelineTag, InitializerDescriptor<?> initializer)
-    {
-        return new ComponentTag(this.uidGenerator.generate(), pipelineTag, initializer.id(), ComponentFamily.INITIALIZER);
-    }
-
-    private ComponentContext wrapContext(I input, Context context, PipelineTag pipelineTag, ComponentTag componentTag)
-    {
-        return new ComponentContext(context, input, pipelineTag, componentTag, this.uidGenerator);
     }
 
     @Override

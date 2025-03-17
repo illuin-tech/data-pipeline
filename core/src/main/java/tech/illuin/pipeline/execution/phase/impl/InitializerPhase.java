@@ -68,19 +68,20 @@ public class InitializerPhase<I> implements PipelinePhase<I>
         try (Tracer.SpanInScope scope = this.observabilityManager.tracer().withSpan(span.start()))
         {
             span.tag("uid", tag.uid());
-            span.tag("input_type", io.input() == null ? "null" : io.input().getClass().getName());
 
-            span.event("run_initializer");
+            span.event("initializer:run");
             Object payload = this.runInitializer(io.input(), tag, context, metrics);
+            span.tag("payload_type", payload == null ? "null" : payload.getClass().getName());
 
-            span.event("run_output_factory");
+            span.event("output_factory:run");
             Output output = this.outputFactory.create(io.tag(), io.input(), payload, context);
+            span.tag("output_type", output == null ? "null" : output.getClass().getName());
 
-            span.event("run_indexers");
             for (Indexer<?> indexer : this.indexers)
             {
                 @SuppressWarnings("unchecked")
                 Indexer<Object> objectIndexer = (Indexer<Object>) indexer;
+                span.event("indexer:run:" + indexer.getClass().getName());
                 logger.trace("{}#{} launching indexer {}", io.tag().pipeline(), io.tag().uid(), indexer.getClass().getName());
                 objectIndexer.index(payload, output.index());
             }
@@ -92,6 +93,7 @@ public class InitializerPhase<I> implements PipelinePhase<I>
         }
         catch (Exception e) {
             metrics.setMDC(e);
+            span.event("initializer:error");
             metrics.failureCounter().increment();
             metrics.errorCounter(e).increment();
             throw e;

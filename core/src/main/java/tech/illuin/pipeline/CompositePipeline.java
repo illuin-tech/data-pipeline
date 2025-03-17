@@ -129,13 +129,17 @@ public final class CompositePipeline<I> implements Pipeline<I>
         try (Tracer.SpanInScope scope = this.observabilityManager.tracer().withSpan(span.start()))
         {
             span.tag("uid", tag.uid());
+            span.tag("input_type", io.input() == null ? "null" : io.input().getClass().getName());
 
             logger.debug("{}: launching pipeline over input of type {}", this.id(), input != null ? input.getClass().getName() : "null");
 
             /* We will go iteratively through each phase, if one requires a pipeline exit we will skip remaining phases */
             for (PipelinePhase<I> phase : this.phases)
             {
+                span.event("pipeline:phase:" + phase.getClass().getName());
                 PipelineStrategy strategy = phase.run(io, context, metricTags);
+
+                span.event("pipeline:phase:evaluate_strategy:" + strategy.name());
                 if (strategy == PipelineStrategy.EXIT)
                     break;
             }
@@ -147,6 +151,7 @@ public final class CompositePipeline<I> implements Pipeline<I>
         }
         catch (Exception e) {
             metrics.setMDC(e);
+            span.event("pipeline:error");
             metrics.failureCounter().increment();
             metrics.errorCounter(e).increment();
             logger.error("{}: {}", this.id(), e.getMessage());

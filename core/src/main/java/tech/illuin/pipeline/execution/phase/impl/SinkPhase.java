@@ -86,13 +86,14 @@ public class SinkPhase<I> implements PipelinePhase<I>
         {
             span.tag("uid", tag.uid());
 
-            span.event("run_sink_sync");
+            span.event("sink:run_sync");
             logger.trace("{}#{} launching sink {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), tag.id());
             sink.execute(io.output(), componentContext);
             metrics.successCounter().increment();
         }
         catch (Exception e) {
             metrics.setMDC(e);
+            span.event("sink:error");
             logger.error("{}#{} sink {} threw an {}: {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), tag.id(), e.getClass().getName(), e.getMessage());
             metrics.failureCounter().increment();
             metrics.errorCounter(e).increment();
@@ -125,13 +126,14 @@ public class SinkPhase<I> implements PipelinePhase<I>
             {
                 span.tag("uid", tag.uid());
 
-                span.event("run_sink_async");
+                span.event("sink:run_async");
                 logger.trace("{}#{} launching sink {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), tag.id());
                 sink.execute(io.output(), componentContext);
                 metrics.successCounter().increment();
             }
             catch (Exception e) {
                 metrics.setMDC(e);
+                span.event("sink:error");
                 logger.error("{}#{} sink {} threw an {}: {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), tag.id(), e.getClass().getName(), e.getMessage());
                 metrics.failureCounter().increment();
                 metrics.errorCounter(e).increment();

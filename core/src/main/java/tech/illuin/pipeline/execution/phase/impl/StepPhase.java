@@ -53,20 +53,21 @@ public class StepPhase<I> implements PipelinePhase<I>
     @Override
     public PipelineStrategy run(IO<I> io, Context context, MetricTags metricTags) throws Exception
     {
-        try {
+        Span span = this.observabilityManager.tracer().nextSpan().name("step_phase");
+        try (Tracer.SpanInScope scope = this.observabilityManager.tracer().withSpan(span.start()))
+        {
             Set<Indexable> discarded = new HashSet<>();
             STEP_LOOP: for (StepDescriptor<Indexable, I> step : this.steps)
             {
                 ComponentTag tag = this.createTag(io.output().tag(), step);
                 PipelineStepMetrics metrics = new PipelineStepMetrics(this.observabilityManager.meterRegistry(), tag, metricTags);
+                span.event("step_phase:select_step:" + tag.id());
 
                 /* Arguments are a list of Indexable which satisfy the step's execution predicate */
                 List<Indexable> arguments = io.output().index().stream()
                     .filter(idx -> !discarded.contains(idx) || step.isPinned())
                     .filter(idx -> step.canExecute(idx, context))
-                    .toList()
-                ;
-
+                    .toList();
                 logger.trace("{}#{} retrieved {} arguments for step {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), arguments.size(), tag.id());
 
                 /* For each argument we perform the step and register the produced Result */
@@ -81,6 +82,7 @@ public class StepPhase<I> implements PipelinePhase<I>
 
                     StepStrategy strategy = step.postEvaluation(result, indexed, io.input(), context);
                     logger.trace("{}#{} received {} signal after step {} over argument {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), strategy, tag.id(), indexed.uid());
+                    span.event("step_phase:evaluate_strategy:" + strategy.name());
 
                     if (strategy.hasBehaviour(REGISTER_RESULT))
                     {
@@ -117,6 +119,7 @@ public class StepPhase<I> implements PipelinePhase<I>
         }
         finally {
             io.output().finish();
+            span.end();
         }
     }
 
@@ -133,7 +136,7 @@ public class StepPhase<I> implements PipelinePhase<I>
         {
             span.tag("uid", tag.uid());
 
-            span.event("run_step");
+            span.event("step:run");
             logger.trace("{}#{} running step {} over argument {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), name, indexed.uid());
             Result result = step.execute(indexed, io.input(), io.output(), componentContext);
 
@@ -143,6 +146,7 @@ public class StepPhase<I> implements PipelinePhase<I>
         }
         catch (Exception e) {
             metrics.setMDC(e);
+            span.event("step:error");
             logger.error("{}#{} step {} threw an {}: {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), name, e.getClass().getName(), e.getMessage());
             metrics.failureCounter().increment();
             metrics.errorCounter(e).increment();

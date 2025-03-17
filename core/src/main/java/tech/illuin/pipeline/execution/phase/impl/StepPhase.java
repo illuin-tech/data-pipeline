@@ -1,6 +1,7 @@
 package tech.illuin.pipeline.execution.phase.impl;
 
-import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.Tracer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tech.illuin.pipeline.PipelineResult;
@@ -12,6 +13,7 @@ import tech.illuin.pipeline.execution.phase.PipelineStrategy;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
 import tech.illuin.pipeline.metering.PipelineStepMetrics;
+import tech.illuin.pipeline.metering.manager.ObservabilityManager;
 import tech.illuin.pipeline.metering.tag.MetricTags;
 import tech.illuin.pipeline.output.ComponentFamily;
 import tech.illuin.pipeline.output.ComponentTag;
@@ -37,34 +39,35 @@ public class StepPhase<I> implements PipelinePhase<I>
 {
     private final List<StepDescriptor<Indexable, I>> steps;
     private final UIDGenerator uidGenerator;
-    private final MeterRegistry meterRegistry;
+    private final ObservabilityManager observabilityManager;
     
     private static final Logger logger = LoggerFactory.getLogger(StepPhase.class);
 
-    public StepPhase(List<StepDescriptor<Indexable, I>> steps, UIDGenerator uidGenerator, MeterRegistry meterRegistry)
+    public StepPhase(List<StepDescriptor<Indexable, I>> steps, UIDGenerator uidGenerator, ObservabilityManager observabilityManager)
     {
         this.steps = steps;
         this.uidGenerator = uidGenerator;
-        this.meterRegistry = meterRegistry;
+        this.observabilityManager = observabilityManager;
     }
 
     @Override
     public PipelineStrategy run(IO<I> io, Context context, MetricTags metricTags) throws Exception
     {
-        try {
+        Span span = this.observabilityManager.tracer().nextSpan().name("step_phase");
+        try (Tracer.SpanInScope scope = this.observabilityManager.tracer().withSpan(span.start()))
+        {
             Set<Indexable> discarded = new HashSet<>();
             STEP_LOOP: for (StepDescriptor<Indexable, I> step : this.steps)
             {
                 ComponentTag tag = this.createTag(io.output().tag(), step);
-                PipelineStepMetrics metrics = new PipelineStepMetrics(this.meterRegistry, tag, metricTags);
+                PipelineStepMetrics metrics = new PipelineStepMetrics(this.observabilityManager.meterRegistry(), tag, metricTags);
+                span.event("step_phase:select_step:" + tag.id());
 
                 /* Arguments are a list of Indexable which satisfy the step's execution predicate */
                 List<Indexable> arguments = io.output().index().stream()
                     .filter(idx -> !discarded.contains(idx) || step.isPinned())
                     .filter(idx -> step.canExecute(idx, context))
-                    .toList()
-                ;
-
+                    .toList();
                 logger.trace("{}#{} retrieved {} arguments for step {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), arguments.size(), tag.id());
 
                 /* For each argument we perform the step and register the produced Result */
@@ -79,6 +82,7 @@ public class StepPhase<I> implements PipelinePhase<I>
 
                     StepStrategy strategy = step.postEvaluation(result, indexed, io.input(), context);
                     logger.trace("{}#{} received {} signal after step {} over argument {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), strategy, tag.id(), indexed.uid());
+                    span.event("step_phase:evaluate_strategy:" + strategy.name());
 
                     if (strategy.hasBehaviour(REGISTER_RESULT))
                     {
@@ -115,6 +119,7 @@ public class StepPhase<I> implements PipelinePhase<I>
         }
         finally {
             io.output().finish();
+            span.end();
         }
     }
 
@@ -126,15 +131,22 @@ public class StepPhase<I> implements PipelinePhase<I>
 
         long start = System.nanoTime();
         metrics.setMDC();
-        try {
+        Span span = this.observabilityManager.tracer().nextSpan().name(tag.id());
+        try (Tracer.SpanInScope scope = this.observabilityManager.tracer().withSpan(span.start()))
+        {
+            span.tag("uid", tag.uid());
+
+            span.event("step:run");
             logger.trace("{}#{} running step {} over argument {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), name, indexed.uid());
             Result result = step.execute(indexed, io.input(), io.output(), componentContext);
 
+            span.tag("result_type", result.getClass().getName());
             metrics.successCounter().increment();
             return result;
         }
         catch (Exception e) {
             metrics.setMDC(e);
+            span.event("step:error");
             logger.error("{}#{} step {} threw an {}: {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), name, e.getClass().getName(), e.getMessage());
             metrics.failureCounter().increment();
             metrics.errorCounter(e).increment();
@@ -144,6 +156,7 @@ public class StepPhase<I> implements PipelinePhase<I>
             metrics.runTimer().record(System.nanoTime() - start, TimeUnit.NANOSECONDS);
             metrics.totalCounter().increment();
             metrics.unsetMDC();
+            span.end();
         }
     }
 

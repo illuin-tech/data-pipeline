@@ -1,6 +1,7 @@
 package tech.illuin.pipeline.execution.phase.impl;
 
-import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.Tracer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tech.illuin.pipeline.context.ComponentContext;
@@ -12,6 +13,7 @@ import tech.illuin.pipeline.input.indexer.Indexer;
 import tech.illuin.pipeline.input.initializer.builder.InitializerDescriptor;
 import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
 import tech.illuin.pipeline.metering.PipelineInitializationMetrics;
+import tech.illuin.pipeline.metering.manager.ObservabilityManager;
 import tech.illuin.pipeline.metering.tag.MetricTags;
 import tech.illuin.pipeline.metering.tag.TagResolver;
 import tech.illuin.pipeline.output.ComponentFamily;
@@ -30,7 +32,7 @@ public class InitializerPhase<I> implements PipelinePhase<I>
     private final List<Indexer<?>> indexers;
     private final OutputFactory<I> outputFactory;
     private final UIDGenerator uidGenerator;
-    private final MeterRegistry meterRegistry;
+    private final ObservabilityManager observabilityManager;
 
     private static final Logger logger = LoggerFactory.getLogger(InitializerPhase.class);
 
@@ -40,14 +42,14 @@ public class InitializerPhase<I> implements PipelinePhase<I>
         List<Indexer<?>> indexers,
         OutputFactory<I> outputFactory,
         UIDGenerator uidGenerator,
-        MeterRegistry meterRegistry
+        ObservabilityManager observabilityManager
     ) {
         this.initializer = initializer;
         this.tagResolver = tagResolver;
         this.indexers = indexers;
         this.outputFactory = outputFactory;
         this.uidGenerator = uidGenerator;
-        this.meterRegistry = meterRegistry;
+        this.observabilityManager = observabilityManager;
     }
 
     @Override
@@ -56,20 +58,30 @@ public class InitializerPhase<I> implements PipelinePhase<I>
         if (context == null)
             throw new IllegalArgumentException("Runtime context cannot be null");
 
-        ComponentTag componentTag = this.createTag(io.tag(), this.initializer);
+        ComponentTag tag = this.createTag(io.tag(), this.initializer);
         MetricTags metricTags = this.tagResolver.resolve(io.input(), context);
-        PipelineInitializationMetrics metrics = new PipelineInitializationMetrics(this.meterRegistry, componentTag, metricTags);
+        PipelineInitializationMetrics metrics = new PipelineInitializationMetrics(this.observabilityManager.meterRegistry(), tag, metricTags);
 
         long start = System.nanoTime();
         metrics.setMDC();
-        try {
-            Object payload = this.runInitializer(io.input(), componentTag, context, metrics);
+        Span span = this.observabilityManager.tracer().nextSpan().name(tag.id());
+        try (Tracer.SpanInScope scope = this.observabilityManager.tracer().withSpan(span.start()))
+        {
+            span.tag("uid", tag.uid());
+
+            span.event("initializer:run");
+            Object payload = this.runInitializer(io.input(), tag, context, metrics);
+            span.tag("payload_type", payload == null ? "null" : payload.getClass().getName());
+
+            span.event("output_factory:run");
             Output output = this.outputFactory.create(io.tag(), io.input(), payload, context);
+            span.tag("output_type", output == null ? "null" : output.getClass().getName());
 
             for (Indexer<?> indexer : this.indexers)
             {
                 @SuppressWarnings("unchecked")
                 Indexer<Object> objectIndexer = (Indexer<Object>) indexer;
+                span.event("indexer:run:" + indexer.getClass().getName());
                 logger.trace("{}#{} launching indexer {}", io.tag().pipeline(), io.tag().uid(), indexer.getClass().getName());
                 objectIndexer.index(payload, output.index());
             }
@@ -81,6 +93,7 @@ public class InitializerPhase<I> implements PipelinePhase<I>
         }
         catch (Exception e) {
             metrics.setMDC(e);
+            span.event("initializer:error");
             metrics.failureCounter().increment();
             metrics.errorCounter(e).increment();
             throw e;
@@ -89,6 +102,7 @@ public class InitializerPhase<I> implements PipelinePhase<I>
             metrics.runTimer().record(System.nanoTime() - start, TimeUnit.NANOSECONDS);
             metrics.totalCounter().increment();
             metrics.unsetMDC();
+            span.end();
         }
     }
 

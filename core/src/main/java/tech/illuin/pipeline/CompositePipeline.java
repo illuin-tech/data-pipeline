@@ -1,6 +1,8 @@
 package tech.illuin.pipeline;
 
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.Tracer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tech.illuin.pipeline.close.OnCloseHandler;
@@ -18,6 +20,7 @@ import tech.illuin.pipeline.input.indexer.Indexer;
 import tech.illuin.pipeline.input.initializer.builder.InitializerDescriptor;
 import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
 import tech.illuin.pipeline.metering.PipelineMetrics;
+import tech.illuin.pipeline.metering.manager.ObservabilityManager;
 import tech.illuin.pipeline.metering.tag.MetricTags;
 import tech.illuin.pipeline.metering.tag.TagResolver;
 import tech.illuin.pipeline.observer.Observer;
@@ -58,7 +61,7 @@ public final class CompositePipeline<I> implements Pipeline<I>
     private final List<PipelinePhase<I>> phases;
     private final PipelineErrorHandler errorHandler;
     private final List<OnCloseHandler> onCloseHandlers;
-    private final MeterRegistry meterRegistry;
+    private final ObservabilityManager observabilityManager;
     private final TagResolver<I> tagResolver;
     private final DescriptorObserver descriptorObserver;
     private final List<Observer> observers;
@@ -79,7 +82,7 @@ public final class CompositePipeline<I> implements Pipeline<I>
         PipelineErrorHandler errorHandler,
         int closeTimeout,
         List<OnCloseHandler> onCloseHandlers,
-        MeterRegistry meterRegistry,
+        ObservabilityManager observabilityManager,
         TagResolver<I> tagResolver,
         List<Observer> observers
     ) {
@@ -88,7 +91,7 @@ public final class CompositePipeline<I> implements Pipeline<I>
         this.authorResolver = authorResolver;
         this.errorHandler = errorHandler;
         this.onCloseHandlers = onCloseHandlers;
-        this.meterRegistry = meterRegistry;
+        this.observabilityManager = observabilityManager;
         this.tagResolver = tagResolver;
         this.descriptorObserver = new DescriptorObserver();
         this.observers = Stream.concat(
@@ -96,12 +99,12 @@ public final class CompositePipeline<I> implements Pipeline<I>
             observers.stream()
         ).toList();
         this.observers.forEach(s -> s.init(
-            id, initializer, steps, sinks, errorHandler, onCloseHandlers, meterRegistry
+            id, initializer, steps, sinks, errorHandler, onCloseHandlers, observabilityManager.meterRegistry()
         ));
         this.phases = List.of(
-            new InitializerPhase<>(initializer, tagResolver, indexers, outputFactory, uidGenerator, meterRegistry),
-            new StepPhase<>(steps, uidGenerator, meterRegistry),
-            new SinkPhase<>(id, sinks, sinkExecutorProvider, closeTimeout, uidGenerator, meterRegistry)
+            new InitializerPhase<>(initializer, tagResolver, indexers, outputFactory, uidGenerator, observabilityManager),
+            new StepPhase<>(steps, uidGenerator, observabilityManager),
+            new SinkPhase<>(id, sinks, sinkExecutorProvider, closeTimeout, uidGenerator, observabilityManager)
         );
     }
 
@@ -117,18 +120,26 @@ public final class CompositePipeline<I> implements Pipeline<I>
     {
         PipelineTag tag = this.createTag(input, context);
         MetricTags metricTags = this.tagResolver.resolve(input, context);
-        PipelineMetrics metrics = new PipelineMetrics(this.meterRegistry, tag, metricTags);
+        PipelineMetrics metrics = new PipelineMetrics(this.observabilityManager.meterRegistry(), tag, metricTags);
         IO<I> io = new IO<>(tag, input);
 
         long start = System.nanoTime();
         metrics.setMDC();
-        try {
+        Span span = this.observabilityManager.tracer().nextSpan().name(tag.pipeline());
+        try (Tracer.SpanInScope scope = this.observabilityManager.tracer().withSpan(span.start()))
+        {
+            span.tag("uid", tag.uid());
+            span.tag("input_type", io.input() == null ? "null" : io.input().getClass().getName());
+
             logger.debug("{}: launching pipeline over input of type {}", this.id(), input != null ? input.getClass().getName() : "null");
 
             /* We will go iteratively through each phase, if one requires a pipeline exit we will skip remaining phases */
             for (PipelinePhase<I> phase : this.phases)
             {
+                span.event("pipeline:phase:" + phase.getClass().getName());
                 PipelineStrategy strategy = phase.run(io, context, metricTags);
+
+                span.event("pipeline:phase:evaluate_strategy:" + strategy.name());
                 if (strategy == PipelineStrategy.EXIT)
                     break;
             }
@@ -140,6 +151,7 @@ public final class CompositePipeline<I> implements Pipeline<I>
         }
         catch (Exception e) {
             metrics.setMDC(e);
+            span.event("pipeline:error");
             metrics.failureCounter().increment();
             metrics.errorCounter(e).increment();
             logger.error("{}: {}", this.id(), e.getMessage());
@@ -149,6 +161,7 @@ public final class CompositePipeline<I> implements Pipeline<I>
             metrics.runTimer().record(System.nanoTime() - start, TimeUnit.NANOSECONDS);
             metrics.totalCounter().increment();
             metrics.unsetMDC();
+            span.end();
         }
     }
 

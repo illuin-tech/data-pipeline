@@ -8,6 +8,7 @@ import tech.illuin.pipeline.execution.error.PipelineErrorHandler;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.input.initializer.builder.InitializerDescriptor;
 import tech.illuin.pipeline.metering.*;
+import tech.illuin.pipeline.metering.manager.ObservabilityManager;
 import tech.illuin.pipeline.observer.Observer;
 import tech.illuin.pipeline.observer.descriptor.describable.DefaultDescribable;
 import tech.illuin.pipeline.observer.descriptor.describable.Describable;

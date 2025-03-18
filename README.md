@@ -13,9 +13,9 @@ A typical `data-pipeline` use-case can be:
 * a system performing iterative analysis on an input: the `data-pipeline` data model retains intermediate results from all steps, and each result is tagged with lineage metadata
 
 On top of its core feature-set, complying to the `data-pipeline` model comes with rather nice benefits:
-* out-of-the-box support for [micrometer](https://micrometer.io) based metrics (success/failure rates, error tracking, etc.)
+* out-of-the-box support for [micrometer](https://micrometer.io) based [metrics](doc/integrations.md#metrics) (success/failure rates, error tracking, etc.) and [tracing](doc/integrations.md#tracing)
 * out-of-the-box support for [slf4j](https://www.slf4j.org) log markers (pipeline id, component id, etc.)
-* easily pluggable [resilience4j](https://resilience4j.readme.io) based resilience features (retries, time-limiter, etc.)
+* easily pluggable [resilience4j](https://resilience4j.readme.io) based [resilience features](doc/integrations.md#resilience4j) (retries, time-limiter, etc.)
 
 ## I. Installation
 
@@ -25,7 +25,7 @@ The library requires Java 17+, in order to use it, add the following in your `po
 <dependency>
     <groupId>tech.illuin</groupId>
     <artifactId>data-pipeline</artifactId>
-    <version>0.23.4</version>
+    <version>0.24</version>
 </dependency>
 ```
 

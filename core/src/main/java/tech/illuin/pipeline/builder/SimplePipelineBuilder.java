@@ -344,12 +344,18 @@ public final class SimplePipelineBuilder<I>
         return this;
     }
 
+    /**
+     * @deprecated Use {@link #observabilityManager()} instead
+     */
     @Deprecated
     public MeterRegistry meterRegistry()
     {
         return this.observabilityManagerBuilder.meterRegistry();
     }
 
+    /**
+     * @deprecated Use {@link #addObservabilityComponent(MeterRegistry)} instead
+     */
     @Deprecated
     public SimplePipelineBuilder<I> setMeterRegistry(MeterRegistry meterRegistry)
     {

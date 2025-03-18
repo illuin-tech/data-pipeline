@@ -2,6 +2,8 @@
 
 ## Micrometer
 
+### Metrics
+
 `data-pipeline` automatically manages a number of micrometer meters in order to give insights into the performance and reliability of a pipeline and its components.
 
 In order to enable activity tracking through micrometer, pass a `io.micrometer.core.instrument.MeterRegistry` to the pipeline builder:
@@ -9,7 +11,7 @@ In order to enable activity tracking through micrometer, pass a `io.micrometer.c
 ```java
 var pipeline = Pipeline.of("my-pipeline")
     // register steps, sinks, etc.
-    .setMeterRegistry(meterRegistry)
+    .addObservabilityComponent(meterRegistry)
     //.build()
 ;
 ```
@@ -51,9 +53,25 @@ Each of these have a number of predefined tags like the `pipeline` name, or a `r
 | sink           | `pipeline.sink.run.failure`               | `counter` | `pipeline` `sink`                | Total count of failed sink runs            |
 | sink           | `pipeline.sink.run.error.total`           | `counter` | `pipeline` `sink` `error`        | Total count of sink exceptions             |
 
+### Tracing
+
+`data-pipeline` also manages tracing spans via `micrometer-tracing` on core components:
+* pipeline execution
+* pipeline phases: initialization, steps and sinks
+
+In order to enable tracing through micrometer, pass a `io.micrometer.tracing.Tracer` to the pipeline builder:
+
+```java
+var pipeline = Pipeline.of("my-pipeline")
+    // register steps, sinks, etc.
+    .addObservabilityComponent(tracer)
+    //.build()
+;
+```
+
 ## Prometheus
 
-Given the micrometer integration above, existing meters are trivially converted to prometheus metrics:
+Given the micrometer integration [above](#metrics), existing meters are trivially converted to prometheus metrics:
 * through `micrometer-registry-prometheus`: [Prometheus integration](https://micrometer.io/docs/registry/prometheus) ; note that there are many alternatives such as [OTLP, Influx, Graphite or Datadog](https://micrometer.io/docs)
 * or in a spring-boot application for instance: [Production-ready Features - Prometheus](https://docs.spring.io/spring-boot/docs/current/reference/html/actuator.html#actuator.metrics.export.prometheus)
 

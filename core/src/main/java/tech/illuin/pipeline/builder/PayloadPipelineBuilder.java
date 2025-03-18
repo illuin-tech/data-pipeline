@@ -356,12 +356,18 @@ public final class PayloadPipelineBuilder<I>
         return this;
     }
 
+    /**
+     * @deprecated Use {@link #observabilityManager()} instead
+     */
     @Deprecated
     public MeterRegistry meterRegistry()
     {
         return this.observabilityManagerBuilder.meterRegistry();
     }
 
+    /**
+     * @deprecated Use {@link #addObservabilityComponent(MeterRegistry)} instead
+     */
     @Deprecated
     public PayloadPipelineBuilder<I> setMeterRegistry(MeterRegistry meterRegistry)
     {

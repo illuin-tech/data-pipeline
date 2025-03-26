@@ -64,27 +64,14 @@ public class InitializerPhase<I> implements PipelinePhase<I>
 
         long start = System.nanoTime();
         metrics.setMDC();
-        Span span = this.observabilityManager.tracer().nextSpan().name(tag.id());
+        Span span = this.observabilityManager.tracer().nextSpan().name("initialization_phase");
         try (Tracer.SpanInScope scope = this.observabilityManager.tracer().withSpan(span.start()))
         {
-            span.tag("uid", tag.uid());
+            span.tag("uid", tag.pipelineTag().uid());
 
-            span.event("initializer:run");
             Object payload = this.runInitializer(io.input(), tag, context, metrics);
-            span.tag("payload_type", payload == null ? "null" : payload.getClass().getName());
-
-            span.event("output_factory:run");
-            Output output = this.outputFactory.create(io.tag(), io.input(), payload, context);
-            span.tag("output_type", output == null ? "null" : output.getClass().getName());
-
-            for (Indexer<?> indexer : this.indexers)
-            {
-                @SuppressWarnings("unchecked")
-                Indexer<Object> objectIndexer = (Indexer<Object>) indexer;
-                span.event("indexer:run:" + indexer.getClass().getName());
-                logger.trace("{}#{} launching indexer {}", io.tag().pipeline(), io.tag().uid(), indexer.getClass().getName());
-                objectIndexer.index(payload, output.index());
-            }
+            Output output = this.runOutputFactory(io.input(), io.tag(), payload, context);
+            this.runIndexers(io.tag(), payload, output);
 
             metrics.successCounter().increment();
             io.setOutput(output);
@@ -93,7 +80,7 @@ public class InitializerPhase<I> implements PipelinePhase<I>
         }
         catch (Exception e) {
             metrics.setMDC(e);
-            span.event("initializer:error");
+            span.event("initialization:error");
             metrics.failureCounter().increment();
             metrics.errorCounter(e).increment();
             throw e;
@@ -110,14 +97,61 @@ public class InitializerPhase<I> implements PipelinePhase<I>
     private Object runInitializer(I input, ComponentTag tag, Context context, PipelineInitializationMetrics metrics) throws Exception
     {
         ComponentContext componentContext = wrapContext(input, context, tag.pipelineTag(), tag);
-        try {
+        Span span = this.observabilityManager.tracer().nextSpan().name(tag.id());
+        try (Tracer.SpanInScope scope = this.observabilityManager.tracer().withSpan(span.start()))
+        {
+            span.tag("uid", tag.uid());
+
+            span.event("initializer:run");
             logger.trace("{}#{} initializing payload", tag.pipelineTag().pipeline(), tag.pipelineTag().uid());
-            return this.initializer.execute(input, componentContext, this.uidGenerator);
+            Object payload = this.initializer.execute(input, componentContext, this.uidGenerator);
+            span.tag("payload_type", payload == null ? "null" : payload.getClass().getName());
+
+            return payload;
         }
         catch (Exception e) {
             metrics.setMDC(e);
+            span.event("initializer:error");
             logger.error("{}#{} initializer {} threw an {}: {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), tag.id(), e.getClass().getName(), e.getMessage());
             return this.initializer.handleException(e, componentContext, this.uidGenerator);
+        }
+        finally {
+            span.end();
+        }
+    }
+
+    private Output runOutputFactory(I input, PipelineTag tag, Object payload, Context context)
+    {
+        Span span = this.observabilityManager.tracer().nextSpan().name("output_factory");
+        try (Tracer.SpanInScope scope = this.observabilityManager.tracer().withSpan(span.start()))
+        {
+            span.event("output_factory:run");
+            Output output = this.outputFactory.create(tag, input, payload, context);
+            span.tag("output_type", output == null ? "null" : output.getClass().getName());
+
+            return output;
+        }
+        finally {
+            span.end();
+        }
+    }
+
+    private void runIndexers(PipelineTag tag, Object payload, Output output)
+    {
+        Span span = this.observabilityManager.tracer().nextSpan().name("payload_indexers");
+        try (Tracer.SpanInScope scope = this.observabilityManager.tracer().withSpan(span.start()))
+        {
+            for (Indexer<?> indexer : this.indexers)
+            {
+                @SuppressWarnings("unchecked")
+                Indexer<Object> objectIndexer = (Indexer<Object>) indexer;
+                span.event("indexer:run:" + indexer.getClass().getName());
+                logger.trace("{}#{} launching indexer {}", tag.pipeline(), tag.uid(), indexer.getClass().getName());
+                objectIndexer.index(payload, output.index());
+            }
+        }
+        finally {
+            span.end();
         }
     }
 

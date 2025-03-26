@@ -60,18 +60,25 @@ public class SinkPhase<I> implements PipelinePhase<I>
     @Override
     public PipelineStrategy run(IO<I> io, Context context, MetricTags metricTags) throws Exception
     {
-        for (SinkDescriptor descriptor : this.sinks)
+        Span span = this.observabilityManager.tracer().nextSpan().name("sink_phase");
+        try (Tracer.SpanInScope scope = this.observabilityManager.tracer().withSpan(span.start()))
         {
-            ComponentTag tag = this.createTag(io.output().tag(), descriptor);
-            PipelineSinkMetrics metrics = new PipelineSinkMetrics(this.observabilityManager.meterRegistry(), tag, metricTags);
+            for (SinkDescriptor descriptor : this.sinks)
+            {
+                ComponentTag tag = this.createTag(io.output().tag(), descriptor);
+                PipelineSinkMetrics metrics = new PipelineSinkMetrics(this.observabilityManager.meterRegistry(), tag, metricTags);
 
-            if (descriptor.isAsync())
-                this.runSinkAsynchronously(descriptor, tag, io, context, metrics);
-            else
-                this.runSinkSynchronously(descriptor, tag, io, context, metrics);
+                if (descriptor.isAsync())
+                    this.runSinkAsynchronously(descriptor, tag, io, context, metrics, span);
+                else
+                    this.runSinkSynchronously(descriptor, tag, io, context, metrics);
+            }
+
+            return PipelineStrategy.CONTINUE;
         }
-
-        return PipelineStrategy.CONTINUE;
+        finally {
+            span.end();
+        }
     }
 
     @SuppressWarnings("IllegalCatch")
@@ -108,7 +115,7 @@ public class SinkPhase<I> implements PipelinePhase<I>
     }
 
     @SuppressWarnings("IllegalCatch")
-    private void runSinkAsynchronously(SinkDescriptor sink, ComponentTag tag, IO<I> io, Context context, PipelineSinkMetrics metrics)
+    private void runSinkAsynchronously(SinkDescriptor sink, ComponentTag tag, IO<I> io, Context context, PipelineSinkMetrics metrics, Span phaseSpan)
     {
         if (this.sinkExecutor == null)
             throw new IllegalStateException("An asynchronous run has been initiated but there is no active executor");
@@ -121,7 +128,7 @@ public class SinkPhase<I> implements PipelinePhase<I>
             long start = System.nanoTime();
             MDC.setContextMap(mdc);
             metrics.setMDC();
-            Span span = this.observabilityManager.tracer().nextSpan().name(tag.id());
+            Span span = this.observabilityManager.tracer().nextSpan(phaseSpan).name(tag.id());
             try (Tracer.SpanInScope scope = this.observabilityManager.tracer().withSpan(span.start()))
             {
                 span.tag("uid", tag.uid());

@@ -4,10 +4,13 @@ import io.github.resilience4j.retry.Retry;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import tech.illuin.pipeline.context.LocalContext;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.resilience4j.execution.wrapper.RetryException;
+import tech.illuin.pipeline.resilience4j.execution.wrapper.config.retry.RetryStepHandler;
 import tech.illuin.pipeline.step.Step;
 import tech.illuin.pipeline.step.execution.wrapper.StepWrapperException;
 import tech.illuin.pipeline.step.result.Result;
@@ -24,6 +27,7 @@ public class RetryStep<T extends Indexable, I> implements Step<T, I>
 {
     private final Step<T, I> step;
     private final Retry retry;
+    private final RetryStepHandler handler;
 
     public static final String RUN_COUNT_KEY = "pipeline.step.retry.run_count";
     public static final String RETRY_COUNT_KEY = "pipeline.step.retry.retry_count";
@@ -32,10 +36,13 @@ public class RetryStep<T extends Indexable, I> implements Step<T, I>
     public static final String RUN_FAILURE_KEY = "pipeline.step.retry.run_failure";
     public static final String RETRY_FAILURE_KEY = "pipeline.step.retry.retry_failure";
 
-    public RetryStep(Step<T, I> step, Retry retry)
+    private static final Logger logger = LoggerFactory.getLogger(RetryStep.class);
+
+    public RetryStep(Step<T, I> step, Retry retry, RetryStepHandler handler)
     {
         this.step = step;
         this.retry = retry;
+        this.handler = handler;
     }
 
     @Override
@@ -44,24 +51,23 @@ public class RetryStep<T extends Indexable, I> implements Step<T, I>
     {
         try {
             Map<String, String> mdc = MDC.getCopyOfContextMap();
+            counter(RUN_COUNT_KEY, context).increment();
+
             Result result = this.retry.executeCallable(() -> {
                 MDC.setContextMap(mdc);
                 return executeStep(object, input, payload, view, context);
             });
 
-            counter(RUN_SUCCESS_KEY, context).increment();
+            this.onSuccess(object, input, payload, view, context);
             return result;
         }
         catch (StepWrapperException e) {
-            counter(RUN_FAILURE_KEY, context, Tag.of("error", e.getClass().getName())).increment();
+            this.onError(object, input, payload, view, context, e);
             throw (Exception) e.getCause();
         }
         catch (Exception e) {
-            counter(RUN_FAILURE_KEY, context, Tag.of("error", e.getClass().getName())).increment();
+            this.onError(object, input, payload, view, context, e);
             throw new RetryException(e.getMessage(), e);
-        }
-        finally {
-            counter(RUN_COUNT_KEY, context).increment();
         }
     }
 
@@ -69,7 +75,9 @@ public class RetryStep<T extends Indexable, I> implements Step<T, I>
     private Result executeStep(T object, I input, Object payload, ResultView view, LocalContext context) throws StepWrapperException
     {
         try {
+            this.onAttempt(object, input, payload, view, context);
             Result result = this.step.execute(object, input, payload, view, context);
+
             counter(RETRY_SUCCESS_KEY, context).increment();
             return result;
         }
@@ -77,15 +85,67 @@ public class RetryStep<T extends Indexable, I> implements Step<T, I>
             counter(RETRY_FAILURE_KEY, context, Tag.of("error", e.getClass().getName())).increment();
             throw new StepWrapperException(e);
         }
-        finally {
-            counter(RETRY_COUNT_KEY, context).increment();
-        }
     }
 
     private static Counter counter(String key, LocalContext context, Tag... tags)
     {
         MeterRegistry registry = context.observabilityManager().meterRegistry();
         return registry.counter(key, fill(key, context.markerManager().tags(tags)));
+    }
+
+    private void onSuccess(T object, I input, Object payload, ResultView view, LocalContext context)
+    {
+        try {
+            logger.trace(
+                "{}#{} retry wrapper {} succeeded - attempt count: {}",
+                context.pipelineTag().pipeline(),
+                context.pipelineTag().uid(),
+                context.componentTag().id(),
+                this.retry.getMetrics().getNumberOfTotalCalls()
+            );
+            this.handler.onSuccess(object, input, payload, view, context);
+        }
+        finally {
+            counter(RUN_SUCCESS_KEY, context).increment();
+        }
+    }
+
+    private void onError(T object, I input, Object payload, ResultView view, LocalContext context, Exception ex)
+    {
+        try {
+            logger.trace(
+                "{}#{} retry wrapper {} threw an {}: {} - max retry attempts: {}",
+                context.pipelineTag().pipeline(),
+                context.pipelineTag().uid(),
+                context.componentTag().id(),
+                ex.getClass().getName(),
+                ex.getMessage(),
+                this.retry.getRetryConfig().getMaxAttempts()
+            );
+            this.handler.onError(object, input, payload, view, context, ex);
+        }
+        finally {
+            counter(RUN_FAILURE_KEY, context, Tag.of("error", ex.getClass().getName())).increment();
+        }
+    }
+
+    private void onAttempt(T object, I input, Object payload, ResultView view, LocalContext context)
+    {
+        try {
+            long totalCalls = this.retry.getMetrics().getNumberOfTotalCalls();
+            logger.trace(
+                "{}#{} retry wrapper {} - retry attempt #{} - {} left",
+                context.pipelineTag().pipeline(),
+                context.pipelineTag().uid(),
+                context.componentTag().id(),
+                totalCalls,
+                this.retry.getRetryConfig().getMaxAttempts() - (totalCalls + 1)
+            );
+            this.handler.onRetry(object, input, payload, view, context);
+        }
+        finally {
+            counter(RETRY_COUNT_KEY, context).increment();
+        }
     }
 
     @Override

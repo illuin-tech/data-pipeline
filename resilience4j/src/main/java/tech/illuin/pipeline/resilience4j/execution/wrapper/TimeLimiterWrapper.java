@@ -5,6 +5,7 @@ import io.github.resilience4j.timelimiter.TimeLimiterConfig;
 import io.github.resilience4j.timelimiter.TimeLimiterRegistry;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.input.uid_generator.KSUIDGenerator;
+import tech.illuin.pipeline.resilience4j.execution.wrapper.config.timelimiter.TimeLimiterWrapperConfig;
 import tech.illuin.pipeline.sink.Sink;
 import tech.illuin.pipeline.sink.execution.wrapper.SinkWrapper;
 import tech.illuin.pipeline.resilience4j.sink.wrapper.timelimiter.TimeLimiterSink;
@@ -22,27 +23,39 @@ public class TimeLimiterWrapper<T extends Indexable, I> implements StepWrapper<T
 {
     private final TimeLimiter limiter;
     private final ExecutorService executor;
+    private final TimeLimiterWrapperConfig wrapperConfig;
+
+    public TimeLimiterWrapper(TimeLimiterConfig config, TimeLimiterWrapperConfig wrapperConfig)
+    {
+        this(config, ForkJoinPool.commonPool(), wrapperConfig);
+    }
 
     public TimeLimiterWrapper(TimeLimiterConfig config)
     {
-        this(config, ForkJoinPool.commonPool());
+        this(config, TimeLimiterWrapperConfig.NOOP_WRAPPER_CONFIG);
+    }
+
+    public TimeLimiterWrapper(TimeLimiterConfig config, ExecutorService executor, TimeLimiterWrapperConfig wrapperConfig)
+    {
+        this.limiter = TimeLimiterRegistry.of(config).timeLimiter("time-limiter-" + KSUIDGenerator.INSTANCE.generate());
+        this.executor = executor;
+        this.wrapperConfig = wrapperConfig;
     }
 
     public TimeLimiterWrapper(TimeLimiterConfig config, ExecutorService executor)
     {
-        this.limiter = TimeLimiterRegistry.of(config).timeLimiter("time-limiter-" + KSUIDGenerator.INSTANCE.generate());
-        this.executor = executor;
+        this(config, executor, TimeLimiterWrapperConfig.NOOP_WRAPPER_CONFIG);
     }
 
     @Override
     public Step<T, I> wrap(Step<T, I> step)
     {
-        return new TimeLimiterStep<>(step, this.limiter, this.executor);
+        return new TimeLimiterStep<>(step, this.limiter, this.executor, this.wrapperConfig.stepHandler());
     }
 
     @Override
     public Sink wrap(Sink sink)
     {
-        return new TimeLimiterSink(sink, this.limiter, this.executor);
+        return new TimeLimiterSink(sink, this.limiter, this.executor, this.wrapperConfig.sinkHandler());
     }
 }

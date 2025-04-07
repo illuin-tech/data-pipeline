@@ -4,9 +4,12 @@ import io.github.resilience4j.retry.Retry;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import tech.illuin.pipeline.context.LocalContext;
 import tech.illuin.pipeline.output.Output;
+import tech.illuin.pipeline.resilience4j.execution.wrapper.config.retry.RetrySinkHandler;
 import tech.illuin.pipeline.resilience4j.execution.wrapper.RetryException;
 import tech.illuin.pipeline.sink.Sink;
 import tech.illuin.pipeline.sink.execution.wrapper.SinkWrapperException;
@@ -22,6 +25,7 @@ public class RetrySink implements Sink
 {
     private final Sink sink;
     private final Retry retry;
+    private final RetrySinkHandler handler;
 
     public static final String RUN_COUNT_KEY = "pipeline.sink.retry.run_count";
     public static final String RETRY_COUNT_KEY = "pipeline.sink.retry.retry_count";
@@ -30,10 +34,13 @@ public class RetrySink implements Sink
     public static final String RUN_FAILURE_KEY = "pipeline.sink.retry.run_failure";
     public static final String RETRY_FAILURE_KEY = "pipeline.sink.retry.retry_failure";
 
-    public RetrySink(Sink sink, Retry retry)
+    private static final Logger logger = LoggerFactory.getLogger(RetrySink.class);
+
+    public RetrySink(Sink sink, Retry retry, RetrySinkHandler handler)
     {
         this.sink = sink;
         this.retry = retry;
+        this.handler = handler;
     }
 
     @Override
@@ -42,23 +49,22 @@ public class RetrySink implements Sink
     {
         try {
             Map<String, String> mdc = MDC.getCopyOfContextMap();
-            this.retry.executeCallable(() -> {
+            counter(RUN_COUNT_KEY, context).increment();
+
+            this.retry.executeCallable(() ->  {
                 MDC.setContextMap(mdc);
                 return executeSink(output, context);
             });
 
-            counter(RUN_SUCCESS_KEY, context).increment();
+            this.onSuccess(output, context);
         }
         catch (SinkWrapperException e) {
-            counter(RUN_FAILURE_KEY, context, Tag.of("error", e.getClass().getName())).increment();
+            this.onError(output, context, e);
             throw (Exception) e.getCause();
         }
         catch (Exception e) {
-            counter(RUN_FAILURE_KEY, context, Tag.of("error", e.getClass().getName())).increment();
+            this.onError(output, context, e);
             throw new RetryException(e.getMessage(), e);
-        }
-        finally {
-            counter(RUN_COUNT_KEY, context).increment();
         }
     }
 
@@ -66,7 +72,9 @@ public class RetrySink implements Sink
     private boolean executeSink(Output output, LocalContext context) throws SinkWrapperException
     {
         try {
+            this.onAttempt(output, context);
             this.sink.execute(output, context);
+
             counter(RETRY_SUCCESS_KEY, context).increment();
             return true;
         }
@@ -74,15 +82,67 @@ public class RetrySink implements Sink
             counter(RETRY_FAILURE_KEY, context, Tag.of("error", e.getClass().getName())).increment();
             throw new SinkWrapperException(e);
         }
-        finally {
-            counter(RETRY_COUNT_KEY, context).increment();
-        }
     }
 
     private static Counter counter(String key, LocalContext context, Tag... tags)
     {
         MeterRegistry registry = context.observabilityManager().meterRegistry();
         return registry.counter(key, fill(key, context.markerManager().tags(tags)));
+    }
+
+    private void onSuccess(Output output, LocalContext context)
+    {
+        try {
+            logger.trace(
+                "{}#{} sink wrapper {} succeeded - attempt count: {}",
+                context.pipelineTag().pipeline(),
+                context.pipelineTag().uid(),
+                context.componentTag().id(),
+                this.retry.getMetrics().getNumberOfTotalCalls()
+            );
+            this.handler.onSuccess(output, context);
+        }
+        finally {
+            counter(RUN_SUCCESS_KEY, context).increment();
+        }
+    }
+
+    private void onError(Output output, LocalContext context, Exception ex)
+    {
+        try {
+            logger.trace(
+                "{}#{} retry wrapper {} threw an {}: {} - max retry attempts: {}",
+                context.pipelineTag().pipeline(),
+                context.pipelineTag().uid(),
+                context.componentTag().id(),
+                ex.getClass().getName(),
+                ex.getMessage(),
+                this.retry.getRetryConfig().getMaxAttempts()
+            );
+            this.handler.onError(output, context, ex);
+        }
+        finally {
+            counter(RUN_FAILURE_KEY, context, Tag.of("error", ex.getClass().getName())).increment();
+        }
+    }
+
+    private void onAttempt(Output output, LocalContext context)
+    {
+        try {
+            long totalCalls = this.retry.getMetrics().getNumberOfTotalCalls();
+            logger.trace(
+                "{}#{} retry wrapper {} - retry attempt #{} - {} left",
+                context.pipelineTag().pipeline(),
+                context.pipelineTag().uid(),
+                context.componentTag().id(),
+                totalCalls,
+                this.retry.getRetryConfig().getMaxAttempts() - (totalCalls + 1)
+            );
+            this.handler.onRetry(output, context);
+        }
+        finally {
+            counter(RETRY_COUNT_KEY, context).increment();
+        }
     }
 
     @Override

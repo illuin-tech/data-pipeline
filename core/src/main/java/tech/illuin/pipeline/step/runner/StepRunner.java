@@ -55,6 +55,7 @@ public class StepRunner<T extends Indexable, I> implements Step<T, I>, Describab
                 context.pipelineTag(),
                 context.componentTag(),
                 context.uidGenerator(),
+                context.observabilityManager(),
                 context.markerManager()
             );
             java.lang.Object[] arguments = this.argumentMappers.stream()

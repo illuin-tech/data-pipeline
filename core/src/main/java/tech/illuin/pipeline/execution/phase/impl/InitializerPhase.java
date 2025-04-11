@@ -64,7 +64,7 @@ public class InitializerPhase<I> implements PipelinePhase<I>
         MetricTags metricTags = this.tagResolver.resolve(io.input(), context);
         InitializationMarkerManager markerManager = new InitializationMarkerManager(tag, metricTags);
         InitializationMetrics metrics = new InitializationMetrics(this.observabilityManager.meterRegistry(), markerManager);
-        LocalContext localContext = new ComponentContext(context, io.input(), tag, this.uidGenerator, markerManager);
+        LocalContext localContext = new ComponentContext(context, io.input(), tag, this.uidGenerator, this.observabilityManager, markerManager);
 
         long start = System.nanoTime();
         metrics.setMDC();

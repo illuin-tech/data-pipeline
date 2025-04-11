@@ -353,6 +353,20 @@ public class PipelineStepAnnotationTest
     }
 
     @Test
+    public void testPipeline__shouldCompile_observabilityManager()
+    {
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_observabilityManager("test-observability-manager"));
+
+        Output output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
+        Assertions.assertDoesNotThrow(pipeline::close);
+
+        Assertions.assertEquals(
+            "SimpleMeterRegistry",
+            output.results().current(TestResult.class).map(TestResult::status).orElse(null)
+        );
+    }
+
+    @Test
     public void testPipeline__shouldCompile_markerManager()
     {
         Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_markerManager("test-marker-manager"));
@@ -545,6 +559,13 @@ public class PipelineStepAnnotationTest
     {
         return Pipeline.of(name)
             .registerStep(new StepWithUIDGenerator())
+            .build();
+    }
+
+    public static Pipeline<Object> createPipeline_observabilityManager(String name)
+    {
+        return Pipeline.of(name)
+            .registerStep(new StepWithObservabilityManager())
             .build();
     }
 

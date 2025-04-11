@@ -2,6 +2,7 @@ package tech.illuin.pipeline.context;
 
 import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
 import tech.illuin.pipeline.metering.MarkerManager;
+import tech.illuin.pipeline.metering.manager.ObservabilityManager;
 import tech.illuin.pipeline.output.ComponentTag;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.output.PipelineTag;
@@ -18,6 +19,7 @@ public class ComponentContext implements LocalContext
     private final Object input;
     private final ComponentTag componentTag;
     private final UIDGenerator uidGenerator;
+    private final ObservabilityManager observabilityManager;
     private final MarkerManager markerManager;
 
     public ComponentContext(
@@ -25,12 +27,14 @@ public class ComponentContext implements LocalContext
         Object input,
         ComponentTag componentTag,
         UIDGenerator uidGenerator,
+        ObservabilityManager observabilityManager,
         MarkerManager markerManager
     ) {
         this.globalContext = globalContext;
         this.input = input;
         this.componentTag = componentTag;
         this.uidGenerator = uidGenerator;
+        this.observabilityManager = observabilityManager;
         this.markerManager = markerManager;
     }
 
@@ -56,6 +60,12 @@ public class ComponentContext implements LocalContext
     public UIDGenerator uidGenerator()
     {
         return this.uidGenerator;
+    }
+
+    @Override
+    public ObservabilityManager observabilityManager()
+    {
+        return this.observabilityManager;
     }
 
     @Override

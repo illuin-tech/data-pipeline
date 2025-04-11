@@ -320,6 +320,18 @@ public class PipelineSinkAnnotationTest
     }
 
     @Test
+    public void testPipeline__shouldCompile_observabilityManager()
+    {
+        StringCollector collector = new StringCollector();
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_observabilityManager("observability-manager", collector));
+
+        Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
+        Assertions.assertDoesNotThrow(pipeline::close);
+
+        Assertions.assertEquals("SimpleMeterRegistry", collector.get());
+    }
+
+    @Test
     public void testPipeline__shouldCompile_markerManager()
     {
         StringCollector collector = new StringCollector();
@@ -513,6 +525,13 @@ public class PipelineSinkAnnotationTest
     {
         return Pipeline.of(name)
             .registerSink(new SinkWithUIDGenerator(collector))
+            .build();
+    }
+
+    public static Pipeline<Object> createPipeline_observabilityManager(String name, StringCollector collector)
+    {
+        return Pipeline.of(name)
+            .registerSink(new SinkWithObservabilityManager(collector))
             .build();
     }
 

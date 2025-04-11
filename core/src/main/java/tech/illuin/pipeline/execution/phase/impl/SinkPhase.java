@@ -70,7 +70,7 @@ public class SinkPhase<I> implements PipelinePhase<I>
                 ComponentTag tag = this.createTag(io.output().tag(), descriptor);
                 SinkMarkerManager markerManager = new SinkMarkerManager(tag, metricTags);
                 SinkMetrics metrics = new SinkMetrics(this.observabilityManager.meterRegistry(), markerManager);
-                LocalContext localContext = new ComponentContext(context, io.input(), tag, this.uidGenerator, markerManager);
+                LocalContext localContext = new ComponentContext(context, io.input(), tag, this.uidGenerator, this.observabilityManager, markerManager);
 
                 if (descriptor.isAsync())
                     this.runSinkAsynchronously(descriptor, tag, io, localContext, metrics, span);

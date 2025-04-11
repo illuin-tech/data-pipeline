@@ -76,7 +76,7 @@ public class StepPhase<I> implements PipelinePhase<I>
                 /* For each argument we perform the step and register the produced Result */
                 for (Indexable indexed : arguments)
                 {
-                    LocalContext localContext = new ComponentContext(context, io.input(), tag, this.uidGenerator, markerManager);
+                    LocalContext localContext = new ComponentContext(context, io.input(), tag, this.uidGenerator, this.observabilityManager, markerManager);
                     Result result = this.runStep(step, tag, indexed, io, localContext, metrics);
 
                     if (result instanceof MultiResult multi)

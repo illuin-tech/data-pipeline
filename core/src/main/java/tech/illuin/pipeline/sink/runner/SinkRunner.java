@@ -52,6 +52,7 @@ public class SinkRunner implements Sink, Describable
                 context.pipelineTag(),
                 context.componentTag(),
                 context.uidGenerator(),
+                context.observabilityManager(),
                 context.markerManager()
             );
             Object[] arguments = this.argumentMappers.stream()

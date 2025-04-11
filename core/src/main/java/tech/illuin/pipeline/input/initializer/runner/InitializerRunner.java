@@ -52,6 +52,7 @@ public class InitializerRunner<I> implements Initializer<I>, Describable
                 context.pipelineTag(),
                 context.componentTag(),
                 generator,
+                context.observabilityManager(),
                 context.markerManager()
             );
             Object[] arguments = this.argumentMappers.stream()

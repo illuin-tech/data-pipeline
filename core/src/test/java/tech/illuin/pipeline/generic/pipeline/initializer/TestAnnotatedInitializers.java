@@ -2,7 +2,7 @@ package tech.illuin.pipeline.generic.pipeline.initializer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tech.illuin.pipeline.context.Context;
+import tech.illuin.pipeline.context.LocalContext;
 import tech.illuin.pipeline.generic.pipeline.initializer.execution.error.WrapAll;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.input.initializer.Initializer;
@@ -42,7 +42,7 @@ public class TestAnnotatedInitializers
         }
 
         @Override
-        public P initialize(I input, Context context, UIDGenerator generator)
+        public P initialize(I input, LocalContext context, UIDGenerator generator)
         {
             logger.info("test:{}: ~", this.name);
             return this.function.apply(generator, input);

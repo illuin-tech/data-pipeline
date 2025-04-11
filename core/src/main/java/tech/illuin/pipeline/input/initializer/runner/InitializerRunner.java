@@ -6,7 +6,6 @@ import tech.illuin.pipeline.builder.runner_compiler.CompiledMethod;
 import tech.illuin.pipeline.builder.runner_compiler.argument_resolver.mapper_factory.MethodArgumentMapper;
 import tech.illuin.pipeline.builder.runner_compiler.argument_resolver.method_arguments.MethodArguments;
 import tech.illuin.pipeline.commons.Reflection;
-import tech.illuin.pipeline.context.Context;
 import tech.illuin.pipeline.context.LocalContext;
 import tech.illuin.pipeline.input.initializer.Initializer;
 import tech.illuin.pipeline.input.initializer.annotation.InitializerConfig;
@@ -37,12 +36,9 @@ public class InitializerRunner<I> implements Initializer<I>, Describable
     }
 
     @Override
-    public Object initialize(I input, Context context, UIDGenerator generator) throws Exception
+    public Object initialize(I input, LocalContext context, UIDGenerator generator) throws Exception
     {
-        if (!(context instanceof LocalContext localContext))
-            throw new IllegalArgumentException("Invalid context provided to an InitializerRunner instance");
-
-        logger.trace("{}#{} launching initializer over target {}#{}", localContext.pipelineTag().pipeline(), localContext.pipelineTag().uid(), this.target.getClass().getName(), Reflection.getMethodSignature(this.method));
+        logger.trace("{}#{} launching initializer over target {}#{}", context.pipelineTag().pipeline(), context.pipelineTag().uid(), this.target.getClass().getName(), Reflection.getMethodSignature(this.method));
 
         try {
             MethodArguments<Object, I> originalArguments = new MethodArguments<>(
@@ -52,11 +48,11 @@ public class InitializerRunner<I> implements Initializer<I>, Describable
                 null,
                 null,
                 null,
-                localContext,
-                localContext.pipelineTag(),
-                localContext.componentTag(),
+                context,
+                context.pipelineTag(),
+                context.componentTag(),
                 generator,
-                localContext.markerManager()
+                context.markerManager()
             );
             Object[] arguments = this.argumentMappers.stream()
                 .map(mapper -> mapper.map(originalArguments))
@@ -70,13 +66,13 @@ public class InitializerRunner<I> implements Initializer<I>, Describable
                 throw (Exception) e.getTargetException();
 
             throw new StepRunnerException(
-                "The target method " + this.method.getName() + " of initializer runner " + localContext.pipelineTag().pipeline() + "#" + localContext.componentTag().id()
+                "The target method " + this.method.getName() + " of initializer runner " + context.pipelineTag().pipeline() + "#" + context.componentTag().id()
                     + " has thrown an unexpected exception of type " + e.getTargetException().getClass().getName(), e.getTargetException()
             );
         }
         catch (IllegalAccessException e) {
             throw new StepRunnerException(
-                "The target method " + this.method.getName() + " of initializer runner " + localContext.pipelineTag().pipeline() + "#" + localContext.componentTag().id()
+                "The target method " + this.method.getName() + " of initializer runner " + context.pipelineTag().pipeline() + "#" + context.componentTag().id()
                     + " unexpectedly has illegal access", e
             );
         }

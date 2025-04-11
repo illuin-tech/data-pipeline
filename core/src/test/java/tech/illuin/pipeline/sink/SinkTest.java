@@ -3,7 +3,6 @@ package tech.illuin.pipeline.sink;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import tech.illuin.pipeline.Pipeline;
-import tech.illuin.pipeline.builder.VoidPayload;
 
 import java.util.concurrent.atomic.AtomicInteger;
 

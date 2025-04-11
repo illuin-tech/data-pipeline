@@ -6,7 +6,6 @@ import tech.illuin.pipeline.builder.runner_compiler.CompiledMethod;
 import tech.illuin.pipeline.builder.runner_compiler.argument_resolver.mapper_factory.MethodArgumentMapper;
 import tech.illuin.pipeline.builder.runner_compiler.argument_resolver.method_arguments.MethodArguments;
 import tech.illuin.pipeline.commons.Reflection;
-import tech.illuin.pipeline.context.Context;
 import tech.illuin.pipeline.context.LocalContext;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.observer.descriptor.describable.Describable;
@@ -40,12 +39,9 @@ public class StepRunner<T extends Indexable, I> implements Step<T, I>, Describab
     }
 
     @Override
-    public Result execute(T object, I input, Object payload, ResultView results, Context context) throws Exception
+    public Result execute(T object, I input, Object payload, ResultView results, LocalContext context) throws Exception
     {
-        if (!(context instanceof LocalContext localContext))
-            throw new IllegalArgumentException("Invalid context provided to a SinkRunner instance");
-
-        logger.trace("{}#{} launching step over target {}#{}", localContext.pipelineTag().pipeline(), localContext.pipelineTag().uid(), this.target.getClass().getName(), Reflection.getMethodSignature(this.method));
+        logger.trace("{}#{} launching step over target {}#{}", context.pipelineTag().pipeline(), context.pipelineTag().uid(), this.target.getClass().getName(), Reflection.getMethodSignature(this.method));
 
         try {
             MethodArguments<T, I> originalArguments = new MethodArguments<>(
@@ -56,10 +52,10 @@ public class StepRunner<T extends Indexable, I> implements Step<T, I>, Describab
                 results,
                 results,
                 context,
-                localContext.pipelineTag(),
-                localContext.componentTag(),
-                localContext.uidGenerator(),
-                localContext.markerManager()
+                context.pipelineTag(),
+                context.componentTag(),
+                context.uidGenerator(),
+                context.markerManager()
             );
             java.lang.Object[] arguments = this.argumentMappers.stream()
                 .map(mapper -> mapper.map(originalArguments))
@@ -84,14 +80,14 @@ public class StepRunner<T extends Indexable, I> implements Step<T, I>, Describab
                 throw (Exception) e.getTargetException();
 
             throw new StepRunnerException(
-                "The target method " + this.method.getName() + " of step runner " + localContext.pipelineTag().pipeline() + "#" + localContext.componentTag().id()
+                "The target method " + this.method.getName() + " of step runner " + context.pipelineTag().pipeline() + "#" + context.componentTag().id()
                     + " has thrown an unexpected exception of type " + e.getTargetException().getClass().getName(),
                 e.getTargetException()
             );
         }
         catch (IllegalAccessException e) {
             throw new StepRunnerException(
-                "The target method " + this.method.getName() + " of step runner " + localContext.pipelineTag().pipeline() + "#" + localContext.componentTag().id()
+                "The target method " + this.method.getName() + " of step runner " + context.pipelineTag().pipeline() + "#" + context.componentTag().id()
                     + " unexpectedly has illegal access",
                 e
             );

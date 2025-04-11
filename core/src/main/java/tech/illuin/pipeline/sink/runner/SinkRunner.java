@@ -6,7 +6,6 @@ import tech.illuin.pipeline.builder.runner_compiler.argument_resolver.mapper_fac
 import tech.illuin.pipeline.builder.runner_compiler.argument_resolver.method_arguments.MethodArguments;
 import tech.illuin.pipeline.builder.runner_compiler.CompiledMethod;
 import tech.illuin.pipeline.commons.Reflection;
-import tech.illuin.pipeline.context.Context;
 import tech.illuin.pipeline.context.LocalContext;
 import tech.illuin.pipeline.observer.descriptor.describable.Describable;
 import tech.illuin.pipeline.output.Output;
@@ -37,26 +36,23 @@ public class SinkRunner implements Sink, Describable
     }
 
     @Override
-    public void execute(Output output, Context context) throws Exception
+    public void execute(Output output, LocalContext context) throws Exception
     {
-        if (!(context instanceof LocalContext localContext))
-            throw new IllegalArgumentException("Invalid context provided to a SinkRunner instance");
-
-        logger.trace("{}#{} launching sink over target {}#{}", localContext.pipelineTag().pipeline(), localContext.pipelineTag().uid(), this.target.getClass().getName(), Reflection.getMethodSignature(this.method));
+        logger.trace("{}#{} launching sink over target {}#{}", context.pipelineTag().pipeline(), context.pipelineTag().uid(), this.target.getClass().getName(), Reflection.getMethodSignature(this.method));
 
         try {
             MethodArguments<Object, Object> originalArguments = new MethodArguments<>(
                 null,
-                localContext.input(),
+                context.input(),
                 output.payload(),
                 output,
                 null,
                 output.results(),
-                localContext,
-                localContext.pipelineTag(),
-                localContext.componentTag(),
-                localContext.uidGenerator(),
-                localContext.markerManager()
+                context,
+                context.pipelineTag(),
+                context.componentTag(),
+                context.uidGenerator(),
+                context.markerManager()
             );
             Object[] arguments = this.argumentMappers.stream()
                 .map(mapper -> mapper.map(originalArguments))
@@ -69,13 +65,13 @@ public class SinkRunner implements Sink, Describable
                 throw (Exception) e.getTargetException();
 
             throw new StepRunnerException(
-                "The target method " + this.method.getName() + " of sink runner " + localContext.pipelineTag().pipeline() + "#" + localContext.componentTag().id()
+                "The target method " + this.method.getName() + " of sink runner " + context.pipelineTag().pipeline() + "#" + context.componentTag().id()
                     + " has thrown an unexpected exception of type " + e.getTargetException().getClass().getName(), e.getTargetException()
             );
         }
         catch (IllegalAccessException e) {
             throw new StepRunnerException(
-                "The target method " + this.method.getName() + " of sink runner " + localContext.pipelineTag().pipeline() + "#" + localContext.componentTag().id()
+                "The target method " + this.method.getName() + " of sink runner " + context.pipelineTag().pipeline() + "#" + context.componentTag().id()
                     + " unexpectedly has illegal access", e
             );
         }

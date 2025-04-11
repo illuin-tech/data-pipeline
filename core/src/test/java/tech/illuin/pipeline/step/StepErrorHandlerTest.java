@@ -3,6 +3,7 @@ package tech.illuin.pipeline.step;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import tech.illuin.pipeline.Pipeline;
+import tech.illuin.pipeline.context.LocalContext;
 import tech.illuin.pipeline.generic.TestFactory;
 import tech.illuin.pipeline.generic.model.A;
 import tech.illuin.pipeline.generic.model.B;
@@ -10,6 +11,7 @@ import tech.illuin.pipeline.generic.pipeline.TestResult;
 import tech.illuin.pipeline.generic.pipeline.step.TestStep;
 import tech.illuin.pipeline.input.indexer.MultiIndexer;
 import tech.illuin.pipeline.input.indexer.SingleIndexer;
+import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.step.execution.error.StepErrorHandler;
 import tech.illuin.pipeline.step.execution.evaluator.ResultEvaluator;
@@ -81,7 +83,7 @@ public class StepErrorHandlerTest
 
     public static Pipeline<Void> createErrorHandledPipeline()
     {
-        return Pipeline.of("test-error-handled", TestFactory::initializer)
+        return Pipeline.of("test-error-handled", (Void input, LocalContext context, UIDGenerator generator) -> TestFactory.initializer(input, context, generator))
            .registerIndexer(SingleIndexer.auto())
            .registerIndexer((MultiIndexer<A>) A::bs)
            .registerStep(builder -> builder
@@ -111,7 +113,7 @@ public class StepErrorHandlerTest
         };
         StepErrorHandler secondErrorhandler = (ex, in, payload, res, ctx) -> new TestResult("error", "ko");
 
-        return Pipeline.of("test-composite-error-handled", TestFactory::initializer)
+        return Pipeline.of("test-composite-error-handled", (Void input, LocalContext context, UIDGenerator generator) -> TestFactory.initializer(input, context, generator))
             .registerIndexer(SingleIndexer.auto())
             .registerIndexer((MultiIndexer<A>) A::bs)
             .registerStep(builder -> builder
@@ -135,7 +137,7 @@ public class StepErrorHandlerTest
 
     public static Pipeline<Void> createErrorThrownPipeline()
     {
-        return Pipeline.of("test-error-thrown", TestFactory::initializerOfEmpty)
+        return Pipeline.of("test-error-thrown", (Void input, LocalContext context, UIDGenerator generator) -> TestFactory.initializerOfEmpty(input, context, generator))
            .registerIndexer(SingleIndexer.auto())
            .registerStep(builder -> builder
                .step(new TestStep<>("1", "ok"))

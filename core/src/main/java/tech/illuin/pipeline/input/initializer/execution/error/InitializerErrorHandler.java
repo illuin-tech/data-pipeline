@@ -1,9 +1,8 @@
 package tech.illuin.pipeline.input.initializer.execution.error;
 
-import tech.illuin.pipeline.context.Context;
+import tech.illuin.pipeline.context.LocalContext;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
-import tech.illuin.pipeline.sink.execution.error.SinkErrorHandler;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -16,7 +15,7 @@ import static tech.illuin.pipeline.execution.error.PipelineErrorHandler.throwUnl
 @FunctionalInterface
 public interface InitializerErrorHandler
 {
-    Indexable handle(Exception exception, Context context, UIDGenerator generator) throws Exception;
+    Indexable handle(Exception exception, LocalContext context, UIDGenerator generator) throws Exception;
 
     InitializerErrorHandler RETHROW_ALL = (ex, ctx, gen) -> {
         throw ex;

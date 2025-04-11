@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tech.illuin.pipeline.Pipeline;
-import tech.illuin.pipeline.builder.VoidPayload;
 import tech.illuin.pipeline.generic.pipeline.TestResult;
 
 import java.util.UUID;

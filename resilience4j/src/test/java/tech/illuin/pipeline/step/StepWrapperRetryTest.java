@@ -4,6 +4,8 @@ import io.github.resilience4j.retry.RetryConfig;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import tech.illuin.pipeline.Pipeline;
+import tech.illuin.pipeline.context.LocalContext;
+import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
 import tech.illuin.pipeline.resilience4j.execution.wrapper.RetryWrapper;
 import tech.illuin.pipeline.generic.TestFactory;
 import tech.illuin.pipeline.generic.model.A;
@@ -42,7 +44,7 @@ public class StepWrapperRetryTest
     public static Pipeline<Void> createErrorRetryPipeline()
     {
         var counter = new AtomicInteger(0);
-        return Pipeline.of("test-error-retry", TestFactory::initializerOfEmpty)
+        return Pipeline.of("test-error-retry", (Void input, LocalContext context, UIDGenerator generator) -> TestFactory.initializerOfEmpty(input, context, generator))
             .registerIndexer(SingleIndexer.auto())
             .registerStep(new TestStep<>("1", "ok"))
             .registerStep(builder -> builder

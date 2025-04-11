@@ -3,12 +3,14 @@ package tech.illuin.pipeline.step;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import tech.illuin.pipeline.Pipeline;
+import tech.illuin.pipeline.context.LocalContext;
 import tech.illuin.pipeline.generic.TestFactory;
 import tech.illuin.pipeline.generic.model.A;
 import tech.illuin.pipeline.generic.pipeline.TestResult;
 import tech.illuin.pipeline.generic.pipeline.step.TestStep;
 import tech.illuin.pipeline.input.indexer.MultiIndexer;
 import tech.illuin.pipeline.input.indexer.SingleIndexer;
+import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.step.execution.evaluator.ResultEvaluator;
 import tech.illuin.pipeline.step.result.Result;
@@ -50,7 +52,7 @@ public class PinTest
 
     public static Pipeline<Void> createErrorHandledWithPinnedPipeline(ResultEvaluator evaluator)
     {
-        return Pipeline.of("test-error-handled-with-pinned", TestFactory::initializer)
+        return Pipeline.of("test-error-handled-with-pinned", (Void input, LocalContext context, UIDGenerator generator) -> TestFactory.initializer(input, context, generator))
            .registerIndexer(SingleIndexer.auto())
            .registerIndexer((MultiIndexer<A>) A::bs)
            .registerStep(builder -> builder

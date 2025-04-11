@@ -19,6 +19,7 @@ import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.input.indexer.Indexer;
 import tech.illuin.pipeline.input.initializer.builder.InitializerDescriptor;
 import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
+import tech.illuin.pipeline.metering.PipelineMarkerManager;
 import tech.illuin.pipeline.metering.PipelineMetrics;
 import tech.illuin.pipeline.metering.manager.ObservabilityManager;
 import tech.illuin.pipeline.metering.tag.MetricTags;
@@ -120,7 +121,8 @@ public final class CompositePipeline<I> implements Pipeline<I>
     {
         PipelineTag tag = this.createTag(input, context);
         MetricTags metricTags = this.tagResolver.resolve(input, context);
-        PipelineMetrics metrics = new PipelineMetrics(this.observabilityManager.meterRegistry(), tag, metricTags);
+        PipelineMarkerManager markerManager = new PipelineMarkerManager(tag, metricTags);
+        PipelineMetrics metrics = new PipelineMetrics(this.observabilityManager.meterRegistry(), markerManager);
         IO<I> io = new IO<>(tag, input);
 
         long start = System.nanoTime();

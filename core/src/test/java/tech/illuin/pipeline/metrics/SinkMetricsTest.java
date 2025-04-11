@@ -6,7 +6,8 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.helpers.BasicMDCAdapter;
 import org.slf4j.spi.MDCAdapter;
 import tech.illuin.pipeline.input.uid_generator.TSIDGenerator;
-import tech.illuin.pipeline.metering.PipelineSinkMetrics;
+import tech.illuin.pipeline.sink.metering.SinkMarkerManager;
+import tech.illuin.pipeline.sink.metering.SinkMetrics;
 import tech.illuin.pipeline.metering.tag.MetricTags;
 import tech.illuin.pipeline.output.ComponentFamily;
 import tech.illuin.pipeline.output.ComponentTag;
@@ -19,15 +20,17 @@ import static tech.illuin.pipeline.input.author_resolver.AuthorResolver.ANONYMOU
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public class PipelineSinkMetricsTest
+public class SinkMetricsTest
 {
     @Test
     public void testCreate()
     {
-        Assertions.assertDoesNotThrow(() -> new PipelineSinkMetrics(
+        Assertions.assertDoesNotThrow(() -> new SinkMetrics(
             new SimpleMeterRegistry(),
-            createTag("test-create", "test-create-sink"),
-            new MetricTags().put("test", "true")
+            new SinkMarkerManager(
+                createTag("test-create", "test-create-sink"),
+                new MetricTags().put("test", "true")
+            )
         ));
     }
 
@@ -35,10 +38,12 @@ public class PipelineSinkMetricsTest
     public void testMDC()
     {
         MDCAdapter adapter = new BasicMDCAdapter();
-        PipelineSinkMetrics metrics = Assertions.assertDoesNotThrow(() -> new PipelineSinkMetrics(
+        SinkMetrics metrics = Assertions.assertDoesNotThrow(() -> new SinkMetrics(
             new SimpleMeterRegistry(),
-            createTag("test-mdc", "test-mdc-sink"),
-            new MetricTags().put("test", "true"),
+            new SinkMarkerManager(
+                createTag("test-mdc", "test-mdc-sink"),
+                new MetricTags().put("test", "true")
+            ),
             new DebugMDCManager(adapter)
         ));
 
@@ -58,10 +63,12 @@ public class PipelineSinkMetricsTest
     public void testMDCException()
     {
         MDCAdapter adapter = new BasicMDCAdapter();
-        PipelineSinkMetrics metrics = Assertions.assertDoesNotThrow(() -> new PipelineSinkMetrics(
+        SinkMetrics metrics = Assertions.assertDoesNotThrow(() -> new SinkMetrics(
             new SimpleMeterRegistry(),
-            createTag("test-mdc-exception", "test-mdc-sink-exception"),
-            new MetricTags().put("test", "true"),
+            new SinkMarkerManager(
+                createTag("test-mdc-exception", "test-mdc-sink-exception"),
+                new MetricTags().put("test", "true")
+            ),
             new DebugMDCManager(adapter)
         ));
 

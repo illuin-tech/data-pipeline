@@ -5,8 +5,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.slf4j.helpers.BasicMDCAdapter;
 import org.slf4j.spi.MDCAdapter;
+import tech.illuin.pipeline.input.initializer.metering.InitializationMarkerManager;
 import tech.illuin.pipeline.input.uid_generator.TSIDGenerator;
-import tech.illuin.pipeline.metering.PipelineInitializationMetrics;
+import tech.illuin.pipeline.input.initializer.metering.InitializationMetrics;
 import tech.illuin.pipeline.metering.tag.MetricTags;
 import tech.illuin.pipeline.output.ComponentFamily;
 import tech.illuin.pipeline.output.ComponentTag;
@@ -24,10 +25,12 @@ public class PipelineInitializerMetricsTest
     @Test
     public void testCreate()
     {
-        Assertions.assertDoesNotThrow(() -> new PipelineInitializationMetrics(
+        Assertions.assertDoesNotThrow(() -> new InitializationMetrics(
             new SimpleMeterRegistry(),
-            createTag("test-create", "test-create-initializer"),
-            new MetricTags().put("test", "true")
+            new InitializationMarkerManager(
+                createTag("test-create", "test-create-initializer"),
+                new MetricTags().put("test", "true")
+            )
         ));
     }
 
@@ -35,10 +38,12 @@ public class PipelineInitializerMetricsTest
     public void testMDC()
     {
         MDCAdapter adapter = new BasicMDCAdapter();
-        PipelineInitializationMetrics metrics = Assertions.assertDoesNotThrow(() -> new PipelineInitializationMetrics(
+        InitializationMetrics metrics = Assertions.assertDoesNotThrow(() -> new InitializationMetrics(
             new SimpleMeterRegistry(),
-            createTag("test-mdc", "test-mdc-initializer"),
-            new MetricTags().put("test", "true"),
+            new InitializationMarkerManager(
+                createTag("test-mdc", "test-mdc-initializer"),
+                new MetricTags().put("test", "true")
+            ),
             new DebugMDCManager(adapter)
         ));
 
@@ -58,10 +63,12 @@ public class PipelineInitializerMetricsTest
     public void testMDCException()
     {
         MDCAdapter adapter = new BasicMDCAdapter();
-        PipelineInitializationMetrics metrics = Assertions.assertDoesNotThrow(() -> new PipelineInitializationMetrics(
+        InitializationMetrics metrics = Assertions.assertDoesNotThrow(() -> new InitializationMetrics(
             new SimpleMeterRegistry(),
-            createTag("test-mdc-exception", "test-mdc-initializer-exception"),
-            new MetricTags().put("test", "true"),
+            new InitializationMarkerManager(
+                createTag("test-mdc-exception", "test-mdc-initializer-exception"),
+                new MetricTags().put("test", "true")
+            ),
             new DebugMDCManager(adapter)
         ));
 

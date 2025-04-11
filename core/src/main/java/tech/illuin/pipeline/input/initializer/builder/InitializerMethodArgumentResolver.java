@@ -30,7 +30,8 @@ class InitializerMethodArgumentResolver<T, I> implements MethodArgumentResolver<
             new ContextKeyMapperFactory<>(),
             new UIDGeneratorMapperFactory<>(),
             new PipelineTagMapperFactory<>(),
-            new ComponentTagMapperFactory<>()
+            new ComponentTagMapperFactory<>(),
+            new MarkerManagerMapperFactory<>()
         );
     }
 

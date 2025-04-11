@@ -20,9 +20,9 @@ public final class MetricFunctions
      * @param tags the generated tags
      * @return the resulting tag collection
      */
-    public static Collection<Tag> combine(Collection<Tag> mainstayTags, Collection<Tag> tags)
+    public static Set<Tag> combine(Collection<Tag> mainstayTags, Collection<Tag> tags)
     {
-        List<Tag> combined = new ArrayList<>(mainstayTags);
+        Set<Tag> combined = new HashSet<>(mainstayTags);
         Set<String> reservedKeys = mainstayTags.stream().map(Tag::getKey).collect(Collectors.toSet());
         for (Tag tag : tags)
         {

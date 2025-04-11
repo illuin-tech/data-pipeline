@@ -6,10 +6,11 @@ import org.junit.jupiter.api.Test;
 import tech.illuin.pipeline.metering.MeterRegistryKey;
 import tech.illuin.pipeline.metering.MetricFunctions;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
-import static java.util.Collections.emptyList;
 import static tech.illuin.pipeline.metering.MeterRegistryKey.PIPELINE_RUN_KEY;
 
 /**
@@ -26,7 +27,7 @@ public class MetricFunctionsTest
         Collection<Tag> combined = Assertions.assertDoesNotThrow(() -> MetricFunctions.combine(listA, listB));
 
         Assertions.assertEquals(3, combined.size());
-        Assertions.assertEquals("c", combined.toArray(new Tag[3])[2].getKey());
+        Assertions.assertEquals("c", combined.stream().sorted().toList().toArray(new Tag[3])[2].getKey());
     }
 
     @Test

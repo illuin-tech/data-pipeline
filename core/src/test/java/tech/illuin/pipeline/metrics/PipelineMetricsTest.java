@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.helpers.BasicMDCAdapter;
 import org.slf4j.spi.MDCAdapter;
 import tech.illuin.pipeline.input.uid_generator.TSIDGenerator;
+import tech.illuin.pipeline.metering.PipelineMarkerManager;
 import tech.illuin.pipeline.metering.PipelineMetrics;
 import tech.illuin.pipeline.metering.tag.MetricTags;
 import tech.illuin.pipeline.output.PipelineTag;
@@ -24,8 +25,10 @@ public class PipelineMetricsTest
     {
         Assertions.assertDoesNotThrow(() -> new PipelineMetrics(
             new SimpleMeterRegistry(),
-            createTag("test-create"),
-            new MetricTags().put("test", "true")
+            new PipelineMarkerManager(
+                createTag("test-create"),
+                new MetricTags().put("test", "true")
+            )
         ));
     }
 
@@ -35,8 +38,10 @@ public class PipelineMetricsTest
         MDCAdapter adapter = new BasicMDCAdapter();
         PipelineMetrics metrics = Assertions.assertDoesNotThrow(() -> new PipelineMetrics(
             new SimpleMeterRegistry(),
-            createTag("test-mdc"),
-            new MetricTags().put("test", "true"),
+            new PipelineMarkerManager(
+                createTag("test-mdc"),
+                new MetricTags().put("test", "true")
+            ),
             new DebugMDCManager(adapter)
         ));
 
@@ -64,8 +69,10 @@ public class PipelineMetricsTest
         MDCAdapter adapter = new BasicMDCAdapter();
         PipelineMetrics metrics = Assertions.assertDoesNotThrow(() -> new PipelineMetrics(
             new SimpleMeterRegistry(),
-            new PipelineTag(TSIDGenerator.INSTANCE.generate(), "test-mdc-nullable", null),
-            new MetricTags().put("test", "true"),
+            new PipelineMarkerManager(
+                new PipelineTag(TSIDGenerator.INSTANCE.generate(), "test-mdc-nullable", null),
+                new MetricTags().put("test", "true")
+            ),
             new DebugMDCManager(adapter)
         ));
 
@@ -86,8 +93,10 @@ public class PipelineMetricsTest
         MDCAdapter adapter = new BasicMDCAdapter();
         PipelineMetrics metrics = Assertions.assertDoesNotThrow(() -> new PipelineMetrics(
             new SimpleMeterRegistry(),
-            createTag("test-mark-exception"),
-            new MetricTags().put("test", "true"),
+            new PipelineMarkerManager(
+                createTag("test-mark-exception"),
+                new MetricTags().put("test", "true")
+            ),
             new DebugMDCManager(adapter)
         ));
 

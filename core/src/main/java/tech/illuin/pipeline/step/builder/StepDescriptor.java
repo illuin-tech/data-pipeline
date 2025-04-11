@@ -1,6 +1,7 @@
 package tech.illuin.pipeline.step.builder;
 
 import tech.illuin.pipeline.context.Context;
+import tech.illuin.pipeline.context.LocalContext;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.step.Step;
@@ -43,7 +44,7 @@ public final class StepDescriptor<T extends Indexable, I>
         this.errorHandler = errorHandler;
     }
 
-    public Result execute(T data, I input, Output output, Context ctx) throws Exception
+    public Result execute(T data, I input, Output output, LocalContext ctx) throws Exception
     {
         return this.executionWrapper.wrap(this.step).execute(data, input, output, ctx);
     }
@@ -53,12 +54,12 @@ public final class StepDescriptor<T extends Indexable, I>
         return this.activationPredicate.canExecute(indexable, ctx);
     }
 
-    public StepStrategy postEvaluation(Result result, Indexable object, I input, Context ctx)
+    public StepStrategy postEvaluation(Result result, Indexable object, I input, LocalContext ctx)
     {
         return this.resultEvaluator.evaluate(result, object, input, ctx);
     }
 
-    public Result handleException(Exception ex, I input, Object payload, Results results, Context ctx) throws Exception
+    public Result handleException(Exception ex, I input, Object payload, Results results, LocalContext ctx) throws Exception
     {
         return this.errorHandler.handle(ex, input, payload, results, ctx);
     }

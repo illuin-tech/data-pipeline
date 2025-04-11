@@ -1,6 +1,6 @@
 package tech.illuin.pipeline.input.initializer.builder;
 
-import tech.illuin.pipeline.context.Context;
+import tech.illuin.pipeline.context.LocalContext;
 import tech.illuin.pipeline.input.initializer.Initializer;
 import tech.illuin.pipeline.input.initializer.execution.error.InitializerErrorHandler;
 import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
@@ -24,12 +24,12 @@ public final class InitializerDescriptor<I>
         this.errorHandler = errorHandler;
     }
 
-    public Object execute(I input, Context ctx, UIDGenerator generator) throws Exception
+    public Object execute(I input, LocalContext ctx, UIDGenerator generator) throws Exception
     {
         return this.initializer.initialize(input, ctx, generator);
     }
 
-    public Object handleException(Exception ex, Context ctx, UIDGenerator generator) throws Exception
+    public Object handleException(Exception ex, LocalContext ctx, UIDGenerator generator) throws Exception
     {
         return this.errorHandler.handle(ex, ctx, generator);
     }

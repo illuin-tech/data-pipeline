@@ -1,7 +1,7 @@
 package tech.illuin.pipeline.metrics;
 
 import org.slf4j.spi.MDCAdapter;
-import tech.illuin.pipeline.metering.marker.MDCManager;
+import tech.illuin.pipeline.metering.mdc.MDCManager;
 
 public final class DebugMDCManager implements MDCManager
 {

@@ -2,6 +2,7 @@ package tech.illuin.pipeline.builder.runner_compiler.argument_resolver.method_ar
 
 import tech.illuin.pipeline.context.Context;
 import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
+import tech.illuin.pipeline.metering.MarkerManager;
 import tech.illuin.pipeline.output.ComponentTag;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.output.PipelineTag;
@@ -21,5 +22,6 @@ public record MethodArguments<T, I>(
     Context context,
     PipelineTag pipelineTag,
     ComponentTag componentTag,
-    UIDGenerator uidGenerator
+    UIDGenerator uidGenerator,
+    MarkerManager markerManager
 ) {}

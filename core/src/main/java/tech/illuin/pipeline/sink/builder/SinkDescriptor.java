@@ -1,6 +1,6 @@
 package tech.illuin.pipeline.sink.builder;
 
-import tech.illuin.pipeline.context.Context;
+import tech.illuin.pipeline.context.LocalContext;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.sink.Sink;
 import tech.illuin.pipeline.sink.execution.error.SinkErrorHandler;
@@ -31,18 +31,18 @@ public final class SinkDescriptor
         this.errorHandler = errorHandler;
     }
 
-    public void execute(Output output, Context ctx) throws Exception
+    public void execute(Output output, LocalContext ctx) throws Exception
     {
         this.executionWrapper.wrap(this.sink).execute(output, ctx);
     }
 
-    public void handleException(Exception ex, Output output, Context ctx) throws Exception
+    public void handleException(Exception ex, Output output, LocalContext ctx) throws Exception
     {
         this.errorHandler.handle(ex, output, ctx);
     }
 
     @SuppressWarnings("IllegalCatch")
-    public void handleExceptionThenSwallow(Exception ex, Output output, Context ctx)
+    public void handleExceptionThenSwallow(Exception ex, Output output, LocalContext ctx)
     {
         try {
             this.handleException(ex, output, ctx);

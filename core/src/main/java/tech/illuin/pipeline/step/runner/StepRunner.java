@@ -58,7 +58,8 @@ public class StepRunner<T extends Indexable, I> implements Step<T, I>, Describab
                 context,
                 localContext.pipelineTag(),
                 localContext.componentTag(),
-                localContext.uidGenerator()
+                localContext.uidGenerator(),
+                localContext.markerManager()
             );
             java.lang.Object[] arguments = this.argumentMappers.stream()
                 .map(mapper -> mapper.map(originalArguments))

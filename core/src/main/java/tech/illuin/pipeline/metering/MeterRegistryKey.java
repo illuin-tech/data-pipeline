@@ -40,12 +40,12 @@ public enum MeterRegistryKey
     
     private final String id;
 
-    private static final Map<MeterRegistryKey, Set<String>> REGISTERED_LABELS;
+    private static final Map<String, Set<String>> REGISTERED_LABELS;
 
     static {
         REGISTERED_LABELS = new ConcurrentHashMap<>();
         for (MeterRegistryKey key : MeterRegistryKey.values())
-            REGISTERED_LABELS.put(key, new ConcurrentSkipListSet<>());
+            REGISTERED_LABELS.put(key.name(), new ConcurrentSkipListSet<>());
     }
 
     MeterRegistryKey(String id)
@@ -70,10 +70,10 @@ public enum MeterRegistryKey
      * @param tags a list of tags to be applied to a metric
      * @return the filled out tag list
      */
-    public static List<Tag> fill(MeterRegistryKey key, Collection<Tag> tags)
+    public static List<Tag> fill(String key, Collection<Tag> tags)
     {
         Map<String, String> map = new HashMap<>();
-        Set<String> pastLabels = REGISTERED_LABELS.get(key);
+        Set<String> pastLabels = REGISTERED_LABELS.computeIfAbsent(key, k -> new ConcurrentSkipListSet<>());
         for (String label : pastLabels)
             map.put(label, "");
         for (Tag tag : tags)
@@ -82,5 +82,10 @@ public enum MeterRegistryKey
             pastLabels.add(tag.getKey());
         }
         return map.entrySet().stream().map(e -> Tag.of(e.getKey(), e.getValue())).toList();
+    }
+
+    public static List<Tag> fill(MeterRegistryKey key, Collection<Tag> tags)
+    {
+        return fill(key.name(), tags);
     }
 }

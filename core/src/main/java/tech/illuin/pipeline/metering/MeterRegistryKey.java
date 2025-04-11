@@ -63,7 +63,7 @@ public enum MeterRegistryKey
      * This circumvents an issue with the prometheus client as described here:
      * <ul>
      *     <li><a href="https://github.com/prometheus/client_java/issues/696">prometheus/client_java#696</a></li>
-     *     <li><a href="https://github.com/micrometer-metrics/micrometer/issues/4091">micrometer-metrics/micrometer#4091</a></li>
+     *     <li><a href="https://github.com/micrometer-metrics/micrometer/issues/4091">micrometer-metering/micrometer#4091</a></li>
      * </ul>
      *
      * @param key the metric key to which tags will be applied

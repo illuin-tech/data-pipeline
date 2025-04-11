@@ -2,9 +2,9 @@ package tech.illuin.pipeline.resilience4j.sink.wrapper.timelimiter;
 
 import io.github.resilience4j.timelimiter.TimeLimiter;
 import org.slf4j.MDC;
-import tech.illuin.pipeline.context.Context;
-import tech.illuin.pipeline.resilience4j.execution.wrapper.TimeLimiterException;
+import tech.illuin.pipeline.context.LocalContext;
 import tech.illuin.pipeline.output.Output;
+import tech.illuin.pipeline.resilience4j.execution.wrapper.TimeLimiterException;
 import tech.illuin.pipeline.sink.Sink;
 
 import java.util.Map;
@@ -28,7 +28,7 @@ public class TimeLimiterSink implements Sink
 
     @Override
     @SuppressWarnings("IllegalCatch")
-    public void execute(Output output, Context context) throws Exception
+    public void execute(Output output, LocalContext context) throws Exception
     {
         try {
             Map<String, String> mdc = MDC.getCopyOfContextMap();
@@ -47,7 +47,7 @@ public class TimeLimiterSink implements Sink
     }
 
     @SuppressWarnings("IllegalCatch")
-    private void executeSink(Output output, Context context) throws TimeLimiterSinkException
+    private void executeSink(Output output, LocalContext context) throws TimeLimiterSinkException
     {
         try {
             this.sink.execute(output, context);

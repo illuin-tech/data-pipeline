@@ -13,7 +13,7 @@ First, we get a builder from one of the `of` methods:
 
 ```java
 // A call to Pipeline.of(String) with type hinting is the most common scenario
-// The type corresponds to the expected input type, the String argument is the pipeline name that will be tracked in tags, metrics and logs  
+// The type corresponds to the expected input type, the String argument is the pipeline name that will be tracked in tags, metering and logs  
 var builder = Pipeline.<String>of("my-pipeline");
 ```
 

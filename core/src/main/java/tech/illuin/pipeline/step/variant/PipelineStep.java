@@ -3,7 +3,6 @@ package tech.illuin.pipeline.step.variant;
 import tech.illuin.pipeline.Pipeline;
 import tech.illuin.pipeline.PipelineException;
 import tech.illuin.pipeline.annotation.Experimental;
-import tech.illuin.pipeline.context.Context;
 import tech.illuin.pipeline.context.LocalContext;
 import tech.illuin.pipeline.context.SimpleContext;
 import tech.illuin.pipeline.input.indexer.Indexable;
@@ -32,22 +31,19 @@ public final class PipelineStep<I> implements Step<Indexable, I>
     }
 
     @Override
-    public Result execute(Indexable object, I input, Object payload, ResultView results, Context context) throws Exception
+    public Result execute(Indexable object, I input, Object payload, ResultView results, LocalContext context) throws Exception
     {
         try {
-            if (!(context instanceof LocalContext localContext))
-                throw new IllegalArgumentException("The provided context is not a LocalContext");
-
             /* TODO: Bad design -> this should be challenged ASAP */
             Output prev = new Output(
-                localContext.pipelineTag(),
+                context.pipelineTag(),
                 payload,
                 context
             );
             prev.results().register(results);
             Output out = this.pipeline.run(input, new SimpleContext(prev)
                 .copyFrom(context)
-                .set(PARENT_PIPELINE, localContext.pipelineTag())
+                .set(PARENT_PIPELINE, context.pipelineTag())
             );
             return this.resultMapper.apply(out);
         }

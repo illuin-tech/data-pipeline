@@ -10,7 +10,6 @@ import tech.illuin.pipeline.context.SimpleContext;
 import tech.illuin.pipeline.execution.error.PipelineErrorHandler;
 import tech.illuin.pipeline.input.author_resolver.AuthorResolver;
 import tech.illuin.pipeline.input.indexer.Indexable;
-import tech.illuin.pipeline.input.initializer.Initializer;
 import tech.illuin.pipeline.input.initializer.builder.InitializerAssembler;
 import tech.illuin.pipeline.input.initializer.builder.InitializerDescriptor;
 import tech.illuin.pipeline.observer.Observer;

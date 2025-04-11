@@ -1,13 +1,11 @@
 package tech.illuin.pipeline.step.execution.error;
 
-import tech.illuin.pipeline.context.Context;
+import tech.illuin.pipeline.context.LocalContext;
 import tech.illuin.pipeline.step.result.Result;
 import tech.illuin.pipeline.step.result.Results;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.function.Function;
 
 import static tech.illuin.pipeline.execution.error.PipelineErrorHandler.throwUnlessExcepted;
 
@@ -17,16 +15,16 @@ import static tech.illuin.pipeline.execution.error.PipelineErrorHandler.throwUnl
 @FunctionalInterface
 public interface StepErrorHandler
 {
-    Result handle(Exception exception, Object input, Object payload, Results results, Context context) throws Exception;
+    Result handle(Exception exception, Object input, Object payload, Results results, LocalContext context) throws Exception;
 
-    StepErrorHandler RETHROW_ALL = (Exception ex, Object input, Object payload, Results results, Context ctx) -> {
+    StepErrorHandler RETHROW_ALL = (Exception ex, Object input, Object payload, Results results, LocalContext ctx) -> {
         throw ex;
     };
 
     @SuppressWarnings("IllegalCatch")
     default StepErrorHandler andThen(StepErrorHandler nextErrorHandler)
     {
-        return (Exception exception, Object input, Object payload, Results results, Context context) -> {
+        return (Exception exception, Object input, Object payload, Results results, LocalContext context) -> {
             try {
                 return this.handle(exception, input, payload, results, context);
             }

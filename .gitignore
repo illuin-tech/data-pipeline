@@ -2,6 +2,7 @@
 .gitignore~
 **/target
 /logs
+/data
 *.iml
 .idea
 .java-version

@@ -3,9 +3,8 @@ package tech.illuin.pipeline.step;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import tech.illuin.pipeline.Pipeline;
-import tech.illuin.pipeline.builder.VoidPayload;
 import tech.illuin.pipeline.context.ComponentContext;
-import tech.illuin.pipeline.context.Context;
+import tech.illuin.pipeline.context.LocalContext;
 import tech.illuin.pipeline.generic.TestFactory;
 import tech.illuin.pipeline.generic.model.A;
 import tech.illuin.pipeline.generic.model.B;
@@ -13,12 +12,11 @@ import tech.illuin.pipeline.generic.pipeline.TestResult;
 import tech.illuin.pipeline.generic.pipeline.step.TestStep;
 import tech.illuin.pipeline.input.indexer.MultiIndexer;
 import tech.illuin.pipeline.input.indexer.SingleIndexer;
+import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
 import tech.illuin.pipeline.output.ComponentTag;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.step.execution.evaluator.ResultEvaluator;
 import tech.illuin.pipeline.step.execution.interruption.Interruption;
-import tech.illuin.pipeline.step.result.Result;
-import tech.illuin.pipeline.step.result.ResultView;
 import tech.illuin.pipeline.step.variant.InputStep;
 
 import java.util.List;
@@ -136,7 +134,7 @@ public class EvaluationTest
 
     public static Pipeline<Void> createAbortingPipeline()
     {
-        return Pipeline.of("test-abort", TestFactory::initializer)
+        return Pipeline.of("test-abort", (Void input, LocalContext context, UIDGenerator generator) -> TestFactory.initializer(input, context, generator))
            .registerIndexer(SingleIndexer.auto())
            .registerIndexer((MultiIndexer<A>) A::bs)
            .registerStep(builder -> builder

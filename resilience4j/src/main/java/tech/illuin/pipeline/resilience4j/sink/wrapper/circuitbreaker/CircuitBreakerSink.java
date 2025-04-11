@@ -2,9 +2,9 @@ package tech.illuin.pipeline.resilience4j.sink.wrapper.circuitbreaker;
 
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import org.slf4j.MDC;
-import tech.illuin.pipeline.context.Context;
-import tech.illuin.pipeline.resilience4j.execution.wrapper.CircuitBreakerException;
+import tech.illuin.pipeline.context.LocalContext;
 import tech.illuin.pipeline.output.Output;
+import tech.illuin.pipeline.resilience4j.execution.wrapper.CircuitBreakerException;
 import tech.illuin.pipeline.sink.Sink;
 import tech.illuin.pipeline.sink.execution.wrapper.SinkWrapperException;
 
@@ -26,7 +26,7 @@ public class CircuitBreakerSink implements Sink
 
     @Override
     @SuppressWarnings("IllegalCatch")
-    public void execute(Output output, Context context) throws Exception
+    public void execute(Output output, LocalContext context) throws Exception
     {
         try {
             Map<String, String> mdc = MDC.getCopyOfContextMap();
@@ -44,7 +44,7 @@ public class CircuitBreakerSink implements Sink
     }
 
     @SuppressWarnings("IllegalCatch")
-    private boolean executeSink(Output output, Context context) throws SinkWrapperException
+    private boolean executeSink(Output output, LocalContext context) throws SinkWrapperException
     {
         try {
             this.sink.execute(output, context);

@@ -2,7 +2,7 @@ package tech.illuin.pipeline.generic.pipeline.sink;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import tech.illuin.pipeline.context.Context;
+import tech.illuin.pipeline.context.LocalContext;
 import tech.illuin.pipeline.generic.pipeline.sink.execution.error.WrapAll;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.output.Output;
@@ -49,7 +49,7 @@ public class TestAnnotatedSinks
         }
 
         @Override
-        public void execute(Output output, Context context)
+        public void execute(Output output, LocalContext context)
         {
             logger.info("test:{}: ~", this.name);
             this.function.accept(output.payload());

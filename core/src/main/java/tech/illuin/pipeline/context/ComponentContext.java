@@ -1,6 +1,8 @@
 package tech.illuin.pipeline.context;
 
 import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
+import tech.illuin.pipeline.metering.MarkerManager;
+import tech.illuin.pipeline.metering.manager.ObservabilityManager;
 import tech.illuin.pipeline.output.ComponentTag;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.output.PipelineTag;
@@ -15,22 +17,25 @@ public class ComponentContext implements LocalContext
 {
     private final Context globalContext;
     private final Object input;
-    private final PipelineTag pipelineTag;
     private final ComponentTag componentTag;
     private final UIDGenerator uidGenerator;
+    private final ObservabilityManager observabilityManager;
+    private final MarkerManager markerManager;
 
     public ComponentContext(
         Context globalContext,
         Object input,
-        PipelineTag pipelineTag,
         ComponentTag componentTag,
-        UIDGenerator uidGenerator
+        UIDGenerator uidGenerator,
+        ObservabilityManager observabilityManager,
+        MarkerManager markerManager
     ) {
         this.globalContext = globalContext;
         this.input = input;
-        this.pipelineTag = pipelineTag;
         this.componentTag = componentTag;
         this.uidGenerator = uidGenerator;
+        this.observabilityManager = observabilityManager;
+        this.markerManager = markerManager;
     }
 
     @Override
@@ -42,7 +47,7 @@ public class ComponentContext implements LocalContext
     @Override
     public PipelineTag pipelineTag()
     {
-        return this.pipelineTag;
+        return this.componentTag.pipelineTag();
     }
 
     @Override
@@ -55,6 +60,18 @@ public class ComponentContext implements LocalContext
     public UIDGenerator uidGenerator()
     {
         return this.uidGenerator;
+    }
+
+    @Override
+    public ObservabilityManager observabilityManager()
+    {
+        return this.observabilityManager;
+    }
+
+    @Override
+    public MarkerManager markerManager()
+    {
+        return this.markerManager;
     }
 
     @Override

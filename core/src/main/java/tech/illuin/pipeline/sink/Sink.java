@@ -1,7 +1,7 @@
 package tech.illuin.pipeline.sink;
 
 import tech.illuin.pipeline.commons.Reflection;
-import tech.illuin.pipeline.context.Context;
+import tech.illuin.pipeline.context.LocalContext;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.sink.runner.SinkRunner;
 
@@ -10,7 +10,7 @@ import tech.illuin.pipeline.sink.runner.SinkRunner;
  */
 public interface Sink
 {
-    void execute(Output output, Context context) throws Exception;
+    void execute(Output output, LocalContext context) throws Exception;
 
     default String defaultId()
     {

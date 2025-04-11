@@ -6,13 +6,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tech.illuin.pipeline.context.ComponentContext;
 import tech.illuin.pipeline.context.Context;
+import tech.illuin.pipeline.context.LocalContext;
 import tech.illuin.pipeline.execution.phase.IO;
 import tech.illuin.pipeline.execution.phase.PipelinePhase;
 import tech.illuin.pipeline.execution.phase.PipelineStrategy;
 import tech.illuin.pipeline.input.indexer.Indexer;
 import tech.illuin.pipeline.input.initializer.builder.InitializerDescriptor;
+import tech.illuin.pipeline.input.initializer.metering.InitializationMarkerManager;
+import tech.illuin.pipeline.input.initializer.metering.InitializationMetrics;
 import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
-import tech.illuin.pipeline.metering.PipelineInitializationMetrics;
 import tech.illuin.pipeline.metering.manager.ObservabilityManager;
 import tech.illuin.pipeline.metering.tag.MetricTags;
 import tech.illuin.pipeline.metering.tag.TagResolver;
@@ -60,7 +62,9 @@ public class InitializerPhase<I> implements PipelinePhase<I>
 
         ComponentTag tag = this.createTag(io.tag(), this.initializer);
         MetricTags metricTags = this.tagResolver.resolve(io.input(), context);
-        PipelineInitializationMetrics metrics = new PipelineInitializationMetrics(this.observabilityManager.meterRegistry(), tag, metricTags);
+        InitializationMarkerManager markerManager = new InitializationMarkerManager(tag, metricTags);
+        InitializationMetrics metrics = new InitializationMetrics(this.observabilityManager.meterRegistry(), markerManager);
+        LocalContext localContext = new ComponentContext(context, io.input(), tag, this.uidGenerator, this.observabilityManager, markerManager);
 
         long start = System.nanoTime();
         metrics.setMDC();
@@ -69,8 +73,8 @@ public class InitializerPhase<I> implements PipelinePhase<I>
         {
             span.tag("uid", tag.pipelineTag().uid());
 
-            Object payload = this.runInitializer(io.input(), tag, context, metrics);
-            Output output = this.runOutputFactory(io.input(), io.tag(), payload, context);
+            Object payload = this.runInitializer(io.input(), tag, localContext, metrics);
+            Output output = this.runOutputFactory(io.input(), io.tag(), payload, localContext);
             this.runIndexers(io.tag(), payload, output);
 
             metrics.successCounter().increment();
@@ -94,9 +98,8 @@ public class InitializerPhase<I> implements PipelinePhase<I>
     }
 
     @SuppressWarnings("IllegalCatch")
-    private Object runInitializer(I input, ComponentTag tag, Context context, PipelineInitializationMetrics metrics) throws Exception
+    private Object runInitializer(I input, ComponentTag tag, LocalContext context, InitializationMetrics metrics) throws Exception
     {
-        ComponentContext componentContext = wrapContext(input, context, tag.pipelineTag(), tag);
         Span span = this.observabilityManager.tracer().nextSpan().name(tag.id());
         try (Tracer.SpanInScope scope = this.observabilityManager.tracer().withSpan(span.start()))
         {
@@ -104,7 +107,7 @@ public class InitializerPhase<I> implements PipelinePhase<I>
 
             span.event("initializer:run");
             logger.trace("{}#{} initializing payload", tag.pipelineTag().pipeline(), tag.pipelineTag().uid());
-            Object payload = this.initializer.execute(input, componentContext, this.uidGenerator);
+            Object payload = this.initializer.execute(input, context, this.uidGenerator);
             span.tag("payload_type", payload == null ? "null" : payload.getClass().getName());
 
             return payload;
@@ -113,14 +116,14 @@ public class InitializerPhase<I> implements PipelinePhase<I>
             metrics.setMDC(e);
             span.event("initializer:error");
             logger.error("{}#{} initializer {} threw an {}: {}", tag.pipelineTag().pipeline(), tag.pipelineTag().uid(), tag.id(), e.getClass().getName(), e.getMessage());
-            return this.initializer.handleException(e, componentContext, this.uidGenerator);
+            return this.initializer.handleException(e, context, this.uidGenerator);
         }
         finally {
             span.end();
         }
     }
 
-    private Output runOutputFactory(I input, PipelineTag tag, Object payload, Context context)
+    private Output runOutputFactory(I input, PipelineTag tag, Object payload, LocalContext context)
     {
         Span span = this.observabilityManager.tracer().nextSpan().name("output_factory");
         try (Tracer.SpanInScope scope = this.observabilityManager.tracer().withSpan(span.start()))
@@ -158,10 +161,5 @@ public class InitializerPhase<I> implements PipelinePhase<I>
     private ComponentTag createTag(PipelineTag pipelineTag, InitializerDescriptor<?> initializer)
     {
         return new ComponentTag(this.uidGenerator.generate(), pipelineTag, initializer.id(), ComponentFamily.INITIALIZER);
-    }
-
-    private ComponentContext wrapContext(I input, Context context, PipelineTag pipelineTag, ComponentTag componentTag)
-    {
-        return new ComponentContext(context, input, pipelineTag, componentTag, this.uidGenerator);
     }
 }

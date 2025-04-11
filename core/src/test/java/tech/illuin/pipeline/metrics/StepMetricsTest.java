@@ -6,7 +6,8 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.helpers.BasicMDCAdapter;
 import org.slf4j.spi.MDCAdapter;
 import tech.illuin.pipeline.input.uid_generator.TSIDGenerator;
-import tech.illuin.pipeline.metering.PipelineStepMetrics;
+import tech.illuin.pipeline.step.metering.StepMarkerManager;
+import tech.illuin.pipeline.step.metering.StepMetrics;
 import tech.illuin.pipeline.metering.tag.MetricTags;
 import tech.illuin.pipeline.output.ComponentFamily;
 import tech.illuin.pipeline.output.ComponentTag;
@@ -19,15 +20,17 @@ import static tech.illuin.pipeline.input.author_resolver.AuthorResolver.ANONYMOU
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
-public class PipelineStepMetricsTest
+public class StepMetricsTest
 {
     @Test
     public void testCreate()
     {
-        Assertions.assertDoesNotThrow(() -> new PipelineStepMetrics(
+        Assertions.assertDoesNotThrow(() -> new StepMetrics(
             new SimpleMeterRegistry(),
-            createTag("test-create", "test-create-step"),
-            new MetricTags().put("test", "true")
+            new StepMarkerManager(
+                createTag("test-create", "test-create-step"),
+                new MetricTags().put("test", "true")
+            )
         ));
     }
 
@@ -35,10 +38,12 @@ public class PipelineStepMetricsTest
     public void testMDC()
     {
         MDCAdapter adapter = new BasicMDCAdapter();
-        PipelineStepMetrics metrics = Assertions.assertDoesNotThrow(() -> new PipelineStepMetrics(
+        StepMetrics metrics = Assertions.assertDoesNotThrow(() -> new StepMetrics(
             new SimpleMeterRegistry(),
-            createTag("test-mdc", "test-mdc-step"),
-            new MetricTags().put("test", "true"),
+            new StepMarkerManager(
+                createTag("test-mdc", "test-mdc-step"),
+                new MetricTags().put("test", "true")
+            ),
             new DebugMDCManager(adapter)
         ));
 
@@ -58,10 +63,12 @@ public class PipelineStepMetricsTest
     public void testMDCException()
     {
         MDCAdapter adapter = new BasicMDCAdapter();
-        PipelineStepMetrics metrics = Assertions.assertDoesNotThrow(() -> new PipelineStepMetrics(
+        StepMetrics metrics = Assertions.assertDoesNotThrow(() -> new StepMetrics(
             new SimpleMeterRegistry(),
-            createTag("test-mdc-exception", "test-mdc-step-exception"),
-            new MetricTags().put("test", "true"),
+            new StepMarkerManager(
+                createTag("test-mdc-exception", "test-mdc-step-exception"),
+                new MetricTags().put("test", "true")
+            ),
             new DebugMDCManager(adapter)
         ));
 

@@ -3,10 +3,12 @@ package tech.illuin.pipeline.step;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import tech.illuin.pipeline.Pipeline;
+import tech.illuin.pipeline.context.LocalContext;
 import tech.illuin.pipeline.generic.TestFactory;
 import tech.illuin.pipeline.generic.model.A;
 import tech.illuin.pipeline.generic.pipeline.step.TestAnnotatedSteps;
 import tech.illuin.pipeline.input.indexer.SingleIndexer;
+import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
 import tech.illuin.pipeline.output.Output;
 
 import java.util.List;
@@ -40,7 +42,7 @@ public class AnnotationTest
 
     public static Pipeline<Void> createAnnotatedPipeline()
     {
-        return Pipeline.of("test-annotated", TestFactory::initializerOfEmpty)
+        return Pipeline.of("test-annotated", (Void input, LocalContext context, UIDGenerator generator) -> TestFactory.initializerOfEmpty(input, context, generator))
            .registerIndexer(SingleIndexer.auto())
            .registerStep(new TestAnnotatedSteps.ClassActivation<>("1", "ok"))
            .registerStep(new TestAnnotatedSteps.ConditionActivation<>("2", "ok"))

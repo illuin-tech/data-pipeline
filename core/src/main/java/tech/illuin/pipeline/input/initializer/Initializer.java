@@ -1,7 +1,7 @@
 package tech.illuin.pipeline.input.initializer;
 
 import tech.illuin.pipeline.commons.Reflection;
-import tech.illuin.pipeline.context.Context;
+import tech.illuin.pipeline.context.LocalContext;
 import tech.illuin.pipeline.input.initializer.runner.InitializerRunner;
 import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
 import tech.illuin.pipeline.output.Output;
@@ -14,9 +14,9 @@ import java.util.function.Supplier;
 @FunctionalInterface
 public interface Initializer<I>
 {
-    Object initialize(I input, Context context, UIDGenerator generator) throws Exception;
+    Object initialize(I input, LocalContext context, UIDGenerator generator) throws Exception;
 
-    static <P> Object initializeFromParentOr(Context context, Supplier<P> or)
+    static <P> Object initializeFromParentOr(LocalContext context, Supplier<P> or)
     {
         return context.parent().map(Output::payload).orElseGet(or);
     }

@@ -1,7 +1,7 @@
 package tech.illuin.pipeline.step;
 
 import tech.illuin.pipeline.commons.Reflection;
-import tech.illuin.pipeline.context.Context;
+import tech.illuin.pipeline.context.LocalContext;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.step.result.Result;
@@ -13,9 +13,9 @@ import tech.illuin.pipeline.step.runner.StepRunner;
  */
 public interface Step<T extends Indexable, I>
 {
-    Result execute(T object, I input, Object payload, ResultView results, Context context) throws Exception;
+    Result execute(T object, I input, Object payload, ResultView results, LocalContext context) throws Exception;
 
-    default Result execute(T object, I input, Output output, Context context) throws Exception
+    default Result execute(T object, I input, Output output, LocalContext context) throws Exception
     {
         return this.execute(object, input, output.payload(Object.class), output.results().view(object), context);
     }

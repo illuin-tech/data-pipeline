@@ -20,7 +20,7 @@
         <ksuid.version>4.1.1</ksuid.version>
         <tsid.version>5.2.6</tsid.version>
         <ulid.version>5.2.3</ulid.version>
-        <micrometer.version>1.14.5</micrometer.version>
+        <micrometer.version>1.14.6</micrometer.version>
         <micrometer-tracing.version>1.4.4</micrometer-tracing.version>
     </properties>
 

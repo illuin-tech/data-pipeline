@@ -7,7 +7,7 @@
     <parent>
         <groupId>tech.illuin</groupId>
         <artifactId>data-pipeline-parent</artifactId>
-        <version>0.25</version>
+        <version>0.25.1</version>
     </parent>
 
     <artifactId>data-pipeline-resilience4j</artifactId>

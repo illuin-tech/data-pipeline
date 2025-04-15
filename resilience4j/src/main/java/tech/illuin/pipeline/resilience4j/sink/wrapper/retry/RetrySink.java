@@ -15,6 +15,7 @@ import tech.illuin.pipeline.sink.Sink;
 import tech.illuin.pipeline.sink.execution.wrapper.SinkWrapperException;
 
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static tech.illuin.pipeline.metering.MeterRegistryKey.fill;
 
@@ -26,6 +27,7 @@ public class RetrySink implements Sink
     private final Sink sink;
     private final Retry retry;
     private final RetrySinkHandler handler;
+    private final Map<String, Integer> retryCounterContainer;
 
     public static final String RUN_COUNT_KEY = "pipeline.sink.retry.run_count";
     public static final String RETRY_COUNT_KEY = "pipeline.sink.retry.retry_count";
@@ -41,6 +43,7 @@ public class RetrySink implements Sink
         this.sink = sink;
         this.retry = retry;
         this.handler = handler;
+        this.retryCounterContainer = new ConcurrentHashMap<>();
     }
 
     @Override
@@ -98,12 +101,13 @@ public class RetrySink implements Sink
                 context.pipelineTag().pipeline(),
                 context.pipelineTag().uid(),
                 context.componentTag().id(),
-                this.retry.getMetrics().getNumberOfTotalCalls()
+                this.retryCounterContainer.get(context.pipelineTag().uid())
             );
             this.handler.onSuccess(output, context);
         }
         finally {
             counter(RUN_SUCCESS_KEY, context).increment();
+            this.retryCounterContainer.remove(context.pipelineTag().uid());
         }
     }
 
@@ -123,21 +127,26 @@ public class RetrySink implements Sink
         }
         finally {
             counter(RUN_FAILURE_KEY, context, Tag.of("error", ex.getClass().getName())).increment();
+            this.retryCounterContainer.remove(context.pipelineTag().uid());
         }
     }
 
     private void onAttempt(Output output, LocalContext context)
     {
         try {
-            long totalCalls = this.retry.getMetrics().getNumberOfTotalCalls();
-            logger.trace(
-                "{}#{} retry wrapper {} - retry attempt #{} - {} left",
-                context.pipelineTag().pipeline(),
-                context.pipelineTag().uid(),
-                context.componentTag().id(),
-                totalCalls,
-                this.retry.getRetryConfig().getMaxAttempts() - (totalCalls + 1)
-            );
+            if (!this.retryCounterContainer.containsKey(context.pipelineTag().uid()))
+                this.retryCounterContainer.put(context.pipelineTag().uid(), 0);
+            else {
+                Integer retryCount = this.retryCounterContainer.merge(context.pipelineTag().uid(), 1, Integer::sum);
+                logger.trace(
+                    "{}#{} retry wrapper {} - retry attempt #{} - {} left",
+                    context.pipelineTag().pipeline(),
+                    context.pipelineTag().uid(),
+                    context.componentTag().id(),
+                    retryCount,
+                    this.retry.getRetryConfig().getMaxAttempts() - retryCount
+                );
+            }
             this.handler.onRetry(output, context);
         }
         finally {

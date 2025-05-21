@@ -120,7 +120,8 @@ public final class CompositePipeline<I> implements Pipeline<I>
     public Output run(I input, Context context) throws PipelineException
     {
         PipelineTag tag = this.createTag(input, context);
-        MetricTags metricTags = this.tagResolver.resolve(input, context);
+        MetricTags metricTags = new MetricTags();
+        this.tagResolver.resolve(metricTags, input, context);
         PipelineMarkerManager markerManager = new PipelineMarkerManager(tag, metricTags);
         PipelineMetrics metrics = new PipelineMetrics(this.observabilityManager.meterRegistry(), markerManager);
         IO<I> io = new IO<>(tag, input);

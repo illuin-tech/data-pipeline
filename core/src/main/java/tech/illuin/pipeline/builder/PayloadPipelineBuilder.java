@@ -112,7 +112,7 @@ public final class PayloadPipelineBuilder<I>
             this.closeTimeout(),
             this.onCloseHandlers(),
             this.observabilityManagerBuilder.build(),
-            this.tagResolver() == null ? (in, ctx) -> new MetricTags() : this.tagResolver(),
+            this.tagResolver() == null ? (metrics, in, ctx) -> new MetricTags() : this.tagResolver(),
             this.observers()
         );
     }

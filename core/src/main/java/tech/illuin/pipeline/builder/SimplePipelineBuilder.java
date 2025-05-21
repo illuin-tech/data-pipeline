@@ -100,7 +100,7 @@ public final class SimplePipelineBuilder<I>
             this.closeTimeout(),
             this.onCloseHandlers(),
             this.observabilityManagerBuilder.build(),
-            this.tagResolver() == null ? (in, ctx) -> new MetricTags() : this.tagResolver(),
+            this.tagResolver() == null ? (tags, in, ctx) -> new MetricTags() : this.tagResolver(),
             this.observers()
         );
     }

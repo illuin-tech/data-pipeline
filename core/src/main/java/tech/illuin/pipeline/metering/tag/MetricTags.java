@@ -81,6 +81,11 @@ public final class MetricTags
         return this.put(key.name(), value);
     }
 
+    public <E extends Enum<E>> MetricTags put(E key, String value, MetricScope... scopes)
+    {
+        return this.put(key.name(), value, scopes);
+    }
+
     public Map<String, String> asMap()
     {
         return this.data.entrySet().stream()

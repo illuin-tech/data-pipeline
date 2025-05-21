@@ -26,9 +26,19 @@ public final class MetricTags
         return this.data.containsKey(key);
     }
 
+    public boolean has(String key, MetricScope scope)
+    {
+        return this.get(key, scope).isPresent();
+    }
+
     public <E extends Enum<E>> boolean has(E key)
     {
         return this.has(key.name());
+    }
+
+    public <E extends Enum<E>> boolean has(E key, MetricScope scope)
+    {
+        return this.has(key.name(), scope);
     }
 
     public Optional<String> get(String key)
@@ -36,9 +46,22 @@ public final class MetricTags
         return Optional.ofNullable(this.data.get(key)).map(ScopedTag::value);
     }
 
+    public Optional<String> get(String key, MetricScope scope)
+    {
+        ScopedTag tag = this.data.get(key);
+        if (tag != null && tag.scopes.contains(scope))
+            return Optional.ofNullable(tag.value);
+        return Optional.empty();
+    }
+
     public <E extends Enum<E>> Optional<String> get(E key)
     {
         return this.get(key.name());
+    }
+
+    public <E extends Enum<E>> Optional<String> get(E key, MetricScope scope)
+    {
+        return this.get(key.name(), scope);
     }
 
     public MetricTags put(String key, String value)

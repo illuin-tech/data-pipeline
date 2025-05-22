@@ -3,13 +3,18 @@ package tech.illuin.pipeline.metering.tag;
 import io.micrometer.core.instrument.Tag;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static tech.illuin.pipeline.metering.tag.MetricScope.MARKER;
+import static tech.illuin.pipeline.metering.tag.MetricScope.TAG;
 
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
 public final class MetricTags
 {
-    private final Map<String, String> data;
+    private final Map<String, ScopedTag> data;
 
     public MetricTags()
     {
@@ -21,14 +26,32 @@ public final class MetricTags
         return this.data.containsKey(key);
     }
 
+    public boolean has(String key, MetricScope scope)
+    {
+        return this.get(key, scope).isPresent();
+    }
+
     public <E extends Enum<E>> boolean has(E key)
     {
         return this.has(key.name());
     }
 
+    public <E extends Enum<E>> boolean has(E key, MetricScope scope)
+    {
+        return this.has(key.name(), scope);
+    }
+
     public Optional<String> get(String key)
     {
-        return Optional.ofNullable(this.data.get(key));
+        return Optional.ofNullable(this.data.get(key)).map(ScopedTag::value);
+    }
+
+    public Optional<String> get(String key, MetricScope scope)
+    {
+        ScopedTag tag = this.data.get(key);
+        if (tag != null && tag.scopes.contains(scope))
+            return Optional.ofNullable(tag.value);
+        return Optional.empty();
     }
 
     public <E extends Enum<E>> Optional<String> get(E key)
@@ -36,9 +59,20 @@ public final class MetricTags
         return this.get(key.name());
     }
 
+    public <E extends Enum<E>> Optional<String> get(E key, MetricScope scope)
+    {
+        return this.get(key.name(), scope);
+    }
+
     public MetricTags put(String key, String value)
     {
-        this.data.put(key, value);
+        this.put(key, value, MetricScope.values());
+        return this;
+    }
+
+    public MetricTags put(String key, String value, MetricScope... scopes)
+    {
+        this.data.put(key, new ScopedTag(value, Set.of(scopes)));
         return this;
     }
 
@@ -47,15 +81,44 @@ public final class MetricTags
         return this.put(key.name(), value);
     }
 
+    public <E extends Enum<E>> MetricTags put(E key, String value, MetricScope... scopes)
+    {
+        return this.put(key.name(), value, scopes);
+    }
+
     public Map<String, String> asMap()
     {
-        return Collections.unmodifiableMap(this.data);
+        return this.data.entrySet().stream()
+            .collect(Collectors.toUnmodifiableMap(
+                Map.Entry::getKey,
+                e -> e.getValue().value()
+            ));
+    }
+
+    public Map<String, String> asMarker()
+    {
+        return this.filterData(MARKER)
+            .collect(Collectors.toUnmodifiableMap(
+                Map.Entry::getKey,
+                e -> e.getValue().value()
+            ));
     }
 
     public Collection<Tag> asTags()
     {
-        return this.data.entrySet().stream()
-            .map(e -> Tag.of(e.getKey(), e.getValue() == null ? "" : e.getValue()))
+        return this.filterData(TAG)
+            .map(e -> Tag.of(e.getKey(), e.getValue().value() == null ? "" : e.getValue().value()))
             .toList();
     }
+
+    private Stream<Map.Entry<String, ScopedTag>> filterData(MetricScope scope)
+    {
+        return this.data.entrySet().stream()
+            .filter(e -> e.getValue().scopes().contains(scope));
+    }
+
+    private record ScopedTag(
+        String value,
+        Set<MetricScope> scopes
+    ) {}
 }

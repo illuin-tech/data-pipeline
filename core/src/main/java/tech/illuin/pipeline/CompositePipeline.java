@@ -120,7 +120,8 @@ public final class CompositePipeline<I> implements Pipeline<I>
     public Output run(I input, Context context) throws PipelineException
     {
         PipelineTag tag = this.createTag(input, context);
-        MetricTags metricTags = this.tagResolver.resolve(input, context);
+        MetricTags metricTags = new MetricTags();
+        this.tagResolver.resolve(metricTags, input, context);
         PipelineMarkerManager markerManager = new PipelineMarkerManager(tag, metricTags);
         PipelineMetrics metrics = new PipelineMetrics(this.observabilityManager.meterRegistry(), markerManager);
         IO<I> io = new IO<>(tag, input);
@@ -132,6 +133,7 @@ public final class CompositePipeline<I> implements Pipeline<I>
         {
             span.tag("uid", tag.uid());
             span.tag("input_type", io.input() == null ? "null" : io.input().getClass().getName());
+            metricTags.asMarker().forEach(span::tag);
 
             logger.debug("{}: launching pipeline over input of type {}", this.id(), input != null ? input.getClass().getName() : "null");
 

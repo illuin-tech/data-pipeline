@@ -44,7 +44,7 @@ public class PipelineMarkerManager implements MarkerManager
         /* The author value can be null, thus Map.of cannot be used here */
         markers.put("author", this.tag.author());
         return MetricFunctions.compileMarkers(
-            this.metricTags,
+            this.metricTags.asMarker(),
             markers,
             emptyMap()
         );

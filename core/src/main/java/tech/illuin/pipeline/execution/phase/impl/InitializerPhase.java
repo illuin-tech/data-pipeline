@@ -61,7 +61,8 @@ public class InitializerPhase<I> implements PipelinePhase<I>
             throw new IllegalArgumentException("Runtime context cannot be null");
 
         ComponentTag tag = this.createTag(io.tag(), this.initializer);
-        MetricTags metricTags = this.tagResolver.resolve(io.input(), context);
+        MetricTags metricTags = new MetricTags();
+        this.tagResolver.resolve(metricTags, io.input(), context);
         InitializationMarkerManager markerManager = new InitializationMarkerManager(tag, metricTags);
         InitializationMetrics metrics = new InitializationMetrics(this.observabilityManager.meterRegistry(), markerManager);
         LocalContext localContext = new ComponentContext(context, io.input(), tag, this.uidGenerator, this.observabilityManager, markerManager);

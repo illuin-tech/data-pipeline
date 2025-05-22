@@ -133,6 +133,7 @@ public final class CompositePipeline<I> implements Pipeline<I>
         {
             span.tag("uid", tag.uid());
             span.tag("input_type", io.input() == null ? "null" : io.input().getClass().getName());
+            metricTags.asMarker().forEach(span::tag);
 
             logger.debug("{}: launching pipeline over input of type {}", this.id(), input != null ? input.getClass().getName() : "null");
 

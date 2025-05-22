@@ -186,9 +186,9 @@ A typical `TagResolver` may look like this:
 public class MyTagResolver implements TagResolver<MyInputType>
 {
     @Override
-    public MetricTags resolve(MyInputType input, Context context)
+    public void resolve(MetricTags tags, MyInputType input, Context context)
     {
-        return new MetricTags()
+        tags
             .put("some_tag", input.getSome())
             .put("other_tag", input.getOther())
         ;
@@ -219,4 +219,16 @@ Log labels
   author    anonymous
   some_tag  123
   other_tag abc
+```
+
+When registering tags in a `TagResolver`, it is also possible to specify the scopes in which they should be used, at the time of this writing there are two scopes:
+
+* `MARKER`: can be used for high-cardinality values (e.g., user/entity UIDs being processed) and will end up in the MDC and tracing span tags
+* `TAG`: can be used for low-cardinality values, they will end-up as metric labels (e.g., Prometheus metric labels), where high-cardinality values can negatively impact performance
+
+Scoping a tag is done the following way:
+
+```java
+//MetricTags tags
+tags.put("my_user_uid", someUUID, MetricScope.MARKER);
 ```

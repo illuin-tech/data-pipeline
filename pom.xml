@@ -64,7 +64,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <slf4j.version>2.0.17</slf4j.version>
         <logback.version>1.5.18</logback.version>
-        <junit.version>5.12.2</junit.version>
+        <junit.version>5.13.1</junit.version>
         <mockito.version>5.15.2</mockito.version>
         <jacoco.version>0.8.13</jacoco.version>
         <checkstyle.version>10.23.1</checkstyle.version>

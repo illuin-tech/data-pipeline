@@ -72,7 +72,7 @@
         <maven-compiler.version>3.14.0</maven-compiler.version>
         <maven-surefire.version>3.5.3</maven-surefire.version>
         <maven-source.version>3.3.1</maven-source.version>
-        <maven-javadoc.version>3.11.2</maven-javadoc.version>
+        <maven-javadoc.version>3.11.3</maven-javadoc.version>
         <maven-checkstyle.version>3.6.0</maven-checkstyle.version>
         <maven-gpg.version>3.2.8</maven-gpg.version>
         <maven-sonatype-staging.version>1.6.13</maven-sonatype-staging.version>

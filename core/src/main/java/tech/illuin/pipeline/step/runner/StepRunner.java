@@ -19,6 +19,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
@@ -68,6 +69,8 @@ public class StepRunner<T extends Indexable, I> implements Step<T, I>, Describab
             /* Valid cases should have corresponding MethodValidators */
             if (result instanceof Result)
                 return (Result) result;
+            if (result instanceof Optional<?> oResult)
+                return oResult.map(o -> MultiResult.of((Result) o)).orElseGet(MultiResult::of);
             if (result instanceof Collection<?> cResult)
                 //noinspection unchecked
                 return MultiResult.of((Collection<? extends Result>) cResult);

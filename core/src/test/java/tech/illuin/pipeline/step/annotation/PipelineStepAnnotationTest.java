@@ -395,6 +395,20 @@ public class PipelineStepAnnotationTest
         Assertions.assertEquals("b", results.get(1).status());
     }
 
+    @Test
+    public void testPipeline__shouldCompile_optionalResult()
+    {
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_optionalResult("test-optional-result"));
+
+        Output output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
+        Assertions.assertDoesNotThrow(pipeline::close);
+
+        List<TestResult> results = output.results().stream(TestResult.class).toList();
+
+        Assertions.assertEquals(1, results.size());
+        Assertions.assertEquals("a", results.get(0).status());
+    }
+
     public static Pipeline<Object> createPipeline_input(String name)
     {
         return Pipeline.of(name)
@@ -580,6 +594,13 @@ public class PipelineStepAnnotationTest
     {
         return Pipeline.of(name)
             .registerStep(new StepReturnsMultiResult())
+            .build();
+    }
+
+    public static Pipeline<Object> createPipeline_optionalResult(String name)
+    {
+        return Pipeline.of(name)
+            .registerStep(new StepReturnsOptionalResult())
             .build();
     }
 

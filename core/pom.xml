@@ -20,6 +20,7 @@
         <ksuid.version>4.1.1</ksuid.version>
         <tsid.version>5.2.6</tsid.version>
         <ulid.version>5.2.3</ulid.version>
+        <uuid.version>6.1.1</uuid.version>
         <micrometer.version>1.15.5</micrometer.version>
         <micrometer-tracing.version>1.5.5</micrometer-tracing.version>
     </properties>
@@ -35,6 +36,12 @@
             <groupId>com.github.f4b6a3</groupId>
             <artifactId>tsid-creator</artifactId>
             <version>${tsid.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.f4b6a3</groupId>
+            <artifactId>uuid-creator</artifactId>
+            <version>${uuid.version}</version>
         </dependency>
 
         <dependency>

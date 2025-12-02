@@ -1,6 +1,5 @@
 package tech.illuin.pipeline;
 
-import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.tracing.Span;
 import io.micrometer.tracing.Tracer;
 import org.slf4j.Logger;
@@ -50,7 +49,7 @@ import java.util.stream.Stream;
  *     <li>0 to n {@link tech.illuin.pipeline.close.OnCloseHandler} responsible for cleaning up when tearing down the pipeline</li>
  * </ul>
  * <p>The pipeline references an {@link java.util.concurrent.ExecutorService} which the pipeline will attempt to close when its own close() method is called.</p>
- * <p>It will additionally handle a variety of {@link MeterRegistry} counters reflecting the activity of its components.</p>
+ * <p>It will additionally handle a variety of {@link io.micrometer.core.instrument.MeterRegistry} counters reflecting the activity of its components.</p>
  *
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */

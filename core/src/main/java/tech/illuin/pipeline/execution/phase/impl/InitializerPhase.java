@@ -55,6 +55,7 @@ public class InitializerPhase<I> implements PipelinePhase<I>
     }
 
     @Override
+    @SuppressWarnings("IllegalCatch")
     public PipelineStrategy run(IO<I> io, Context context, MetricTags tags) throws Exception
     {
         if (context == null)

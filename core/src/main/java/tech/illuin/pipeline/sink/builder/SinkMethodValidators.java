@@ -2,8 +2,6 @@ package tech.illuin.pipeline.sink.builder;
 
 import tech.illuin.pipeline.builder.runner_compiler.MethodValidator;
 
-import java.util.List;
-
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */

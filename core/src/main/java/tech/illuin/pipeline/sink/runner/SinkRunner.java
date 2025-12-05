@@ -2,9 +2,10 @@ package tech.illuin.pipeline.sink.runner;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tech.illuin.pipeline.builder.runner_compiler.CompiledMethod;
 import tech.illuin.pipeline.builder.runner_compiler.argument_resolver.mapper_factory.MethodArgumentMapper;
 import tech.illuin.pipeline.builder.runner_compiler.argument_resolver.method_arguments.MethodArguments;
-import tech.illuin.pipeline.builder.runner_compiler.CompiledMethod;
+import tech.illuin.pipeline.builder.runner_compiler.argument_resolver.method_arguments.MissingArgument;
 import tech.illuin.pipeline.commons.Reflection;
 import tech.illuin.pipeline.context.LocalContext;
 import tech.illuin.pipeline.observer.descriptor.describable.Describable;
@@ -15,6 +16,7 @@ import tech.illuin.pipeline.step.runner.StepRunnerException;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -55,10 +57,23 @@ public class SinkRunner implements Sink, Describable
                 context.observabilityManager(),
                 context.markerManager()
             );
+            List<MissingArgument> missingArgs = new ArrayList<>();
             Object[] arguments = this.argumentMappers.stream()
                 .map(mapper -> mapper.map(originalArguments))
+                .peek(arg -> {
+                    if (arg instanceof MissingArgument missing)
+                        missingArgs.add(missing);
+                })
                 .toArray()
             ;
+
+            if (!missingArgs.isEmpty())
+            {
+                for (MissingArgument missingArg : missingArgs)
+                    logger.trace("Found missing argument for sink {}: {}", this.target.getClass().getName(), missingArg.message());
+                return;
+            }
+
             this.method.invoke(this.target, arguments);
         }
         catch (InvocationTargetException e) {

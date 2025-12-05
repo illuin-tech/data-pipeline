@@ -15,6 +15,7 @@ import tech.illuin.pipeline.step.annotation.step.StepWithInput;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
@@ -141,6 +142,28 @@ public class PipelineSinkAnnotationTest
     }
 
     @Test
+    public void testPipeline__shouldCompile_currentMissing()
+    {
+        StringCollector collector = new StringCollector();
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_current_missing("test-current-missing", collector));
+
+        Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
+        Assertions.assertDoesNotThrow(pipeline::close);
+
+        Assertions.assertNull(collector.get());
+    }
+
+    @Test
+    public void testPipeline__shouldCompile_currentMissingRequired()
+    {
+        StringCollector collector = new StringCollector();
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_current_missingRequired("test-current-missing-required", collector));
+
+        Assertions.assertThrows(NoSuchElementException.class, () -> pipeline.run("input"));
+        Assertions.assertDoesNotThrow(pipeline::close);
+    }
+
+    @Test
     public void testPipeline__shouldCompile_currentNamed()
     {
         StringCollector collector = new StringCollector();
@@ -210,6 +233,28 @@ public class PipelineSinkAnnotationTest
         Assertions.assertDoesNotThrow(pipeline::close);
 
         Assertions.assertEquals("input->stream(input)", collector.get());
+    }
+    
+    @Test
+    public void testPipeline__shouldCompile_latestMissing()
+    {
+        StringCollector collector = new StringCollector();
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_latest_missing("test-latest-missing", collector));
+
+        Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
+        Assertions.assertDoesNotThrow(pipeline::close);
+
+        Assertions.assertNull(collector.get());
+    }
+
+    @Test
+    public void testPipeline__shouldCompile_latestMissingRequired()
+    {
+        StringCollector collector = new StringCollector();
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_latest_missingRequired("test-latest-missing-required", collector));
+
+        Assertions.assertThrows(NoSuchElementException.class, () -> pipeline.run("input"));
+        Assertions.assertDoesNotThrow(pipeline::close);
     }
 
     @Test
@@ -426,6 +471,20 @@ public class PipelineSinkAnnotationTest
             .build();
     }
 
+    public static Pipeline<Object> createPipeline_current_missing(String name, StringCollector collector)
+    {
+        return Pipeline.of(name)
+            .registerSink(new SinkWithInputAndCurrent<>(collector))
+            .build();
+    }
+
+    public static Pipeline<Object> createPipeline_current_missingRequired(String name, StringCollector collector)
+    {
+        return Pipeline.of(name)
+            .registerSink(new SinkWithInputAndCurrent.Required<>(collector))
+            .build();
+    }
+
     public static Pipeline<Object> createPipeline_currentOptionalNamed(String name, StringCollector collector)
     {
         return Pipeline.of(name)
@@ -471,6 +530,20 @@ public class PipelineSinkAnnotationTest
         return Pipeline.of(name)
             .registerStep(new StepWithInput<>("annotation-named"))
             .registerSink(new SinkWithInputAndLatest.Named<>(collector))
+            .build();
+    }
+
+    public static Pipeline<Object> createPipeline_latest_missing(String name, StringCollector collector)
+    {
+        return Pipeline.of(name)
+            .registerSink(new SinkWithInputAndLatest<>(collector))
+            .build();
+    }
+
+    public static Pipeline<Object> createPipeline_latest_missingRequired(String name, StringCollector collector)
+    {
+        return Pipeline.of(name)
+            .registerSink(new SinkWithInputAndLatest.Required<>(collector))
             .build();
     }
 

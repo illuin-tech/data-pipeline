@@ -16,6 +16,7 @@ import tech.illuin.pipeline.step.annotation.step.*;
 import tech.illuin.pipeline.step.annotation.step.StepWithException.StepWithExceptionException;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.function.Consumer;
 
 /**
@@ -192,6 +193,30 @@ public class PipelineStepAnnotationTest
         );
     }
 
+
+    @Test
+    public void testPipeline__shouldCompile_currentMissing()
+    {
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_current_missing("test-current-missing"));
+
+        Output output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
+        Assertions.assertDoesNotThrow(pipeline::close);
+
+        Assertions.assertEquals(
+            "null->optional(input)->stream(input)",
+            output.results().current(TestResult.class).map(TestResult::status).orElse(null)
+        );
+    }
+
+    @Test
+    public void testPipeline__shouldCompile_currentMissingRequired()
+    {
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_current_missingRequired("test-current-missing-required"));
+
+        Assertions.assertThrows(NoSuchElementException.class, () -> pipeline.run("input"));
+        Assertions.assertDoesNotThrow(pipeline::close);
+    }
+
     @Test
     public void testPipeline__shouldCompile_currentNamed()
     {
@@ -227,6 +252,29 @@ public class PipelineStepAnnotationTest
             "input+input->single(input)+input->single(input)->optional(input)->stream(input)",
             output.results().current(TestResult.class).map(TestResult::status).orElse(null)
         );
+    }
+
+    @Test
+    public void testPipeline__shouldCompile_latestMissing()
+    {
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_latest_missing("test-latest-missing"));
+
+        Output output = Assertions.assertDoesNotThrow(() -> pipeline.run("input"));
+        Assertions.assertDoesNotThrow(pipeline::close);
+
+        Assertions.assertEquals(
+            "null->optional(input)->stream(input)",
+            output.results().current(TestResult.class).map(TestResult::status).orElse(null)
+        );
+    }
+
+    @Test
+    public void testPipeline__shouldCompile_latestMissingRequired()
+    {
+        Pipeline<Object> pipeline = Assertions.assertDoesNotThrow(() -> createPipeline_latest_missingRequired("test-latest-missing-required"));
+
+        Assertions.assertThrows(NoSuchElementException.class, () -> pipeline.run("input"));
+        Assertions.assertDoesNotThrow(pipeline::close);
     }
 
     @Test
@@ -491,6 +539,22 @@ public class PipelineStepAnnotationTest
             .build();
     }
 
+    public static Pipeline<Object> createPipeline_current_missing(String name)
+    {
+        return Pipeline.of(name)
+            .registerStep(new StepWithInputAndCurrent<>())
+            .registerStep(new StepWithInputAndCurrentOptional<>())
+            .registerStep(new StepWithInputAndCurrentStream<>())
+            .build();
+    }
+
+    public static Pipeline<Object> createPipeline_current_missingRequired(String name)
+    {
+        return Pipeline.of(name)
+            .registerStep(new StepWithInputAndCurrent.Required<>())
+            .build();
+    }
+
     public static Pipeline<Object> createPipeline_currentNamed(String name)
     {
         return Pipeline.of(name)
@@ -517,6 +581,22 @@ public class PipelineStepAnnotationTest
         adjuster.accept(builder);
 
         return builder.build();
+    }
+
+    public static Pipeline<Object> createPipeline_latest_missing(String name)
+    {
+        return Pipeline.of(name)
+            .registerStep(new StepWithInputAndLatest<>())
+            .registerStep(new StepWithInputAndLatestOptional<>())
+            .registerStep(new StepWithInputAndLatestStream<>())
+            .build();
+    }
+
+    public static Pipeline<Object> createPipeline_latest_missingRequired(String name)
+    {
+        return Pipeline.of(name)
+            .registerStep(new StepWithInputAndLatest.Required<>())
+            .build();
     }
 
     public static Pipeline<Object> createPipeline_latestNamed(String name)

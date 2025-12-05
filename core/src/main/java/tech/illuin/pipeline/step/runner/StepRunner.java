@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import tech.illuin.pipeline.builder.runner_compiler.CompiledMethod;
 import tech.illuin.pipeline.builder.runner_compiler.argument_resolver.mapper_factory.MethodArgumentMapper;
 import tech.illuin.pipeline.builder.runner_compiler.argument_resolver.method_arguments.MethodArguments;
+import tech.illuin.pipeline.builder.runner_compiler.argument_resolver.method_arguments.MissingArgument;
 import tech.illuin.pipeline.commons.Reflection;
 import tech.illuin.pipeline.context.LocalContext;
 import tech.illuin.pipeline.input.indexer.Indexable;
@@ -17,6 +18,7 @@ import tech.illuin.pipeline.step.result.ResultView;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -59,10 +61,22 @@ public class StepRunner<T extends Indexable, I> implements Step<T, I>, Describab
                 context.observabilityManager(),
                 context.markerManager()
             );
+            List<MissingArgument> missingArgs = new ArrayList<>();
             java.lang.Object[] arguments = this.argumentMappers.stream()
                 .map(mapper -> mapper.map(originalArguments))
+                .peek(arg -> {
+                    if (arg instanceof MissingArgument missing)
+                        missingArgs.add(missing);
+                })
                 .toArray()
             ;
+
+            if (!missingArgs.isEmpty())
+            {
+                for (MissingArgument missingArg : missingArgs)
+                    logger.trace("Found missing argument for step {}: {}", this.target.getClass().getName(), missingArg.message());
+                return MultiResult.empty();
+            }
 
             Object result = this.method.invoke(this.target, arguments);
 
@@ -70,7 +84,7 @@ public class StepRunner<T extends Indexable, I> implements Step<T, I>, Describab
             if (result instanceof Result)
                 return (Result) result;
             if (result instanceof Optional<?> oResult)
-                return oResult.map(o -> MultiResult.of((Result) o)).orElseGet(MultiResult::of);
+                return oResult.map(o -> MultiResult.of((Result) o)).orElseGet(MultiResult::empty);
             if (result instanceof Collection<?> cResult)
                 //noinspection unchecked
                 return MultiResult.of((Collection<? extends Result>) cResult);

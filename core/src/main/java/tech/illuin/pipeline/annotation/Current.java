@@ -16,5 +16,7 @@ public @interface Current
 {
     String name() default "";
 
+    boolean required() default false;
+
     boolean self() default false;
 }

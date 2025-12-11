@@ -22,6 +22,16 @@ public class StepWithInputAndLatest<T>
         return new TestResult("annotation-test", result.status() + "->single(" + data + ")");
     }
 
+    public static class Required<T>
+    {
+        @StepConfig(id = "step-with_input+latest")
+        public Result execute(@Input T data, @Latest(required = true) TestResult result)
+        {
+            logger.info("input: {} latest: {}", data, result.status());
+            return new TestResult("annotation-test", result.status() + "->single(" + data + ")");
+        }
+    }
+
     public static class Named<T>
     {
         @StepConfig(id = "step-with_input+latest")

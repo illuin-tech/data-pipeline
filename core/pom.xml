@@ -21,7 +21,7 @@
         <tsid.version>5.2.6</tsid.version>
         <ulid.version>5.2.3</ulid.version>
         <uuid.version>6.1.1</uuid.version>
-        <micrometer.version>1.15.5</micrometer.version>
+        <micrometer.version>1.16.1</micrometer.version>
         <micrometer-tracing.version>1.6.1</micrometer-tracing.version>
     </properties>
 

@@ -208,6 +208,13 @@ public final class PayloadPipelineBuilder<I>
         return this;
     }
 
+    @SuppressWarnings("unchecked")
+    public PayloadPipelineBuilder<I> insertStep(StepAssembler<? extends Indexable, I> builder, int index)
+    {
+        this.steps.add(index, (StepAssembler<Indexable, I>) builder);
+        return this;
+    }
+
     public PayloadPipelineBuilder<I> registerStepAssemblers(List<? extends StepAssembler<? extends Indexable, I>> assemblers)
     {
         for (StepAssembler<? extends Indexable, I> assembler : assemblers)
@@ -244,6 +251,12 @@ public final class PayloadPipelineBuilder<I>
     public PayloadPipelineBuilder<I> registerSink(SinkAssembler assembler)
     {
         this.sinks.add(assembler);
+        return this;
+    }
+
+    public PayloadPipelineBuilder<I> insertSink(SinkAssembler assembler, int index)
+    {
+        this.sinks.add(index, assembler);
         return this;
     }
 

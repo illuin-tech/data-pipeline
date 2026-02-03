@@ -55,15 +55,15 @@ public class PipelineBuilderTest
             .setDefaultStepErrorHandler(stepErrorHandler)
             .setDefaultSinkErrorHandler(sinkErrorHandler)
             .setDefaultEvaluator(resultEvaluator)
-            .registerStep(step1)
             .registerStep(b -> b.step(step2))
             .registerSteps(List.of(step3, step4))
+            .insertStep(b -> b.step(step1), 0)
             .registerStepAssemblers(List.of(
                 b -> b.step(step5),
                 b -> b.step(step6)
             ))
-            .registerSink(sink)
             .registerSinks(List.of(sink, sink))
+            .insertSink(b -> b.sink(sink), 0)
             .registerObserver(stepCounter)
             .registerOnCloseHandler(closeHandler)
         );
@@ -98,8 +98,8 @@ public class PipelineBuilderTest
                 (payload, results, context) -> new TestResult("2"),
                 (PayloadStep) (payload, results, context) -> new TestResult("3")
             ))
-            .registerSink(sink)
             .registerSinks(List.of(sink, sink))
+            .insertSink(b -> b.sink(sink), 0)
             .registerObserver(stepCounter)
             .registerOnCloseHandler(closeHandler)
         );
@@ -131,20 +131,22 @@ public class PipelineBuilderTest
             .setDefaultStepErrorHandler(stepErrorHandler)
             .setDefaultSinkErrorHandler(sinkErrorHandler)
             .setDefaultEvaluator(resultEvaluator)
-            .registerStep(b -> b.withId("step-builder").step(step1))
             .registerStepAssemblers(List.of(
                 b -> b.step(step2),
                 b -> b.step(step3)
             ))
-            .registerSink(b -> b
-                .withId("sink-builder")
-                .sink(sink)
-                .setAsync(true)
-            )
+            .insertStep(b -> b.withId("step-builder").step(step1), 0)
             .registerSinkAssemblers(List.of(
                 b -> b.sink(sink),
                 b -> b.sink(sink).setAsync(true)
             ))
+            .insertSink(
+                b -> b
+                    .withId("sink-builder")
+                    .sink(sink)
+                    .setAsync(true),
+                0
+            )
             .registerOnCloseHandler(closeHandler)
         );
 

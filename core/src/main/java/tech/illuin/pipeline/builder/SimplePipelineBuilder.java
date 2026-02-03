@@ -235,6 +235,12 @@ public final class SimplePipelineBuilder<I>
         return this;
     }
 
+    public SimplePipelineBuilder<I> insertSink(SinkAssembler assembler, int index)
+    {
+        this.sinks.add(index, assembler);
+        return this;
+    }
+
     public SimplePipelineBuilder<I> registerSinks(List<? extends Sink> sinks)
     {
         for (Sink sink : sinks)

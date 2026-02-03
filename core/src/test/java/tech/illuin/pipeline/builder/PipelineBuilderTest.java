@@ -62,8 +62,8 @@ public class PipelineBuilderTest
                 b -> b.step(step5),
                 b -> b.step(step6)
             ))
-            .registerSink(sink)
             .registerSinks(List.of(sink, sink))
+            .insertSink(b -> b.sink(sink), 0)
             .registerObserver(stepCounter)
             .registerOnCloseHandler(closeHandler)
         );

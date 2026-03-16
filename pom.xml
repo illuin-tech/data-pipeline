@@ -41,14 +41,14 @@
     <licenses>
         <license>
             <name>MIT License</name>
-            <url>https://github.com/noleme/noleme-flow/blob/master/LICENSE</url>
+            <url>https://github.com/illuin-tech/data-pipeline/blob/master/LICENSE</url>
             <distribution>repo</distribution>
         </license>
     </licenses>
 
     <issueManagement>
         <system>GitLab</system>
-        <url>https://gitlab.illuin.tech/illuin-team/data-pipeline/-/issues</url>
+        <url>https://gitlab.illuin.tech/illuin-tech/data-pipeline/-/issues</url>
     </issueManagement>
 
     <scm>

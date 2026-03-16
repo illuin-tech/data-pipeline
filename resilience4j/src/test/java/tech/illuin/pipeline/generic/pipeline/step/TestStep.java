@@ -9,8 +9,6 @@ import tech.illuin.pipeline.step.result.Result;
 import tech.illuin.pipeline.step.result.ResultView;
 import tech.illuin.pipeline.step.variant.IndexableStep;
 
-import java.util.function.Function;
-
 /**
  * @author Pierre Lecerf (pierre.lecerf@illuin.tech)
  */
@@ -18,11 +16,11 @@ import java.util.function.Function;
 public class TestStep<T extends Indexable> implements IndexableStep<T>
 {
     private final String name;
-    private final Function<T, String> function;
+    private final Action<T, String> function;
 
     private static final Logger logger = LoggerFactory.getLogger(TestStep.class);
 
-    public TestStep(String name, Function<T, String> function)
+    public TestStep(String name, Action<T, String> function)
     {
         this.name = name;
         this.function = function;
@@ -34,9 +32,15 @@ public class TestStep<T extends Indexable> implements IndexableStep<T>
     }
 
     @Override
-    public Result execute(T data, ResultView results, Context context)
+    public Result execute(T data, ResultView results, Context context) throws Exception
     {
         logger.info("test:{}: {}", this.name, data);
         return new TestResult(this.name, this.function.apply(data));
+    }
+
+    @FunctionalInterface
+    public interface Action<T, R>
+    {
+        R apply(T t) throws Exception;
     }
 }

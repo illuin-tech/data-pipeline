@@ -4,18 +4,19 @@ import io.github.resilience4j.retry.RetryConfig;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import tech.illuin.pipeline.Pipeline;
-import tech.illuin.pipeline.context.LocalContext;
-import tech.illuin.pipeline.input.uid_generator.UIDGenerator;
-import tech.illuin.pipeline.resilience4j.execution.wrapper.RetryWrapper;
+import tech.illuin.pipeline.PipelineException;
 import tech.illuin.pipeline.generic.TestFactory;
 import tech.illuin.pipeline.generic.model.A;
 import tech.illuin.pipeline.generic.pipeline.step.TestStep;
 import tech.illuin.pipeline.input.indexer.SingleIndexer;
 import tech.illuin.pipeline.output.Output;
+import tech.illuin.pipeline.resilience4j.execution.wrapper.RetryWrapper;
 
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import static tech.illuin.pipeline.generic.Tests.getResultTypes;
 
@@ -27,7 +28,7 @@ public class StepWrapperRetryTest
     @Test
     public void testPipeline_shouldRetryException()
     {
-        Pipeline<Void> pipeline = Assertions.assertDoesNotThrow(StepWrapperRetryTest::createErrorRetryPipeline);
+        Pipeline<Void> pipeline = Assertions.assertDoesNotThrow(() -> StepWrapperRetryTest.createErrorRetryPipeline(() -> new RuntimeException("Some error"), ex -> true));
         Output output = Assertions.assertDoesNotThrow(() -> pipeline.run());
         Assertions.assertDoesNotThrow(pipeline::close);
 
@@ -41,21 +42,47 @@ public class StepWrapperRetryTest
         Assertions.assertTrue(output.results().current("3").isPresent());
     }
 
-    public static Pipeline<Void> createErrorRetryPipeline()
+    @Test
+    public void testPipeline_shouldRetryException_withTypeCondition_shouldMatch()
+    {
+        Pipeline<Void> pipeline = Assertions.assertDoesNotThrow(() -> StepWrapperRetryTest.createErrorRetryPipeline(TestException::new, ex -> ex instanceof TestException));
+        Output output = Assertions.assertDoesNotThrow(() -> pipeline.run());
+        Assertions.assertDoesNotThrow(pipeline::close);
+
+        Assertions.assertIterableEquals(List.of("1", "2", "3"), getResultTypes(output, output.payload(A.class)));
+
+        Assertions.assertEquals(1, output.results().size());
+        Assertions.assertEquals(3, output.results().current().count());
+
+        Assertions.assertTrue(output.results().current("1").isPresent());
+        Assertions.assertTrue(output.results().current("2").isPresent());
+        Assertions.assertTrue(output.results().current("3").isPresent());
+    }
+
+    @Test
+    public void testPipeline_shouldRetryException_withTypeCondition_shouldNotMatch()
+    {
+        Pipeline<Void> pipeline = Assertions.assertDoesNotThrow(() -> StepWrapperRetryTest.createErrorRetryPipeline(TestException::new, ex -> ex instanceof RuntimeException));
+        PipelineException ex = Assertions.assertThrows(PipelineException.class, pipeline::run);
+        Assertions.assertTrue(ex.getCause() instanceof TestException);
+    }
+
+    public static Pipeline<Void> createErrorRetryPipeline(Supplier<Exception> errorSupplier, Predicate<Throwable> retryPredicate)
     {
         var counter = new AtomicInteger(0);
-        return Pipeline.of("test-error-retry", (Void input, LocalContext context, UIDGenerator generator) -> TestFactory.initializerOfEmpty(input, context, generator))
+        return Pipeline.of("test-error-retry", TestFactory::initializerOfEmpty)
             .registerIndexer(SingleIndexer.auto())
             .registerStep(new TestStep<>("1", "ok"))
             .registerStep(builder -> builder
                 .step(new TestStep<>("2", b -> {
                    if (counter.getAndIncrement() < 4)
-                       throw new RuntimeException("Some error");
+                       throw errorSupplier.get();
                    return "ok";
                 }))
                 .withWrapper(new RetryWrapper<>(RetryConfig.custom()
                     .maxAttempts(5)
                     .waitDuration(Duration.ofMillis(500))
+                    .retryOnException(retryPredicate)
                     .build()
                 ))
             )
@@ -63,4 +90,6 @@ public class StepWrapperRetryTest
             .build()
         ;
     }
+
+    private static class TestException extends Exception {}
 }

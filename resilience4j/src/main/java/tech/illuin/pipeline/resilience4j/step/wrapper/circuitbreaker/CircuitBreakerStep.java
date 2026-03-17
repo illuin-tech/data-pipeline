@@ -6,10 +6,8 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import tech.illuin.pipeline.context.LocalContext;
 import tech.illuin.pipeline.input.indexer.Indexable;
-import tech.illuin.pipeline.resilience4j.execution.wrapper.CircuitBreakerException;
 import tech.illuin.pipeline.resilience4j.execution.wrapper.config.circuitbreaker.CircuitBreakerStepHandler;
 import tech.illuin.pipeline.step.Step;
-import tech.illuin.pipeline.step.execution.wrapper.StepWrapperException;
 import tech.illuin.pipeline.step.result.Result;
 import tech.illuin.pipeline.step.result.ResultView;
 
@@ -41,30 +39,15 @@ public class CircuitBreakerStep<T extends Indexable, I> implements Step<T, I>
             Map<String, String> mdc = MDC.getCopyOfContextMap();
             Result result = this.circuitBreaker.executeCallable(() -> {
                 MDC.setContextMap(mdc);
-                return executeStep(object, input, payload, view, context);
+                return this.step.execute(object, input, payload, view, context);
             });
 
             this.onSuccess(object, input, payload, view, context);
             return result;
         }
-        catch (StepWrapperException e) {
-            this.onError(object, input, payload, view, context, e);
-            throw (Exception) e.getCause();
-        }
         catch (Exception e) {
             this.onError(object, input, payload, view, context, e);
-            throw new CircuitBreakerException(e.getMessage(), e);
-        }
-    }
-
-    @SuppressWarnings("IllegalCatch")
-    private Result executeStep(T object, I input, Object payload, ResultView view, LocalContext context) throws StepWrapperException
-    {
-        try {
-            return this.step.execute(object, input, payload, view, context);
-        }
-        catch (Exception e) {
-            throw new StepWrapperException(e);
+            throw e;
         }
     }
 

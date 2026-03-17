@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import tech.illuin.pipeline.context.LocalContext;
 import tech.illuin.pipeline.output.Output;
-import tech.illuin.pipeline.resilience4j.execution.wrapper.TimeLimiterException;
 import tech.illuin.pipeline.resilience4j.execution.wrapper.config.timelimiter.TimeLimiterSinkHandler;
 import tech.illuin.pipeline.sink.Sink;
 
@@ -41,30 +40,15 @@ public class TimeLimiterSink implements Sink
             Map<String, String> mdc = MDC.getCopyOfContextMap();
             this.limiter.executeFutureSupplier(() -> this.executor.submit(() -> {
                 MDC.setContextMap(mdc);
-                this.executeSink(output, context);
+                this.sink.execute(output, context);
+                return true;
             }));
 
             this.onSuccess(output, context);
         }
-        catch (TimeLimiterSinkException e) {
-            this.onError(output, context, e);
-            throw e.getCause();
-        }
-        /* If a timeout occurs, we throw a specific kind of runtime exception */
         catch (Exception e) {
             this.onError(output, context, e);
-            throw new TimeLimiterException(e.getMessage(), e);
-        }
-    }
-
-    @SuppressWarnings("IllegalCatch")
-    private void executeSink(Output output, LocalContext context) throws TimeLimiterSinkException
-    {
-        try {
-            this.sink.execute(output, context);
-        }
-        catch (Exception e) {
-            throw new TimeLimiterSinkException(e);
+            throw e;
         }
     }
 

@@ -6,10 +6,8 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import tech.illuin.pipeline.context.LocalContext;
 import tech.illuin.pipeline.output.Output;
-import tech.illuin.pipeline.resilience4j.execution.wrapper.CircuitBreakerException;
 import tech.illuin.pipeline.resilience4j.execution.wrapper.config.circuitbreaker.CircuitBreakerSinkHandler;
 import tech.illuin.pipeline.sink.Sink;
-import tech.illuin.pipeline.sink.execution.wrapper.SinkWrapperException;
 
 import java.util.Map;
 
@@ -39,30 +37,15 @@ public class CircuitBreakerSink implements Sink
             Map<String, String> mdc = MDC.getCopyOfContextMap();
             this.circuitBreaker.executeCallable(() -> {
                 MDC.setContextMap(mdc);
-                return executeSink(output, context);
+                this.sink.execute(output, context);
+                return true;
             });
 
             this.onSuccess(output, context);
         }
-        catch (SinkWrapperException e) {
-            this.onError(output, context, e);
-            throw (Exception) e.getCause();
-        }
         catch (Exception e) {
             this.onError(output, context, e);
-            throw new CircuitBreakerException(e.getMessage(), e);
-        }
-    }
-
-    @SuppressWarnings("IllegalCatch")
-    private boolean executeSink(Output output, LocalContext context) throws SinkWrapperException
-    {
-        try {
-            this.sink.execute(output, context);
-            return true;
-        }
-        catch (Exception e) {
-            throw new SinkWrapperException(e);
+            throw e;
         }
     }
 

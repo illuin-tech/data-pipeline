@@ -9,10 +9,8 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import tech.illuin.pipeline.context.LocalContext;
 import tech.illuin.pipeline.input.indexer.Indexable;
-import tech.illuin.pipeline.resilience4j.execution.wrapper.RetryException;
 import tech.illuin.pipeline.resilience4j.execution.wrapper.config.retry.RetryStepHandler;
 import tech.illuin.pipeline.step.Step;
-import tech.illuin.pipeline.step.execution.wrapper.StepWrapperException;
 import tech.illuin.pipeline.step.result.Result;
 import tech.illuin.pipeline.step.result.ResultView;
 
@@ -64,18 +62,13 @@ public class RetryStep<T extends Indexable, I> implements Step<T, I>
             this.onSuccess(object, input, payload, view, context);
             return result;
         }
-        catch (StepWrapperException e) {
-            this.onError(object, input, payload, view, context, e);
-            throw (Exception) e.getCause();
-        }
         catch (Exception e) {
             this.onError(object, input, payload, view, context, e);
-            throw new RetryException(e.getMessage(), e);
+            throw e;
         }
     }
 
-    @SuppressWarnings("IllegalCatch")
-    private Result executeStep(T object, I input, Object payload, ResultView view, LocalContext context) throws StepWrapperException
+    private Result executeStep(T object, I input, Object payload, ResultView view, LocalContext context) throws Exception
     {
         try {
             this.onAttempt(object, input, payload, view, context);
@@ -86,7 +79,7 @@ public class RetryStep<T extends Indexable, I> implements Step<T, I>
         }
         catch (Exception e) {
             counter(RETRY_FAILURE_KEY, context, Tag.of("error", e.getClass().getName())).increment();
-            throw new StepWrapperException(e);
+            throw e;
         }
     }
 

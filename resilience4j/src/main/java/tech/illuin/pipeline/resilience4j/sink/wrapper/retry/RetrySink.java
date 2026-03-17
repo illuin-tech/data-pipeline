@@ -10,9 +10,7 @@ import org.slf4j.MDC;
 import tech.illuin.pipeline.context.LocalContext;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.resilience4j.execution.wrapper.config.retry.RetrySinkHandler;
-import tech.illuin.pipeline.resilience4j.execution.wrapper.RetryException;
 import tech.illuin.pipeline.sink.Sink;
-import tech.illuin.pipeline.sink.execution.wrapper.SinkWrapperException;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -61,18 +59,14 @@ public class RetrySink implements Sink
 
             this.onSuccess(output, context);
         }
-        catch (SinkWrapperException e) {
-            this.onError(output, context, e);
-            throw (Exception) e.getCause();
-        }
         catch (Exception e) {
             this.onError(output, context, e);
-            throw new RetryException(e.getMessage(), e);
+            throw e;
         }
     }
 
     @SuppressWarnings("IllegalCatch")
-    private boolean executeSink(Output output, LocalContext context) throws SinkWrapperException
+    private boolean executeSink(Output output, LocalContext context) throws Exception
     {
         try {
             this.onAttempt(output, context);
@@ -83,7 +77,7 @@ public class RetrySink implements Sink
         }
         catch (Exception e) {
             counter(RETRY_FAILURE_KEY, context, Tag.of("error", e.getClass().getName())).increment();
-            throw new SinkWrapperException(e);
+            throw e;
         }
     }
 

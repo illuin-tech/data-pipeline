@@ -4,6 +4,7 @@ import io.github.resilience4j.timelimiter.TimeLimiterConfig;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import tech.illuin.pipeline.Pipeline;
+import tech.illuin.pipeline.PipelineException;
 import tech.illuin.pipeline.resilience4j.execution.wrapper.TimeLimiterWrapper;
 import tech.illuin.pipeline.generic.pipeline.step.TestResult;
 import tech.illuin.pipeline.generic.pipeline.step.TestStep;
@@ -28,7 +29,7 @@ public class StepWrapperTimeLimitTest
     {
         Pipeline<?> pipeline = Assertions.assertDoesNotThrow(() -> createTimeoutPipeline(StepWrapperTimeLimitTest::addTimeLimitedStep));
 
-        var ex = Assertions.assertThrows(RuntimeException.class, pipeline::run);
+        PipelineException ex = Assertions.assertThrows(PipelineException.class, pipeline::run);
         Assertions.assertDoesNotThrow(pipeline::close);
 
         Assertions.assertTrue(ex.getCause() instanceof TimeoutException);

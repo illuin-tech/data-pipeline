@@ -6,10 +6,8 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import tech.illuin.pipeline.context.LocalContext;
 import tech.illuin.pipeline.input.indexer.Indexable;
-import tech.illuin.pipeline.resilience4j.execution.wrapper.TimeLimiterException;
 import tech.illuin.pipeline.resilience4j.execution.wrapper.config.timelimiter.TimeLimiterStepHandler;
 import tech.illuin.pipeline.step.Step;
-import tech.illuin.pipeline.step.execution.wrapper.StepWrapperException;
 import tech.illuin.pipeline.step.result.Result;
 import tech.illuin.pipeline.step.result.ResultView;
 
@@ -44,31 +42,15 @@ public class TimeLimiterStep<T extends Indexable, I> implements Step<T, I>
             Map<String, String> mdc = MDC.getCopyOfContextMap();
             Result result = this.limiter.executeFutureSupplier(() -> this.executor.submit(() -> {
                 MDC.setContextMap(mdc);
-                return executeStep(object, input, payload, view, context);
+                return this.step.execute(object, input, payload, view, context);
             }));
 
             this.onSuccess(object, input, payload, view, context);
             return result;
         }
-        catch (StepWrapperException e) {
-            this.onError(object, input, payload, view, context, e);
-            throw (Exception) e.getCause();
-        }
-        /* If a timeout occurs, we throw a specific kind of runtime exception */
         catch (Exception e) {
             this.onError(object, input, payload, view, context, e);
-            throw new TimeLimiterException(e.getMessage(), e);
-        }
-    }
-
-    @SuppressWarnings("IllegalCatch")
-    private Result executeStep(T object, I input, Object payload, ResultView view, LocalContext context) throws StepWrapperException
-    {
-        try {
-            return this.step.execute(object, input, payload, view, context);
-        }
-        catch (Exception e) {
-            throw new StepWrapperException(e);
+            throw e;
         }
     }
 

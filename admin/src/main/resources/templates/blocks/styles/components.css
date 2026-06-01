@@ -1,0 +1,73 @@
+.back-btn {
+    background: transparent;
+    color: var(--text-bright);
+    border: 1px solid var(--border-color);
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    font-family: inherit;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    margin-bottom: 1.5rem;
+    transition: all 0.2s;
+}
+.back-btn:hover { background: var(--border-color); color: var(--nasa-orange); }
+
+.component-details-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; }
+
+pre {
+    background: #000;
+    color: #51fa7b;
+    padding: 1rem;
+    border: 1px solid var(--border-color);
+    font-size: 0.8rem;
+    overflow: auto;
+    max-height: 500px;
+    white-space: pre-wrap;
+    word-break: break-all;
+    border-left: 3px solid var(--nasa-orange);
+}
+
+.metrics { display: flex; flex-direction: column; gap: 1.5rem; margin-top: 1rem; }
+.metrics-group { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+.metric-card {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    min-width: 120px;
+}
+.metric-name { color: var(--text-dim); font-size: 0.65rem; text-transform: uppercase; margin-bottom: 2px; }
+.metric-value { font-weight: bold; color: var(--nasa-blue); }
+.metric-value.success { color: var(--success-color); }
+.metric-value.error { color: var(--danger-color); }
+
+.bar-chart { margin-top: 1rem; display: flex; flex-direction: column; gap: 0.75rem; }
+.bar-row { width: 100%; }
+.bar-label-container { display: flex; justify-content: space-between; font-size: 0.7rem; margin-bottom: 4px; }
+.bar-label { color: var(--text-color); font-family: monospace; }
+.bar-count { color: var(--text-dim); }
+.bar-container { height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden; }
+.bar-fill { height: 100%; background: var(--nasa-blue); border-radius: 3px; }
+.bar-fill.error-bar { background: var(--danger-color); }
+
+.id-card-metrics { margin: 1rem 0; padding: 1rem 0; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); }
+
+/* ID Card */
+.id-card { margin-bottom: 1.5rem; }
+.id-card-header { display: flex; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
+.id-card-dot { width: 10px; height: 10px; border-radius: 50%; margin-right: 12px; }
+.id-card-title { font-size: 1.1rem; font-weight: bold; color: var(--text-bright); }
+.id-card-field { margin-bottom: 1rem; }
+.id-card-label { font-size: 0.65rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
+.id-card-value { font-size: 0.8rem; color: var(--text-color); line-height: 1.4; }
+.id-card-modifiers { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+.modifier-tag { font-size: 0.65rem; padding: 0.1rem 0.4rem; background: rgba(255, 95, 21, 0.1); color: var(--nasa-orange); border: 1px solid rgba(255, 95, 21, 0.3); border-radius: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+details { margin-top: 1.5rem; border-top: 1px solid var(--border-color); }
+details summary { cursor: pointer; color: var(--text-dim); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; padding: 0.75rem 0; outline: none; transition: color 0.2s; }
+details summary:hover { color: var(--nasa-orange); }
+details[open] summary { border-bottom: 1px solid var(--border-color); margin-bottom: 1rem; }
+
+@media (max-width: 1100px) {
+    .component-details-layout { grid-template-columns: 1fr; gap: 2rem; }
+}

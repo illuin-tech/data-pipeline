@@ -1,0 +1,17 @@
+<script>
+    const rootPath = '{{ rootPath }}';
+    const apiPath = '{{ rootPath }}/api';
+
+    let currentPipelineId = null;
+    let selectedNodeId = null;
+    let selectedNodeType = null;
+
+    {% include 'templates/blocks/scripts/helpers.js' %}
+    {% include 'templates/blocks/scripts/dataviz.js' %}
+    {% include 'templates/blocks/scripts/graph.js' %}
+    {% include 'templates/blocks/scripts/routing.js' %}
+    {% include 'templates/blocks/scripts/api.js' %}
+
+    checkStatus();
+    setInterval(checkStatus, 5000);
+</script>

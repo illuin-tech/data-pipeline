@@ -1,0 +1,64 @@
+{% extends 'templates/_layout.html.peb' %}
+
+{% block title %}Pipeline {{ pipelineId }} - Data Pipeline Admin{% endblock %}
+
+{% block content %}
+<div id="pipeline-view">
+    <button class="back-btn" onclick="navigateToList()">← Back to list</button>
+
+    <div class="kpi-section" id="pipeline-kpi-section">
+        <div class="kpi-card">
+            <div class="kpi-value" id="pipe-kpi-runs">-</div>
+            <div class="kpi-label">Pipeline Runs</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value" id="pipe-kpi-success">-</div>
+            <div class="kpi-label">Success Rate</div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <h2 id="pipeline-title"></h2>
+        <div id="pipeline-graph"></div>
+    </div>
+
+    <div class="card" id="pipeline-metrics-pane">
+        <h3>Pipeline Metrics</h3>
+        <div id="pipeline-metrics"></div>
+    </div>
+
+    <div class="card">
+        <h3>Pipeline Components</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Identifier</th>
+                    <th>Total Runs</th>
+                    <th>Success</th>
+                    <th>Errors</th>
+                    <th>Success Rate</th>
+                </tr>
+            </thead>
+            <tbody id="component-list"></tbody>
+        </table>
+    </div>
+
+    <div class="card" id="component-details-pane">
+        <h3>Component Details</h3>
+        <div id="component-details">Select a node to view details</div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    window.addEventListener('load', () => {
+        const pipelineId = "{{ pipelineId }}";
+        if (pipelineId) {
+            showPipeline(pipelineId);
+            setInterval(() => refreshPipeline(pipelineId), 5000);
+        }
+    });
+</script>
+{% endblock %}

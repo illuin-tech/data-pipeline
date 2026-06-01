@@ -1,0 +1,88 @@
+:root {
+    --bg-color: #0b0d11;
+    --surface-color: #161b22;
+    --surface-hover: #1c2128;
+    --border-color: #30363d;
+    --text-color: #c9d1d9;
+    --text-bright: #f0f6fc;
+    --text-dim: #8b949e;
+    --nasa-orange: #ff5f15;
+    --nasa-blue: #00d4ff;
+    --nasa-grey: #a0aec0;
+    --success-color: #2ecc71;
+    --warning-color: #f1c40f;
+    --danger-color: #e74c3c;
+    --grid-color: rgba(48, 54, 61, 0.2);
+}
+
+body {
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    margin: 0;
+    background: var(--bg-color);
+    background-image:
+        linear-gradient(var(--grid-color) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+    background-size: 20px 20px;
+    color: var(--text-color);
+    line-height: 1.5;
+}
+
+header {
+    background: #000;
+    color: var(--text-bright);
+    padding: 0.75rem 2rem;
+    border-bottom: 2px solid var(--nasa-orange);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+}
+.logo-container { display: flex; align-items: center; gap: 1rem; }
+.logo { height: 32px; width: auto; }
+h1 { margin: 0; font-size: 1.2rem; font-weight: 700; color: var(--nasa-orange); }
+#status { font-size: 0.8rem; color: var(--success-color); font-weight: bold; }
+#status.offline { color: var(--danger-color); }
+#status::before { content: "●"; margin-right: 5px; }
+
+main { padding: 2rem; max-width: 1400px; margin: 0 auto; }
+
+.card {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    position: relative;
+}
+.card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0;
+    width: 10px; height: 10px;
+    border-top: 2px solid var(--text-dim);
+    border-left: 2px solid var(--text-dim);
+}
+
+h2, h3 {
+    margin-top: 0;
+    color: var(--text-bright);
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.75rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+}
+h2::before { content: "// "; color: var(--nasa-orange); margin-right: 8px; }
+
+.mono { font-family: inherit; }
+
+@media (max-width: 600px) {
+    header { padding: 0.75rem 1rem; }
+    main { padding: 1rem; }
+    .card { padding: 1rem; }
+}

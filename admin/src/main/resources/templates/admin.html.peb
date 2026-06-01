@@ -1,0 +1,48 @@
+{% extends 'templates/_layout.html.peb' %}
+
+{% block content %}
+<div id="pipeline-list-view">
+    <div class="kpi-section" id="kpi-section">
+        <div class="kpi-card">
+            <div class="kpi-value" id="kpi-pipelines">-</div>
+            <div class="kpi-label">Registered Pipelines</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value" id="kpi-runs">-</div>
+            <div class="kpi-label">Total Runs</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-value" id="kpi-success">-</div>
+            <div class="kpi-label">Global Success Rate</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Active Pipelines</h2>
+        <div id="pipeline-list-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Identifier</th>
+                        <th>Total Runs</th>
+                        <th>Success</th>
+                        <th>Errors</th>
+                        <th>Success Rate</th>
+                        <th style="width: 50px"></th>
+                    </tr>
+                </thead>
+                <tbody id="pipeline-list"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    window.addEventListener('load', () => {
+        fetchPipelines();
+        setInterval(fetchPipelines, 5000);
+    });
+</script>
+{% endblock %}

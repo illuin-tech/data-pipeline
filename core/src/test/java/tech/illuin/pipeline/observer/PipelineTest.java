@@ -54,7 +54,7 @@ public class PipelineTest
             .findFirst().orElse(null));
         Assertions.assertEquals(
             counter.count(),
-            description.metrics().get(PIPELINE_RUN_SUCCESS_KEY.id()).values().get(counter.getId())
+            description.metrics().get(PIPELINE_RUN_SUCCESS_KEY.id()).values().get(counter.getId()).doubleValue()
         );
 
         Assertions.assertEquals("anonymous-init", description.init().id());

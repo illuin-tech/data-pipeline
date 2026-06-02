@@ -1,0 +1,7 @@
+<style>
+    {% include 'templates/blocks/styles/base.css' %}
+    {% include 'templates/blocks/styles/tables.css' %}
+    {% include 'templates/blocks/styles/kpi.css' %}
+    {% include 'templates/blocks/styles/graph.css' %}
+    {% include 'templates/blocks/styles/components.css' %}
+</style>

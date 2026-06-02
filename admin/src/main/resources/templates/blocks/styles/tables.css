@@ -1,0 +1,19 @@
+table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.85rem; }
+th {
+    text-align: left;
+    background: rgba(0,0,0,0.3);
+    padding: 0.75rem 1rem;
+    border-bottom: 2px solid var(--border-color);
+    color: var(--text-dim);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
+tr:hover { background-color: var(--surface-hover); }
+.clickable-row { cursor: pointer; }
+
+@media (max-width: 600px) {
+    table { font-size: 0.75rem; }
+    th, td { padding: 0.5rem; }
+}

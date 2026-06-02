@@ -1,0 +1,31 @@
+/* KPI Section */
+.kpi-section { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+.kpi-card {
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    padding: 1.25rem;
+    text-align: left;
+    position: relative;
+    overflow: hidden;
+}
+.kpi-card::after {
+    content: "";
+    position: absolute;
+    bottom: 0; right: 0;
+    width: 20px; height: 20px;
+    background: linear-gradient(135deg, transparent 50%, var(--border-color) 50%);
+}
+.kpi-value { font-size: 1.75rem; font-weight: 700; color: var(--nasa-blue); margin-bottom: 0.25rem; }
+.kpi-label { font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; }
+
+/* Badges */
+.badge { display: inline-block; padding: 0.2em 0.5em; font-size: 85%; font-weight: 600; border-radius: 2px; margin-right: 0.25rem; border: 1px solid transparent; }
+.badge-total { background-color: rgba(0, 212, 255, 0.1); color: var(--nasa-blue); border-color: rgba(0, 212, 255, 0.3); }
+.badge-success { background-color: rgba(46, 204, 113, 0.1); color: var(--success-color); border-color: rgba(46, 204, 113, 0.3); }
+.badge-error { background-color: rgba(231, 76, 60, 0.1); color: var(--danger-color); border-color: rgba(231, 76, 60, 0.3); }
+
+/* Success Rate Colors */
+.success-green { color: var(--success-color); font-weight: 600; }
+.success-yellow { color: var(--warning-color); font-weight: 600; }
+.success-orange { color: #e67e22; font-weight: 600; }
+.success-red { color: var(--danger-color); font-weight: 600; }

@@ -25,7 +25,7 @@ The library requires Java 17+, in order to use it, add the following in your `po
 <dependency>
     <groupId>tech.illuin</groupId>
     <artifactId>data-pipeline</artifactId>
-    <version>0.30.1</version>
+    <version>0.31</version>
 </dependency>
 ```
 
@@ -253,6 +253,11 @@ pipeline.close();
   * [Grafana](doc/integrations.md#grafana)
   * [Logback Loki](doc/integrations.md#logback-loki)
   * [Resilience4j](doc/integrations.md#resilience4j)
+* [Admin](doc/admin.md)
+  * [Core Admin](doc/admin_core.md)
+  * [Spring Boot Admin](doc/admin_spring_boot.md)
+  * [Micronaut Admin](doc/admin_micronaut.md)
+  * [Quarkus Admin](doc/admin_quarkus.md)
 
 ## V. Dev Installation
 

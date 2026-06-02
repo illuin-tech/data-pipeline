@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <base href="{{ adminPath }}/">
+    <title>{% block title %}Data Pipeline Admin{% endblock %}</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    {% include 'templates/blocks/_styles.html.peb' %}
+    {% block head %}{% endblock %}
+</head>
+<body>
+    {% include 'templates/blocks/_header.html.peb' %}
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+    {% include 'templates/blocks/_scripts.html.peb' %}
+    {% block scripts %}{% endblock %}
+</body>
+</html>

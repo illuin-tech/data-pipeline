@@ -1,0 +1,63 @@
+#pipeline-graph {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+    position: relative;
+    border-radius: 2px;
+    min-height: 300px;
+}
+.zoom-controls {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    z-index: 10;
+}
+.zoom-btn {
+    width: 28px;
+    height: 28px;
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    transition: all 0.2s;
+    font-size: 16px;
+    padding: 0;
+}
+.zoom-btn:hover {
+    background: var(--surface-hover);
+    color: var(--nasa-orange);
+    border-color: var(--nasa-orange);
+}
+.node { cursor: grab; }
+.node:active { cursor: grabbing; }
+.node rect { stroke-width: 1px; transition: all 0.2s; fill: var(--surface-color); }
+.node:hover rect { stroke-width: 2px; fill: var(--surface-hover); }
+.node text { font-size: 12px; fill: var(--text-color); pointer-events: none; text-transform: uppercase; letter-spacing: 0.05em; }
+.node.init rect { stroke: var(--nasa-blue); }
+.node.step rect { stroke: #9c27b0; }
+.node.sink rect { stroke: var(--success-color); }
+
+.link { fill: none; stroke-width: 2.5px; transition: stroke 0.2s; }
+.link.sync { stroke: var(--nasa-grey); stroke-dasharray: none; }
+.link.async { stroke: var(--nasa-grey); stroke-dasharray: 4; animation: dash 20s linear infinite; }
+
+@keyframes dash { from { stroke-dashoffset: 200; } to { stroke-dashoffset: 0; } }
+
+.node-icon { fill: none; stroke-width: 1.5px; transition: all 0.2s; }
+.node:hover .node-icon { stroke-width: 2px; }
+.node.init .node-icon { stroke: var(--nasa-blue); }
+.node.step .node-icon { stroke: #9c27b0; }
+.node.sink .node-icon { stroke: var(--success-color); }
+
+.indicator { width: 8px; height: 8px; display: inline-block; margin-right: 8px; border: 1px solid rgba(255,255,255,0.2); }
+.indicator-init { background-color: var(--nasa-blue); }
+.indicator-step { background-color: #9c27b0; }
+.indicator-sink { background-color: var(--success-color); }

@@ -18,7 +18,7 @@
 
     <properties>
         <jackson.version>2.22.0</jackson.version>
-        <pebble.version>3.2.2</pebble.version>
+        <pebble.version>4.1.2</pebble.version>
     </properties>
 
     <dependencies>

@@ -31,6 +31,10 @@ The library requires Java 17+, in order to use it, add the following in your `po
 
 Additionally, some optional extension libraries can be added, at the time of this writing this includes:
 * `data-pipeline-resilience4j` (for the [`resilience4j` integration](doc/integrations.md#resilience4j))
+* `data-pipeline-admin` (for the [admin interface](doc/admin.md))
+  * `data-pipeline-admin-micronaut` (for the [micronaut integration to the admin interface](doc/admin_micronaut.md))
+  * `data-pipeline-admin-quarkus` (for the [quarkus integration to the admin interface](doc/admin_quarkus.md))
+  * `data-pipeline-admin-spring-boot` (for the [springboot integration to the admin interface](doc/admin_spring_boot.md))
 
 ## II. Core Principles
 

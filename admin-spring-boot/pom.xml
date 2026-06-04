@@ -14,7 +14,7 @@
     <name>Data Pipeline admin for Spring Boot</name>
 
     <properties>
-        <spring-boot.version>3.4.3</spring-boot.version>
+        <spring-boot.version>4.0.6</spring-boot.version>
     </properties>
     
     <dependencyManagement>

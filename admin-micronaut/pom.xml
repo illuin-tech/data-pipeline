@@ -14,7 +14,7 @@
     <name>Data Pipeline admin for Micronaut</name>
 
     <properties>
-        <micronaut-api.version>2.16.2</micronaut-api.version>
+        <micronaut-api.version>3.0.0</micronaut-api.version>
         <micronaut.version>4.7.6</micronaut.version>
         <micronaut-test.version>4.7.0</micronaut-test.version>
     </properties>

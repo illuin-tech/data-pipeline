@@ -14,7 +14,7 @@
     <name>Data Pipeline admin for Quarkus</name>
 
     <properties>
-        <quarkus.version>3.36.1</quarkus.version>
+        <quarkus.version>3.37.2</quarkus.version>
     </properties>
 
     <dependencyManagement>

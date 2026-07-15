@@ -5,6 +5,7 @@
 /data
 *.iml
 .idea
+.junie
 .java-version
 **/src/test/java/Throwaway*
 **/src/test/java/dev

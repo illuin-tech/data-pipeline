@@ -15,8 +15,8 @@
 
     <properties>
         <micronaut-api.version>2.16.2</micronaut-api.version>
-        <micronaut.version>4.7.6</micronaut.version>
-        <micronaut-test.version>4.7.0</micronaut-test.version>
+        <micronaut.version>4.10.26</micronaut.version>
+        <micronaut-test.version>4.10.3</micronaut-test.version>
     </properties>
 
     <dependencies>
@@ -112,6 +112,11 @@
                             <groupId>io.micronaut.serde</groupId>
                             <artifactId>micronaut-serde-processor</artifactId>
                             <version>${micronaut-api.version}</version>
+                        </path>
+                        <path>
+                            <groupId>io.micronaut</groupId>
+                            <artifactId>micronaut-core</artifactId>
+                            <version>${micronaut.version}</version>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>

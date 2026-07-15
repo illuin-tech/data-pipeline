@@ -10,7 +10,7 @@ Add the following dependency to your `pom.xml`:
 <dependency>
     <groupId>tech.illuin</groupId>
     <artifactId>data-pipeline-admin-quarkus</artifactId>
-    <version>0.31.1</version>
+    <version>0.32</version>
 </dependency>
 ```
 

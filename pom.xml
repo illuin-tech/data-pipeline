@@ -80,7 +80,7 @@
         <maven-checkstyle.version>3.6.0</maven-checkstyle.version>
         <maven-gpg.version>3.2.8</maven-gpg.version>
         <maven-sonatype-staging.version>1.6.13</maven-sonatype-staging.version>
-        <maven-sonatype-publishing.version>0.10.0</maven-sonatype-publishing.version>
+        <maven-sonatype-publishing.version>0.11.0</maven-sonatype-publishing.version>
     </properties>
 
     <dependencies>

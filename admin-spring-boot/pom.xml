@@ -14,7 +14,7 @@
     <name>Data Pipeline admin for Spring Boot</name>
 
     <properties>
-        <spring-boot.version>3.4.3</spring-boot.version>
+        <spring-boot.version>4.1.0</spring-boot.version>
     </properties>
     
     <dependencyManagement>
@@ -69,6 +69,12 @@
                     <artifactId>mockito-junit-jupiter</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-resttestclient</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

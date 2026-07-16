@@ -4,7 +4,17 @@
         <meta charset="UTF-8">
         <title>Data Pipeline Documentation</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
-        <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple-dark.css">
+        <style>
+            :root {
+                --base-background-color: #1E1A34;
+                --sidebar-background: #171428;
+                --base-color: #E2E2ED;
+                --theme-color: #D32176;
+                --sidebar-border-color: rgba(255, 255, 255, 0.05);
+                --table-cell-border-color: rgba(255, 255, 255, 0.05);
+            }
+        </style>
     </head>
     <body>
         <div id="app">Loading documentation...</div>
@@ -13,17 +23,22 @@
             window.$docsify = {
                 name: 'Illuin Data Pipeline',
                 repo: 'illuin-tech/data-pipeline',
-                homepage: 'README.md'
+                homepage: 'README.md',
+                themeable: {
+                    readyTransition : true,
+                    responsiveTables: true
+                }
             }
         </script>
 
         <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
+        <script src="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/js/docsify-themeable.min.js"></script>
 
         <script type="module">
             import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
-            mermaid.initialize({ startOnLoad: true });
+            mermaid.initialize({ startOnLoad: true, theme: 'dark' });
             window.mermaid = mermaid;
         </script>
-    <script src="//unpkg.com/docsify-mermaid@2.0.1/dist/docsify-mermaid.js"></script>
+        <script src="//unpkg.com/docsify-mermaid@2.0.1/dist/docsify-mermaid.js"></script>
     </body>
 </html>

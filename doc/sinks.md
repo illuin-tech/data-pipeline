@@ -64,7 +64,7 @@ Pipeline<String> pipeline = Pipeline.<String>of("string-processor")
 ;
 ```
 
-In the snippet above, we added a [retry](integrations.md#retry) and an [error handler](modifiers_and_hooks.md#error-handlers) on the publisher.
+In the snippet above, we added a [retry](/doc/integrations.md#retry) and an [error handler](/doc/modifiers_and_hooks.md#error-handlers) on the publisher.
 This is the kind of thing you could be doing if your sink has to interact with an unreliable database or external API, for instance.
 
 As we will show in the following sections, some of these options can be set through the `@SinkConfig` annotation. It should be noted that the `SinkAssembler` options have precedence over the `@SinkConfig`, so the latter is a good place to put your step defaults for instance.
@@ -127,7 +127,7 @@ These handlers are useful:
 * as exception wrappers: their contract gives access to the original `Sink` exception, you can wrap the exception in order to standardize their signature, or introduce an exception type that can encapsulate metadata
 * as error recovery procedures: they can be leveraged for running fallback code
 
-💡 Error handlers also have a [dedicated documentation section](modifiers_and_hooks.md#error-handlers).
+💡 Error handlers also have a [dedicated documentation section](/doc/modifiers_and_hooks.md#error-handlers).
 
 ```java
 Pipeline<String> pipeline = Pipeline.<String>of("string-processor")
@@ -150,9 +150,9 @@ public void doStuff() { /**/ }
 ### Wrappers
 
 A `SinkWrapper` is a function that takes a `Sink` as input and returns a `Sink` as output.
-The main use for wrappers is to apply generic policies on your business logic, one such example is resilience patterns such as a [retry](integrations.md#retry) or [circuit-breaker](integrations.md#circuitbreaker).
+The main use for wrappers is to apply generic policies on your business logic, one such example is resilience patterns such as a [retry](/doc/integrations.md#retry) or [circuit-breaker](/doc/integrations.md#circuitbreaker).
 
-💡 Wrappers also have a [dedicated documentation section](modifiers_and_hooks.md#wrappers).
+💡 Wrappers also have a [dedicated documentation section](/doc/modifiers_and_hooks.md#wrappers).
 
 A simple wrapper implementation can look like this:
 
@@ -201,7 +201,7 @@ If the requested input type do not match with the pipeline's input type, an `Ill
 
 ### `@Current`
 
-When an argument is annotated with `@Current`, the pipeline will attempt to map it to a ["current result"](result_data_model.md#result-container) in the `ResultContainer`.
+When an argument is annotated with `@Current`, the pipeline will attempt to map it to a ["current result"](/doc/result_data_model.md#result-container) in the `ResultContainer`.
 
 #### By type
 
@@ -250,7 +250,7 @@ public void doStuff(@Current(name = "my_name") Stream<SomeResult> results) { /**
 
 ### `@Latest`
 
-When an argument is annotated with `@Latest`, the pipeline will attempt to map it to a ["latest result"](result_data_model.md#result-container) in the `ResultContainer`.
+When an argument is annotated with `@Latest`, the pipeline will attempt to map it to a ["latest result"](/doc/result_data_model.md#result-container) in the `ResultContainer`.
 
 #### By type
 
@@ -299,7 +299,7 @@ public void doStuff(@Latest(name = "my_name") Stream<SomeResult> results) { /**/
 
 ### `Results`
 
-The `Results` argument gives you access to the whole `ResultContainer`, 💡 more information on its feature set in the ["Result Data Model" section](result_data_model.md#result-container).
+The `Results` argument gives you access to the whole `ResultContainer`, 💡 more information on its feature set in the ["Result Data Model" section](/doc/result_data_model.md#result-container).
 
 It is mapped by type so no specific annotation is required:
 
@@ -327,9 +327,9 @@ public void doStuff(@Payload MyPayload payload) { /**/ }
 The `PipelineTag` can be passed as argument, they are mapped by type so no specific annotation is required.
 
 Pipeline tags are generated at the very start of the pipeline and contain the following properties:
-* a `uid` as generated [by the `UIDGenerator`](modifiers_and_hooks.md#uid-generators)
-* a `pipeline` name as defined [by its configuration](pipelines.md#configuration)
-* an `author` name as extracted [by the `AuthorResolver`](modifiers_and_hooks.md#author-resolvers)
+* a `uid` as generated [by the `UIDGenerator`](/doc/modifiers_and_hooks.md#uid-generators)
+* a `pipeline` name as defined [by its configuration](/doc/pipelines.md#configuration)
+* an `author` name as extracted [by the `AuthorResolver`](/doc/modifiers_and_hooks.md#author-resolvers)
 
 ```java
 @SinkConfig(id = "my-sink")
@@ -348,7 +348,7 @@ public void doStuff(PipelineTag tag)
 The `ComponentTag` can be passed as argument, they are mapped by type so no specific annotation is required.
 
 Component tags are generated at the start of each component run and contain the following properties:
-* a `uid` as generated [by the `UIDGenerator`](modifiers_and_hooks.md#uid-generators)
+* a `uid` as generated [by the `UIDGenerator`](/doc/modifiers_and_hooks.md#uid-generators)
 * an `id` name as defined [by its configuration](#configuration)
 * a `family` name depending on the type of component (`INITIALIZER`, `STEP` or `SINK`)
 * a `pipelineTag` reference to [current pipeline's `PipelineTag`](#pipelinetag)
@@ -379,7 +379,7 @@ public void doStuff(Output output)
 }
 ```
 
-> 🚨 This is a bit of a catch-all argument, so definitely not a first-pick, but it can be relevant especially [when combined to a custom `OutputFactory`](pipelines.md#output) for certain use-cases.
+> 🚨 This is a bit of a catch-all argument, so definitely not a first-pick, but it can be relevant especially [when combined to a custom `OutputFactory`](/doc/pipelines.md#output) for certain use-cases.
 
 ### `Context`
 
@@ -393,7 +393,7 @@ public void doStuff(Context context)
 }
 ```
 
-💡 More info on the context [in the pipeline's section](pipelines.md#context).
+💡 More info on the context [in the pipeline's section](/doc/pipelines.md#context).
 
 Single entries in the context can be passed via the `@Context` annotation:
 
@@ -408,7 +408,7 @@ public void doStuff(@Context("some_entry") Optional<String> someEntry) { /**/ }
 
 ### `UIDGenerator`
 
-You can access the `UIDGenerator` [currently in use by the pipeline](modifiers_and_hooks.md#uid-generators) by requesting it as an argument:
+You can access the `UIDGenerator` [currently in use by the pipeline](/doc/modifiers_and_hooks.md#uid-generators) by requesting it as an argument:
 
 ```java
 @SinkConfig

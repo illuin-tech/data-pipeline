@@ -27,7 +27,7 @@ public class Tokenizer
 ```
 
 This `Step` has an entrypoint, the `tokenize` method is annotated with the `@StepConfig`.
-The `id` argument is optional, but if present it will be used in [tags](#componenttag), [metrics](integrations.md#micrometer), [logging](integrations.md#logback-loki), pretty much everywhere the step's identity is concerned.
+The `id` argument is optional, but if present it will be used in [tags](#componenttag), [metrics](/doc/integrations.md#micrometer), [logging](/doc/integrations.md#logback-loki), pretty much everywhere the step's identity is concerned.
 The `@StepConfig` annotation accepts a few more optional parameters which we dive into in the ["Configuration" section](#configuration). 
 
 It has an `@Input` argument that will be mapped to the pipeline's input.
@@ -91,7 +91,7 @@ Pipeline<String> pipeline = Pipeline.<String>of("string-processor")
 ;
 ```
 
-In the snippet above, we added a [retry](integrations.md#retry) and an [error handler](modifiers_and_hooks.md#error-handlers) on the tokenizer.
+In the snippet above, we added a [retry](/doc/integrations.md#retry) and an [error handler](/doc/modifiers_and_hooks.md#error-handlers) on the tokenizer.
 This is the kind of thing you could be doing if your step has to interact with an unreliable database or external API, for instance.
 
 As we will show in the following sections, some of these options can be set through the `@StepConfig` annotation. It should be noted that the `StepAssembler` options have precedence over the `@StepConfig`, so the latter is a good place to put your step defaults for instance.
@@ -104,8 +104,8 @@ All of these are optional, but can be very useful in implementing more sophistic
 ### Conditions
 
 The `StepCondition` is a predicate which role is to determine whether the `Step` will be executed based on two types of information:
-* the `Context`, most likely for its metadata (see [the relevant documentation](pipelines.md#context)) 
-* the `Indexable` being considered for execution, this makes it possible to partition behaviour between different `Indexer` outputs (see the [Initializers documentation](initializers.md#indexers) for more on that)
+* the `Context`, most likely for its metadata (see [the relevant documentation](/doc/pipelines.md#context)) 
+* the `Indexable` being considered for execution, this makes it possible to partition behaviour between different `Indexer` outputs (see the [Initializers documentation](/doc/initializers.md#indexers) for more on that)
 
 In the example below, we leverage the generic `MetadataCondition` implementation for performing a check on the `"tokenizer"` key:
 
@@ -134,7 +134,7 @@ A condition can also be applied via the `@StepConfig` annotation if the `StepCon
 public MyResult doStuff() { /**/ }
 ```
 
-...or, you can use the default type-based condition for filtering objects ([in the @Object sense](initializers.md#indexers)) of a given type:  
+...or, you can use the default type-based condition for filtering objects ([in the @Object sense](/doc/initializers.md#indexers)) of a given type:  
 
 ```java
 /* This step will only run when the execution object is a MyType subclass */
@@ -149,7 +149,7 @@ There are two ways `StepErrorHandler` are typically used:
 * as exception wrappers: their contract gives access to the original `Step` exception, you can wrap the exception in order to standardize their signature, or introduce an exception type that can encapsulate metadata
 * as error recovery procedures: handlers can return a `Result`, this can be leveraged for running fallback code or convert an exception into an "error result", for instance if you want non-blocking errors  
 
-💡 Error handlers also have a [dedicated documentation section](modifiers_and_hooks.md#error-handlers).
+💡 Error handlers also have a [dedicated documentation section](/doc/modifiers_and_hooks.md#error-handlers).
 
 ```java
 Pipeline<String> pipeline = Pipeline.<String>of("string-processor")
@@ -245,9 +245,9 @@ public MyResult doStuff() { /**/ }
 ### Wrappers
 
 A `StepWrapper` is a function that takes a `Step` as input and returns a `Step` as output.
-The main use for wrappers is to apply generic policies on your business logic, one such example is resilience patterns such as a [retry](integrations.md#retry) or [circuit-breaker](integrations.md#circuitbreaker).
+The main use for wrappers is to apply generic policies on your business logic, one such example is resilience patterns such as a [retry](/doc/integrations.md#retry) or [circuit-breaker](/doc/integrations.md#circuitbreaker).
 
-> 💡 Wrappers also have a [dedicated documentation section](modifiers_and_hooks.md#wrappers).
+> 💡 Wrappers also have a [dedicated documentation section](/doc/modifiers_and_hooks.md#wrappers).
 
 A simple wrapper implementation can look like this:
 
@@ -296,7 +296,7 @@ If the requested input type do not match with the pipeline's input type, an `Ill
 
 ### `@Current`
 
-When an argument is annotated with `@Current`, the pipeline will attempt to map it to a ["current result"](result_data_model.md#result-container) in the `ResultContainer`.
+When an argument is annotated with `@Current`, the pipeline will attempt to map it to a ["current result"](/doc/result_data_model.md#result-container) in the `ResultContainer`.
 
 #### By type
 
@@ -345,7 +345,7 @@ public MyResult doStuff(@Current(name = "my_name") Stream<SomeResult> results) {
 
 ### `@Latest`
 
-When an argument is annotated with `@Latest`, the pipeline will attempt to map it to a ["latest result"](result_data_model.md#result-container) in the `ResultContainer`.
+When an argument is annotated with `@Latest`, the pipeline will attempt to map it to a ["latest result"](/doc/result_data_model.md#result-container) in the `ResultContainer`.
 
 #### By type
 
@@ -394,7 +394,7 @@ public MyResult doStuff(@Latest(name = "my_name") Stream<SomeResult> results) { 
 
 ### `Results` and `ResultView`
 
-The `Results` and `ResultView` arguments give you access to the whole `ResultContainer`, 💡 more information on their respective feature sets in the ["Result Data Model" section](result_data_model.md#result-container).
+The `Results` and `ResultView` arguments give you access to the whole `ResultContainer`, 💡 more information on their respective feature sets in the ["Result Data Model" section](/doc/result_data_model.md#result-container).
 
 They are mapped by type so no specific annotation is required:
 
@@ -419,7 +419,7 @@ public MyResult doStuff(@Payload MyPayload payload) { /**/ }
 
 ### `@Object`
 
-The current object can be passed as argument with the `@Object` annotation, 💡 more information on objects [in the initializer section](initializers.md#indexers).
+The current object can be passed as argument with the `@Object` annotation, 💡 more information on objects [in the initializer section](/doc/initializers.md#indexers).
 
 If the requested and actual types do not match, an `IllegalArgumentException` will be thrown at execution time.
 
@@ -433,9 +433,9 @@ public MyResult doStuff(@Object SomeIndexable object) { /**/ }
 The `PipelineTag` can be passed as argument, they are mapped by type so no specific annotation is required.
 
 Pipeline tags are generated at the very start of the pipeline and contain the following properties:
-* a `uid` as generated [by the `UIDGenerator`](modifiers_and_hooks.md#uid-generators)
-* a `pipeline` name as defined [by its configuration](pipelines.md#configuration)
-* an `author` name as extracted [by the `AuthorResolver`](modifiers_and_hooks.md#author-resolvers)
+* a `uid` as generated [by the `UIDGenerator`](/doc/modifiers_and_hooks.md#uid-generators)
+* a `pipeline` name as defined [by its configuration](/doc/pipelines.md#configuration)
+* an `author` name as extracted [by the `AuthorResolver`](/doc/modifiers_and_hooks.md#author-resolvers)
 
 ```java
 @StepConfig(id = "my-step")
@@ -454,7 +454,7 @@ public MyResult doStuff(PipelineTag tag)
 The `ComponentTag` can be passed as argument, they are mapped by type so no specific annotation is required.
 
 Component tags are generated at the start of each component run and contain the following properties:
-* a `uid` as generated [by the `UIDGenerator`](modifiers_and_hooks.md#uid-generators)
+* a `uid` as generated [by the `UIDGenerator`](/doc/modifiers_and_hooks.md#uid-generators)
 * an `id` name as defined [by its configuration](#configuration)
 * a `family` name depending on the type of component (`INITIALIZER`, `STEP` or `SINK`)
 * a `pipelineTag` reference to [current pipeline's `PipelineTag`](#pipelinetag) 
@@ -483,7 +483,7 @@ public MyResult doStuff(Context context)
 }
 ```
 
-💡 More info on the context [in the pipeline's section](pipelines.md#context).
+💡 More info on the context [in the pipeline's section](/doc/pipelines.md#context).
 
 Single entries in the context can be passed via the `@Context` annotation:
 
@@ -498,7 +498,7 @@ public MyResult doStuff(@Context("some_entry") Optional<String> someEntry) { /**
 
 ### `UIDGenerator`
 
-You can access the `UIDGenerator` [currently in use by the pipeline](modifiers_and_hooks.md#uid-generators) by requesting it as an argument:
+You can access the `UIDGenerator` [currently in use by the pipeline](/doc/modifiers_and_hooks.md#uid-generators) by requesting it as an argument:
 
 ```java
 @StepConfig
@@ -515,7 +515,7 @@ It may then be relevant to use the same UID generation strategy for other data m
 
 ## Results
 
-All step functions' `Result` are tracked by the pipeline, and can be used by subsequent steps, sinks, or returned as part of [the final `Output`](pipelines.md#output).
+All step functions' `Result` are tracked by the pipeline, and can be used by subsequent steps, sinks, or returned as part of [the final `Output`](/doc/pipelines.md#output).
 
 The `Result` interface is a very simple contract with a single `name()` method, which has a default implementation simply returning the class name.
 The value returned by `name()` can be used for addressing results within the `ResultContainer`, 💡 more information on that [in the dedicated section](/doc/result_data_model.md).

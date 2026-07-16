@@ -16,7 +16,7 @@ var pipeline = Pipeline.of("my-pipeline")
 ;
 ```
 
-In order to enable [a custom `TagResolver`](modifiers_and_hooks.md#tag-resolvers) for additional tags, pass it to the pipeline builder:
+In order to enable [a custom `TagResolver`](/doc/modifiers_and_hooks.md#tag-resolvers) for additional tags, pass it to the pipeline builder:
 
 ```java
 var pipeline = Pipeline.of("my-pipeline")
@@ -111,7 +111,7 @@ In which case, the following metrics should become available:
 
 ## MDC Logging
 
-`data-pipeline` leverages MDC [through slf4j](https://www.slf4j.org/manual.html#mdc) for labelling logs with contextual information such as [pipeline](result_data_model.md#pipelinetag) and [component](result_data_model.md#componenttag) tags.
+`data-pipeline` leverages MDC [through slf4j](https://www.slf4j.org/manual.html#mdc) for labelling logs with contextual information such as [pipeline](/doc/result_data_model.md#pipelinetag) and [component](/doc/result_data_model.md#componenttag) tags.
 For instance, using [logback](https://logback.qos.ch) with [Loki4jAppender](https://github.com/loki4j/loki-logback-appender), doing a simple tweak in your `logback.xml` enables log marker processing:
 
 ```xml
@@ -148,7 +148,7 @@ Here is an example of one such dashboard in action:
 
 ## Resilience4j
 
-`data-pipeline` comes with several implementations of [component wrappers](modifiers_and_hooks.md#wrappers), they enable typical resilience use-cases such as retrying a component in case of error, or limiting the time spent in a component. 
+`data-pipeline` comes with several implementations of [component wrappers](/doc/modifiers_and_hooks.md#wrappers), they enable typical resilience use-cases such as retrying a component in case of error, or limiting the time spent in a component. 
 
 > 🚨 These functionalities require the `data-pipeline-resilience4j` extension
 > 

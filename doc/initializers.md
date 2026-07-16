@@ -75,7 +75,7 @@ flowchart LR
     classDef step stroke:#0f0;
 ```
 
-Each `Step` sequence has its own control flow, so for instance [if you apply a `ResultEvaluator`](steps.md#result-evaluators) on a `Step` and trigger a `DISCARD_AND_CONTINUE` strategy, you can block a `Step` branch and follow-up on the others:
+Each `Step` sequence has its own control flow, so for instance [if you apply a `ResultEvaluator`](/doc/steps.md#result-evaluators) on a `Step` and trigger a `DISCARD_AND_CONTINUE` strategy, you can block a `Step` branch and follow-up on the others:
 
 ```mermaid
 flowchart LR
@@ -159,7 +159,7 @@ Pipeline<MyInput> pipeline = Pipeline.of("my-pipeline", new MyInitializer())
 ;
 ```
 
-From there, you steps registered in this pipeline can access the payload via [the `@Payload` annotation](steps.md#payload):
+From there, you steps registered in this pipeline can access the payload via [the `@Payload` annotation](/doc/steps.md#payload):
 
 ```java
 @StepConfig
@@ -256,7 +256,7 @@ Pipeline<MyInput> pipeline = Pipeline.of("my-pipeline", new MyInitializer())
 ;
 ```
 
-In this pipeline, we can have our steps accessing their respective `Vehicle` [by leveraging the `@Object` annotation](steps.md#object), and just like before we can also access the `@Payload`: 
+In this pipeline, we can have our steps accessing their respective `Vehicle` [by leveraging the `@Object` annotation](/doc/steps.md#object), and just like before we can also access the `@Payload`: 
 
 ```java
 @StepConfig
@@ -290,7 +290,7 @@ Pipeline<MyInput> pipeline = Pipeline.of("my-pipeline", builder -> builder
 ;
 ```
 
-In the snippet above, we added an [error handler](modifiers_and_hooks.md#error-handlers) on the initializer.
+In the snippet above, we added an [error handler](/doc/modifiers_and_hooks.md#error-handlers) on the initializer.
 This is the kind of thing you could be doing if your component has to interact with an unreliable database or external API, for instance.
 
 As we will show in the following sections, some of these options can be set through the `@InitializerConfig` annotation. It should be noted that the `InitializerAssembler` options have precedence over the `@InitializerConfig`, so the latter is a good place to put your initializer defaults for instance.
@@ -307,7 +307,7 @@ These handlers are useful:
 * as exception wrappers: their contract gives access to the original `Initializer` exception, you can wrap the exception in order to standardize their signature, or introduce an exception type that can encapsulate metadata
 * as error recovery procedures: they can be leveraged for running fallback code
 
-Error handlers also have a [dedicated documentation section](modifiers_and_hooks.md#error-handlers).
+Error handlers also have a [dedicated documentation section](/doc/modifiers_and_hooks.md#error-handlers).
 
 ```java
 Pipeline<MyInput> pipeline = Pipeline.of("my-pipeline", builder -> builder
@@ -349,9 +349,9 @@ If the requested input type do not match with the pipeline's input type, an `Ill
 The `PipelineTag` can be passed as argument, they are mapped by type so no specific annotation is required.
 
 Pipeline tags are generated at the very start of the pipeline and contain the following properties:
-* a `uid` as generated [by the `UIDGenerator`](modifiers_and_hooks.md#uid-generators)
-* a `pipeline` name as defined [by its configuration](pipelines.md#configuration)
-* an `author` name as extracted [by the `AuthorResolver`](modifiers_and_hooks.md#author-resolvers)
+* a `uid` as generated [by the `UIDGenerator`](/doc/modifiers_and_hooks.md#uid-generators)
+* a `pipeline` name as defined [by its configuration](/doc/pipelines.md#configuration)
+* an `author` name as extracted [by the `AuthorResolver`](/doc/modifiers_and_hooks.md#author-resolvers)
 
 ```java
 @InitializerConfig(id = "my-initializer")
@@ -371,7 +371,7 @@ public MyPayload doStuff(PipelineTag tag)
 The `ComponentTag` can be passed as argument, they are mapped by type so no specific annotation is required.
 
 Component tags are generated at the start of each component run and contain the following properties:
-* a `uid` as generated [by the `UIDGenerator`](modifiers_and_hooks.md#uid-generators)
+* a `uid` as generated [by the `UIDGenerator`](/doc/modifiers_and_hooks.md#uid-generators)
 * an `id` name as defined [by its configuration](#configuration)
 * a `family` name depending on the type of component (`INITIALIZER`, `STEP` or `SINK`)
 * a `pipelineTag` reference to [current pipeline's `PipelineTag`](#pipelinetag)
@@ -401,7 +401,7 @@ public MyPayload doStuff(Context context)
 }
 ```
 
-More info on the context [in the pipeline's section](pipelines.md#context).
+More info on the context [in the pipeline's section](/doc/pipelines.md#context).
 
 Single entries in the context can be passed via the `@Context` annotation:
 
@@ -416,7 +416,7 @@ public MyPayload doStuff(@Context("some_entry") Optional<String> someEntry) { /*
 
 ### `UIDGenerator`
 
-You can access the `UIDGenerator` [currently in use by the pipeline](modifiers_and_hooks.md#uid-generators) by requesting it as an argument:
+You can access the `UIDGenerator` [currently in use by the pipeline](/doc/modifiers_and_hooks.md#uid-generators) by requesting it as an argument:
 
 ```java
 @InitializerConfig

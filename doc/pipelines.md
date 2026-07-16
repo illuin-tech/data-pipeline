@@ -35,14 +35,14 @@ The pipeline builder is the place where you can specify which component to use:
 
 ...but also global behaviours (as in, scoped to the pipeline as a whole, either) such as:
 * the pipeline's identifier
-* the [UID generation strategy](modifiers_and_hooks.md#uid-generators)
-* the [author resolver](modifiers_and_hooks.md#author-resolvers)
-* the [tag resolver](modifiers_and_hooks.md#tag-resolvers)
-* the `ServiceExecutor` supplier for running [parallel asynchronous sinks](sinks.md#parallel-asynchronous-sinks)
-* the `MeterRegistry` to be used for the [micrometer integration](integrations.md#micrometer) (and by extension, [prometheus](integrations.md#prometheus))
-* the default [`ResultEvaluator` strategy](steps.md#result-evaluators)
-* the default [`StepErrorHandler` strategy](steps.md#error-handlers)
-* the default [`SinkErrorHandler` strategy](sinks.md#error-handlers)
+* the [UID generation strategy](/doc/modifiers_and_hooks.md#uid-generators)
+* the [author resolver](/doc/modifiers_and_hooks.md#author-resolvers)
+* the [tag resolver](/doc/modifiers_and_hooks.md#tag-resolvers)
+* the `ServiceExecutor` supplier for running [parallel asynchronous sinks](/doc/sinks.md#parallel-asynchronous-sinks)
+* the `MeterRegistry` to be used for the [micrometer integration](/doc/integrations.md#micrometer) (and by extension, [prometheus](/doc/integrations.md#prometheus))
+* the default [`ResultEvaluator` strategy](/doc/steps.md#result-evaluators)
+* the default [`StepErrorHandler` strategy](/doc/steps.md#error-handlers)
+* the default [`SinkErrorHandler` strategy](/doc/sinks.md#error-handlers)
 * the `OutputFactory` to be used [for producing the pipeline's `Output`](#output)
 * zero or more `OnCloseHandler` functions (see ["Shutting down"](#shutting-down))
 * the pipeline close timeout duration (see ["Shutting down"](#shutting-down))
@@ -105,7 +105,7 @@ pipeline.run();
 
 The Pipeline `Context` is a structure for holding:
 * custom metadata that can influence the pipeline's behaviour (header data from a kafka payload, feature flags, etc.)
-* an optional reference to a previous pipeline run's `Output`, enabling [pipeline inheritance](result_data_model.md#pipeline-inheritance-and-result-continuity)  
+* an optional reference to a previous pipeline run's `Output`, enabling [pipeline inheritance](/doc/result_data_model.md#pipeline-inheritance-and-result-continuity)  
 
 By default, the pipeline will create an empty `Context` instance that you can enrich with your metadata upon calling on the pipeline:
 
@@ -125,7 +125,7 @@ public MyResult doStuff(Context ctx)
 ```
 
 Inheriting from a previous pipeline is done by initializing the `Context` with the previous pipeline's output.
-Pipeline inheritance is covered in more details in the ["Result Data Model documentation"](result_data_model.md#pipeline-inheritance-and-result-continuity)
+Pipeline inheritance is covered in more details in the ["Result Data Model documentation"](/doc/result_data_model.md#pipeline-inheritance-and-result-continuity)
 
 ```java
 //Output<?> output;

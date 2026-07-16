@@ -62,7 +62,7 @@ Note that the context inherits from the previous run, so `Result` created by the
 ## Wrappers
 
 Wrappers are for encapsulating the execution of pipeline components, they allow the execution of additional logic before and/or after a component is executed.
-They can do things as varied as performing retries if a component fails, or ensuring execution rate limitations (💡 notably, see current [`resilience4j` integrations](integrations.md#resilience4j)).
+They can do things as varied as performing retries if a component fails, or ensuring execution rate limitations (💡 notably, see current [`resilience4j` integrations](/doc/integrations.md#resilience4j)).
 
 At the time of this writing, only `Step` and `Sink` components can be wrapped.
 Due to differences in their respective signatures and role within a `Pipeline`, each have matching wrapper contracts:
@@ -111,14 +111,14 @@ pipelineBuilder.registerStep(builder -> builder
 );
 ```
 
-> 💡 There are several implementations of wrappers available out-of-the-box, as documented in the [integrations section](integrations.md#resilience4j).
+> 💡 There are several implementations of wrappers available out-of-the-box, as documented in the [integrations section](/doc/integrations.md#resilience4j).
 
 All wrapper interfaces have a no-op implementation named `noOp` which simply return the original step.
 By default, `Pipeline` instances are built with those as default wrappers.
 
 ## UID Generators
 
-When a pipeline is run, the better part of its behaviours are tracked and uniquely identified with a UID (💡 see the documentation on [tags](result_data_model.md#tags-and-lineage)).
+When a pipeline is run, the better part of its behaviours are tracked and uniquely identified with a UID (💡 see the documentation on [tags](/doc/result_data_model.md#tags-and-lineage)).
 The `UIDGenerator` is the component responsible for producing a UID within a `Pipeline`, and it can be tailored to your needs if you need a specific one (e.g. a DB persistence of pipeline results may require specific types of UIDs).
 
 `data-pipeline` provides the following strategies out of the box:
@@ -174,7 +174,7 @@ public class MyAuthorResolver implements AuthorResolver<MyInputType>
 }
 ```
 
-Authorship is used in pipeline and component tags, respectively produced at each pipeline and component (initializer, step, sink) run, 💡 see [the relevant section for more details on that](result_data_model.md#tags-and-lineage).   
+Authorship is used in pipeline and component tags, respectively produced at each pipeline and component (initializer, step, sink) run, 💡 see [the relevant section for more details on that](/doc/result_data_model.md#tags-and-lineage).   
 
 ## Tag Resolvers
 
@@ -207,7 +207,7 @@ pipeline_run_success_total{other_tag="bcd",pipeline="my-pipeline",some_tag="123"
 pipeline_run_success_total{other_tag="bcd",pipeline="my-pipeline",some_tag="234",} 1571632.0
 ```
 
-These same labels will be used for MDC logging, see the [integrations documentation](integrations.md#mdc-logging) for a setup example.
+These same labels will be used for MDC logging, see the [integrations documentation](/doc/integrations.md#mdc-logging) for a setup example.
 
 User-provided tags will then be included along with default pipeline and component related tags:
 

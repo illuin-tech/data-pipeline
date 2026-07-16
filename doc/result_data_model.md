@@ -23,7 +23,7 @@ public class StepC
 }
 ```
 
-Or in a `Sink`, you would have access to all produced results ([assuming all steps were executed and no result was discarded](steps.md#result-evaluators)):
+Or in a `Sink`, you would have access to all produced results ([assuming all steps were executed and no result was discarded](/doc/steps.md#result-evaluators)):
 
 ```java
 public class MySink
@@ -45,8 +45,8 @@ As it stands there are two types of tags: `PipelineTag` and `ComponentTag`.
 
 The `PipelineTag` is generated at the start of a pipeline run, containing:
 * a pipeline `name` (as determined by the Pipeline's `id`)
-* a run unique `uid` (as [determined by the `UidGenerator`](modifiers_and_hooks.md#uid-generators))
-* a run `author` (as [determined by the `AuthorResolver`](modifiers_and_hooks.md#author-resolvers))
+* a run unique `uid` (as [determined by the `UidGenerator`](/doc/modifiers_and_hooks.md#uid-generators))
+* a run `author` (as [determined by the `AuthorResolver`](/doc/modifiers_and_hooks.md#author-resolvers))
 
 A typical `PipelineTag` may look like this:
 
@@ -65,7 +65,7 @@ They can be injected in `Initializer`, `Step` and `Sink` functions by type as de
 The `ComponentTag` is generated at the start of each component run (step, sink, etc.), containing:
 * a component `id` (as determined by the component's `id`)
 * a component `family` depending on the type of component (`INITIALIZER`, `STEP` or `SINK`)
-* a run unique `uid` (as [determined by the `UIDGenerator`](modifiers_and_hooks.md#uid-generators))
+* a run unique `uid` (as [determined by the `UIDGenerator`](/doc/modifiers_and_hooks.md#uid-generators))
 * a run `pipelineTag` reference to current pipeline's `PipelineTag`
 
 A typical `ComponentTag` may look like this:
@@ -101,8 +101,8 @@ They come with a variety of methods for accessing results, allowing for differen
 ![](/doc/resources/result-data-model-scopes.jpg)
 
 Examples can be found in the documentation:
-* for steps: [type-binding](steps.md#by-type) and [name-binding](steps.md#by-name), each with [@Current](steps.md#current) and [@Latest](steps.md#latest) variants, `Optional` and `Stream` variants
-* for sinks: [type-binding](sinks.md#by-type) and [name-binding](sinks.md#by-name), each with [@Current](sinks.md#current) and [@Latest](sinks.md#latest) variants, `Optional` and `Stream` variants
+* for steps: [type-binding](/doc/steps.md#by-type) and [name-binding](/doc/steps.md#by-name), each with [@Current](/doc/steps.md#current) and [@Latest](/doc/steps.md#latest) variants, `Optional` and `Stream` variants
+* for sinks: [type-binding](/doc/sinks.md#by-type) and [name-binding](/doc/sinks.md#by-name), each with [@Current](/doc/sinks.md#current) and [@Latest](/doc/sinks.md#latest) variants, `Optional` and `Stream` variants
 
 ## Pipeline Inheritance and Result Continuity
 

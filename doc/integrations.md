@@ -136,7 +136,7 @@ For instance, using [logback](https://logback.qos.ch) with [Loki4jAppender](http
 
 As a result, this is the kind of label that you will get on marked logs:
 
-![](/doc/resources/loki-logback.png)
+![](resources/loki-logback.png)
 
 ## Grafana
 
@@ -144,7 +144,7 @@ With standardized prometheus metrics available, offering a grafana dashboard tem
 
 Here is an example of one such dashboard in action:
 
-![](/doc/resources/data-pipeline-grafana.png)
+![](resources/data-pipeline-grafana.png)
 
 ## Resilience4j
 

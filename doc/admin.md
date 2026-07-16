@@ -18,9 +18,9 @@ The admin interface provides a dashboard where you can see all registered pipeli
 
 The home page of the admin interface is available (by default) at `/pipeline-admin`, this setting can be overridden in most integrations, refer to the following section for more details.
 
-![Admin Interface](/doc/resources/admin-home-0.png)
+![Admin Interface](resources/admin-home-0.png)
 
 From there, each pipeline can be inspected in order to see its configuration and performance metrics:
 
-![Admin Interface](/doc/resources/admin-details-0.png)
-![Admin Interface](/doc/resources/admin-details-1.png)
+![Admin Interface](resources/admin-details-0.png)
+![Admin Interface](resources/admin-details-1.png)

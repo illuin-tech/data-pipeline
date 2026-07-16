@@ -26,7 +26,7 @@ public class MetricFunctionsTest
 
         Collection<Tag> combined = Assertions.assertDoesNotThrow(() -> MetricFunctions.combine(listA, listB));
 
-        Assertions.assertEquals(3, combined.size());
+        Assertions.assertEquals(PIPELINE_RUN_KEY.getTags().size() + listA.size(), combined.size());
         Assertions.assertEquals("c", combined.stream().sorted().toList().toArray(new Tag[3])[2].getKey());
     }
 

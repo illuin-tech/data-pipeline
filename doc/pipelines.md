@@ -29,9 +29,9 @@ var pipeline = Pipeline.<String>of("my-pipeline")
 ```
 
 The pipeline builder is the place where you can specify which component to use:
-* an `Initializer` when applicable, coupled with one or more `Indexer` functions (more details [in the Initializer section](initializers.md))
-* zero or more `Step` functions (more details [in the Steps section](steps.md))
-* zero or more `Sink` functions (more details [in the Sinks section](sinks.md))
+* an `Initializer` when applicable, coupled with one or more `Indexer` functions (more details [in the Initializer section](/doc/initializers.md))
+* zero or more `Step` functions (more details [in the Steps section](/doc/steps.md))
+* zero or more `Sink` functions (more details [in the Sinks section](/doc/sinks.md))
 
 ...but also global behaviours (as in, scoped to the pipeline as a whole, either) such as:
 * the pipeline's identifier
@@ -52,9 +52,9 @@ The pipeline builder is the place where you can specify which component to use:
 From the outside, pipelines can accept a single `input` and produce a structured `Output` object aggregating `Step` results and other metadata. 
 
 From the inside, pipeline executions are organized in sequentially executed phases, there are three phases:
-* the `Initialization Phase` documented in the [initializers section](initializers.md)
-* the `Step Phase` documented in the [steps section](steps.md)
-* the `Sink Phase` documented in the [sinks sections](sinks.md)
+* the `Initialization Phase` documented in the [initializers section](/doc/initializers.md)
+* the `Step Phase` documented in the [steps section](/doc/steps.md)
+* the `Sink Phase` documented in the [sinks sections](/doc/sinks.md)
 
 ```mermaid
 flowchart LR
@@ -146,7 +146,7 @@ The `Output` is the final byproduct of a `Pipeline`, most use-cases for `data-pi
 The `Output` object aggregates:
 * all produced step results 
 * the context that was produced for the run
-* the payload that was produced for the run (see the [Initializers documentation](initializers.md) for more details on payloads)
+* the payload that was produced for the run (see the [Initializers documentation](/doc/initializers.md) for more details on payloads)
 
 ```java
 var pipeline = Pipeline.<String>of("my-pipeline")

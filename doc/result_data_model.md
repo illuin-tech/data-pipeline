@@ -1,6 +1,6 @@
 # Result Data Model
 
-In this section, we will explain how return values from [steps](steps.md) are organized and the different ways you can access them in a pipeline.
+In this section, we will explain how return values from [steps](/doc/steps.md) are organized and the different ways you can access them in a pipeline.
 
 The core principle to keep in mind is that in `data-pipeline`, there are three ways data is expected to flow:
 * inbound from the outside: the pipeline's input, considered immutable
@@ -9,7 +9,7 @@ The core principle to keep in mind is that in `data-pipeline`, there are three w
 
 Each step in a pipeline produces a `Result` which is pushed and tracked into a structure called the `ResultContainer`:
 
-![](resources/result-data-model-step-and-result.jpg)
+![](/doc/resources/result-data-model-step-and-result.jpg)
 
 Afterward, every next component along the way will have access to previously pushed results.
 For instance, if we were to write the `Step C` from above, we could ask for `Result A` and `Result B` to be passed as arguments:
@@ -98,7 +98,7 @@ They come with a variety of methods for accessing results, allowing for differen
   * `current` covers the current execution scope, i.e. only what steps produced since the pipeline started
   * `latest` covers both the current execution scope and results supplied via [pipeline inheritance](#pipeline-inheritance-and-result-continuity)
 
-![](resources/result-data-model-scopes.jpg)
+![](/doc/resources/result-data-model-scopes.jpg)
 
 Examples can be found in the documentation:
 * for steps: [type-binding](steps.md#by-type) and [name-binding](steps.md#by-name), each with [@Current](steps.md#current) and [@Latest](steps.md#latest) variants, `Optional` and `Stream` variants
@@ -110,7 +110,7 @@ One of the core aspects of this data model is that results can be stacked in ord
 
 When a pipeline is executed with a `Context` initialized from a previous output, the pipeline's result container will be able to access previous results in the `latest` scope:
 
-![](resources/result-data-model-pipeline-inheritance.jpg)
+![](/doc/resources/result-data-model-pipeline-inheritance.jpg)
 
 Setting it up is done the following way:
 

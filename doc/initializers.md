@@ -8,7 +8,7 @@ Payloads are used for two things:
 
 It is important to note that payloads are not always relevant to a pipeline, most of the time you won't need them and arguably if you can avoid them it will result in lower complexity.
 By default, if you don't specify an `Initializer` (and thus, an `Indexer`) the `Pipeline` will use a placeholder payload and run all steps on it.
-If that is your case, you can directly skip [to the next section](steps.md).
+If that is your case, you can directly skip [to the next section](/doc/steps.md).
 
 ## Indexers
 
@@ -297,7 +297,7 @@ As we will show in the following sections, some of these options can be set thro
 
 ## Function Modifiers
 
-The `InitializerAssembler` accepts a variety of [function modifiers](modifiers_and_hooks.md) which will alter how the `Initializer` is executed.
+The `InitializerAssembler` accepts a variety of [function modifiers](/doc/modifiers_and_hooks.md) which will alter how the `Initializer` is executed.
 All of these are optional, but can be very useful in implementing more sophisticated patterns.
 
 ### Error Handlers

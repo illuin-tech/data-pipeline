@@ -117,7 +117,7 @@ Pipeline<String> pipeline = Pipeline.<String>of("string-processor")
 
 ## Function Modifiers
 
-The `SinkAssembler` accepts a variety of [function modifiers](modifiers_and_hooks.md) which will alter how the `Sink` is executed.
+The `SinkAssembler` accepts a variety of [function modifiers](/doc/modifiers_and_hooks.md) which will alter how the `Sink` is executed.
 All of these are optional, but can be very useful in implementing more sophisticated patterns.
 
 ### Error Handlers
@@ -313,7 +313,7 @@ public void doStuff(Results results)
 
 ### `@Payload`
 
-The pipeline's payload can be passed as argument with the `@Payload` annotation, 💡 more information on payloads [in the initializer section](initializers.md).
+The pipeline's payload can be passed as argument with the `@Payload` annotation, 💡 more information on payloads [in the initializer section](/doc/initializers.md).
 
 If the requested and actual types do not match, an `IllegalArgumentException` will be thrown at execution time.
 

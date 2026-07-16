@@ -33,7 +33,7 @@ The `@StepConfig` annotation accepts a few more optional parameters which we div
 It has an `@Input` argument that will be mapped to the pipeline's input.
 You can add as many arguments as you need, check out available options in the ["Possible Inputs" section](#possible-inputs).
 
-It returns a `TokenizedSentence` which type is an inner record, there is no single way to manage `Result` subtypes, but it's important to keep in mind that with `data-pipeline`'s [result data model](result_data_model.md) these types are used [for addressing](#by-type).
+It returns a `TokenizedSentence` which type is an inner record, there is no single way to manage `Result` subtypes, but it's important to keep in mind that with `data-pipeline`'s [result data model](/doc/result_data_model.md) these types are used [for addressing](#by-type).
 Here, the inner type is fine if it is closely tied to the `Step` logic, so it can make sense to simply declare the type alongside the `Step`.
 In other circumstances, you might need a common result type being its own thing.
 Together with a [`ResultEvaluator`](#result-evaluators) they can pull a lot of modeling weight.
@@ -98,7 +98,7 @@ As we will show in the following sections, some of these options can be set thro
 
 ## Function Modifiers
 
-The `StepAssembler` accepts a variety of [function modifiers](modifiers_and_hooks.md) which will alter how the `Step` is executed, or how its output (whether on the successful or error path) is handled. 
+The `StepAssembler` accepts a variety of [function modifiers](/doc/modifiers_and_hooks.md) which will alter how the `Step` is executed, or how its output (whether on the successful or error path) is handled. 
 All of these are optional, but can be very useful in implementing more sophisticated patterns.
 
 ### Conditions
@@ -408,7 +408,7 @@ public MyResult doStuff(Results results)
 
 ### `@Payload`
 
-The pipeline's payload can be passed as argument with the `@Payload` annotation, 💡 more information on payloads [in the initializer section](initializers.md).
+The pipeline's payload can be passed as argument with the `@Payload` annotation, 💡 more information on payloads [in the initializer section](/doc/initializers.md).
 
 If the requested and actual types do not match, an `IllegalArgumentException` will be thrown at execution time.
 
@@ -518,4 +518,4 @@ It may then be relevant to use the same UID generation strategy for other data m
 All step functions' `Result` are tracked by the pipeline, and can be used by subsequent steps, sinks, or returned as part of [the final `Output`](pipelines.md#output).
 
 The `Result` interface is a very simple contract with a single `name()` method, which has a default implementation simply returning the class name.
-The value returned by `name()` can be used for addressing results within the `ResultContainer`, 💡 more information on that [in the dedicated section](result_data_model.md).
+The value returned by `name()` can be used for addressing results within the `ResultContainer`, 💡 more information on that [in the dedicated section](/doc/result_data_model.md).

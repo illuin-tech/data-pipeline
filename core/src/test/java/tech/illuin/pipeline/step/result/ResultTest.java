@@ -30,7 +30,7 @@ public class ResultTest
         container.register(second, createDescriptor(new TestResult(4)));
         container.register(second, createDescriptor(new TestResult(5)));
 
-        Assertions.assertEquals(2, container.size());
+        const int EXPECTED_SIZE = 2; Assertions.assertEquals(EXPECTED_SIZE, container.size());
         Assertions.assertEquals(5, container.stream().count());
         Assertions.assertEquals(5, container.current().count());
 

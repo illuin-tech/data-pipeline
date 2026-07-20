@@ -71,7 +71,7 @@
         <junit.version>5.14.0</junit.version>
         <mockito.version>5.15.2</mockito.version>
         <jacoco.version>0.8.15</jacoco.version>
-        <checkstyle.version>13.7.0</checkstyle.version>
+        <checkstyle.version>13.8.0</checkstyle.version>
         <checkstyle.config.location>checkstyle.xml</checkstyle.config.location>
         <maven-compiler.version>3.15.0</maven-compiler.version>
         <maven-surefire.version>3.5.6</maven-surefire.version>

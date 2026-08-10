@@ -17,7 +17,7 @@
     <name>Data Pipeline admin</name>
 
     <properties>
-        <jackson.version>2.22.0</jackson.version>
+        <jackson.version>2.22.1</jackson.version>
         <pebble.version>4.1.2</pebble.version>
     </properties>
 

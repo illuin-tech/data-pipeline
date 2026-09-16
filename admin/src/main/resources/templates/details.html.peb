@@ -3,28 +3,56 @@
 {% block title %}Pipeline {{ pipelineId }} - Data Pipeline Admin{% endblock %}
 
 {% block content %}
-<div id="pipeline-view">
-    <button class="back-btn" onclick="navigateToList()">← Back to list</button>
+<div id="pipeline-view" v-scope="pipelineDetails('{{ pipelineId }}')" @vue:mounted="init()" @vue:unmounted="destroy()">
+    <a class="back-btn" :href="routes.list()" style="display: inline-block; text-decoration: none;">← Back to list</a>
 
     <div class="kpi-section" id="pipeline-kpi-section">
         <div class="kpi-card">
-            <div class="kpi-value" id="pipe-kpi-runs">-</div>
+            <div class="kpi-value" id="pipe-kpi-runs" v-text="kpis.totalRuns ? kpis.totalRuns.toLocaleString() : '0'">-</div>
             <div class="kpi-label">Pipeline Runs</div>
         </div>
         <div class="kpi-card">
-            <div class="kpi-value" id="pipe-kpi-success">-</div>
+            <div class="kpi-value" id="pipe-kpi-success" :class="getSuccessRateClass(kpis.successRate)" v-text="getSuccessRateFormatted(kpis.successRate)">-</div>
             <div class="kpi-label">Success Rate</div>
         </div>
     </div>
     
     <div class="card">
-        <h2 id="pipeline-title"></h2>
+        <h2 id="pipeline-title" v-text="pipelineId"></h2>
         <div id="pipeline-graph"></div>
     </div>
 
     <div class="card" id="pipeline-metrics-pane">
         <h3>Pipeline Metrics</h3>
-        <div id="pipeline-metrics"></div>
+        <div id="pipeline-metrics" v-if="data && data.metrics">
+            <div class="metrics">
+                <div class="metrics-group">
+                    <div class="metric-card">
+                        <div class="metric-name">Total Runs</div>
+                        <div class="metric-value" v-text="getPipelineRunTotal()"></div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-name">Success</div>
+                        <div class="metric-value success" v-text="getPipelineRunSuccess()"></div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-name">Failure</div>
+                        <div class="metric-value error" v-text="getPipelineRunFailure()"></div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-name">System Errors</div>
+                        <div class="metric-value error" v-text="getPipelineRunError()"></div>
+                    </div>
+                </div>
+                <div class="metrics-group" v-if="getCustomMetrics().length > 0">
+                    <div class="metric-card" v-for="m in getCustomMetrics()" :key="m.key">
+                        <div class="metric-name" v-text="m.key"></div>
+                        <div class="metric-value" v-text="m.value"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div v-else style="color: var(--text-dim); font-size: 0.85rem;">No metrics available</div>
     </div>
 
     <div class="card">
@@ -40,25 +68,152 @@
                     <th>Success Rate</th>
                 </tr>
             </thead>
-            <tbody id="component-list"></tbody>
+            <tbody id="component-list">
+                <tr v-for="c in components" :key="c.type + '-' + c.name" class="clickable-row" @click="selectNode(c, true)">
+                    <td>
+                        <span :class="'indicator indicator-' + c.type"></span>
+                        <span style="text-transform: capitalize" v-text="c.type"></span>
+                    </td>
+                    <td style="font-weight: 600" class="mono" v-text="c.name"></td>
+                    <td><span class="badge badge-total" v-text="getComponentStats(c).total"></span></td>
+                    <td><span class="badge badge-success" v-text="getComponentStats(c).success"></span></td>
+                    <td><span class="badge badge-error" v-text="getComponentStats(c).error"></span></td>
+                    <td><span :class="getComponentStats(c).rateClass" v-text="getComponentStats(c).rateFormatted"></span></td>
+                </tr>
+                <tr v-if="!loading && components.length === 0">
+                    <td colspan="6" style="text-align: center; color: var(--text-dim); padding: 24px;">No components registered</td>
+                </tr>
+            </tbody>
         </table>
     </div>
 
     <div class="card" id="component-details-pane">
         <h3>Component Details</h3>
-        <div id="component-details">Select a node to view details</div>
+        <div id="component-details" v-if="selectedNode">
+            <div class="id-card">
+                <div class="id-card-header">
+                    <div class="id-card-dot" :style="{ background: getComponentTypeColor(selectedNode.type) }"></div>
+                    <div class="id-card-title mono" v-text="selectedNode.name"></div>
+                </div>
+                
+                <div class="component-details-layout">
+                    <div class="details-left">
+                        <div class="id-card-field">
+                            <div class="id-card-label">Full Java Type</div>
+                            <div class="id-card-value mono" style="word-break: break-all; font-size: 0.7rem;" v-text="getComponentJavaType(selectedNode.data)"></div>
+                        </div>
+                        <div class="id-card-field">
+                            <div class="id-card-label">Applied Modifiers</div>
+                            <div class="id-card-modifiers" style="flex-direction: column; align-items: stretch; gap: 8px;">
+                                <div v-for="m in getComponentModifiers(selectedNode.data)" style="display: flex; flex-direction: column; gap: 4px;">
+                                    <span class="modifier-tag" style="align-self: flex-start;" v-text="m.label"></span>
+                                    <div v-if="m.value" class="mono" style="font-size: 0.7rem; color: var(--text-color); word-break: break-all; padding-left: 8px; border-left: 1px solid var(--nasa-orange); margin-left: 4px;" v-text="m.value"></div>
+                                </div>
+                                <span v-if="getComponentModifiers(selectedNode.data).length === 0" style="color: var(--text-dim); font-size: 0.75rem;">None</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="details-right">
+                        <div class="id-card-metrics" style="margin-top: 0; padding-top: 0; border-top: none;">
+                            <div class="metrics-group">
+                                <div class="metric-card">
+                                    <div class="metric-name">Runs</div>
+                                    <div class="metric-value" v-text="getComponentStats(selectedNode).total"></div>
+                                </div>
+                                <div class="metric-card">
+                                    <div class="metric-name">Success</div>
+                                    <div class="metric-value success" v-text="getComponentStats(selectedNode).success"></div>
+                                </div>
+                                <div class="metric-card">
+                                    <div class="metric-name">Failure</div>
+                                    <div class="metric-value error" v-text="getComponentStats(selectedNode).failure"></div>
+                                </div>
+                                <div class="metric-card">
+                                    <div class="metric-name">Rate</div>
+                                    <div class="metric-value" :class="getComponentStats(selectedNode).rateClass" v-text="getComponentStats(selectedNode).rateFormatted"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="id-card-field" v-if="selectedNode.type === 'step'">
+                            <div class="id-card-label">Result Breakdown</div>
+                            <div class="bar-chart" v-if="computeBreakdowns(getNodeResultMetric(selectedNode), 'result').length > 0">
+                                <div class="bar-row" v-for="g in computeBreakdowns(getNodeResultMetric(selectedNode), 'result')">
+                                    <div class="bar-label-container">
+                                        <span class="bar-label" :title="g.label" v-text="g.label"></span>
+                                        <span class="bar-count" v-text="g.total.toLocaleString()"></span>
+                                    </div>
+                                    <div class="bar-container">
+                                        <div class="bar-fill" :style="{ width: g.percentage + '%' }"></div>
+                                    </div>
+                                    <details class="statement-breakdown" v-if="g.hasSecondaryTags">
+                                        <summary class="breakdown-summary">
+                                            <span class="breakdown-toggle-text" v-text="'Breakdown (' + g.breakdowns.length + ')'"></span>
+                                        </summary>
+                                        <div class="breakdown-content">
+                                            <div class="breakdown-item" v-for="b in g.breakdowns">
+                                                <div class="breakdown-tags">
+                                                    <span class="breakdown-tag" v-for="t in b.tags">
+                                                        <span class="tag-k" v-text="t.key + ':'"></span>
+                                                        <span class="tag-v" v-text="' ' + t.value"></span>
+                                                    </span>
+                                                    <span class="breakdown-tag" v-if="b.tags.length === 0">
+                                                        <span class="tag-v">default</span>
+                                                    </span>
+                                                </div>
+                                                <span class="breakdown-count" v-text="b.value.toLocaleString()"></span>
+                                            </div>
+                                        </div>
+                                    </details>
+                                </div>
+                            </div>
+                            <div v-else style="font-size: 0.7rem; color: var(--text-dim);">No data</div>
+                        </div>
+
+                        <div class="id-card-field">
+                            <div class="id-card-label">Error Breakdown</div>
+                            <div class="bar-chart" v-if="computeBreakdowns(getNodeErrorMetric(selectedNode), 'error').length > 0">
+                                <div class="bar-row" v-for="g in computeBreakdowns(getNodeErrorMetric(selectedNode), 'error')">
+                                    <div class="bar-label-container">
+                                        <span class="bar-label" :title="g.label" v-text="g.label"></span>
+                                        <span class="bar-count" v-text="g.total.toLocaleString()"></span>
+                                    </div>
+                                    <div class="bar-container">
+                                        <div class="bar-fill error-bar" :style="{ width: g.percentage + '%' }"></div>
+                                    </div>
+                                    <details class="statement-breakdown" v-if="g.hasSecondaryTags">
+                                        <summary class="breakdown-summary">
+                                            <span class="breakdown-toggle-text" v-text="'Breakdown (' + g.breakdowns.length + ')'"></span>
+                                        </summary>
+                                        <div class="breakdown-content">
+                                            <div class="breakdown-item" v-for="b in g.breakdowns">
+                                                <div class="breakdown-tags">
+                                                    <span class="breakdown-tag" v-for="t in b.tags">
+                                                        <span class="tag-k" v-text="t.key + ':'"></span>
+                                                        <span class="tag-v" v-text="' ' + t.value"></span>
+                                                    </span>
+                                                    <span class="breakdown-tag" v-if="b.tags.length === 0">
+                                                        <span class="tag-v">default</span>
+                                                    </span>
+                                                </div>
+                                                <span class="breakdown-count" v-text="b.value.toLocaleString()"></span>
+                                            </div>
+                                        </div>
+                                    </details>
+                                </div>
+                            </div>
+                            <div v-else style="font-size: 0.7rem; color: var(--text-dim);">No data</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <details>
+                <summary>Raw Component Data (JSON)</summary>
+                <pre style="max-height: 300px;" v-text="getRawJson(selectedNode.data)"></pre>
+            </details>
+        </div>
+        <div v-else style="color: var(--text-dim); font-size: 0.85rem; padding: 12px 0;">Select a node to view details</div>
     </div>
 </div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-    window.addEventListener('load', () => {
-        const pipelineId = "{{ pipelineId }}";
-        if (pipelineId) {
-            showPipeline(pipelineId);
-            setInterval(() => refreshPipeline(pipelineId), 5000);
-        }
-    });
-</script>
 {% endblock %}

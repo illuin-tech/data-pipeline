@@ -1,18 +1,18 @@
 {% extends 'templates/_layout.html.peb' %}
 
 {% block content %}
-<div id="pipeline-list-view">
+<div id="pipeline-list-view" v-scope="adminDashboard()" @vue:mounted="init()" @vue:unmounted="destroy()">
     <div class="kpi-section" id="kpi-section">
         <div class="kpi-card">
-            <div class="kpi-value" id="kpi-pipelines">-</div>
+            <div class="kpi-value" id="kpi-pipelines" v-text="kpis.pipelineCount">-</div>
             <div class="kpi-label">Registered Pipelines</div>
         </div>
         <div class="kpi-card">
-            <div class="kpi-value" id="kpi-runs">-</div>
+            <div class="kpi-value" id="kpi-runs" v-text="kpis.totalRuns ? kpis.totalRuns.toLocaleString() : '0'">-</div>
             <div class="kpi-label">Total Runs</div>
         </div>
         <div class="kpi-card">
-            <div class="kpi-value" id="kpi-success">-</div>
+            <div class="kpi-value" id="kpi-success" :class="getSuccessRateClass(kpis.successRate)" v-text="getSuccessRateFormatted(kpis.successRate)">-</div>
             <div class="kpi-label">Global Success Rate</div>
         </div>
     </div>
@@ -31,18 +31,25 @@
                         <th style="width: 50px"></th>
                     </tr>
                 </thead>
-                <tbody id="pipeline-list"></tbody>
+                <tbody id="pipeline-list">
+                    <tr v-for="p in pipelines" :key="p.id" class="clickable-row" @click="navigateTo(routes.pipeline(p.id))">
+                        <td style="font-weight: 600" class="mono">
+                            <a :href="routes.pipeline(p.id)" style="color: inherit; text-decoration: none;" v-text="p.id"></a>
+                        </td>
+                        <td><span class="badge badge-total" v-text="getPipelineTotal(p)"></span></td>
+                        <td><span class="badge badge-success" v-text="getPipelineSuccess(p)"></span></td>
+                        <td><span class="badge badge-error" v-text="getPipelineError(p)"></span></td>
+                        <td><span :class="getPipelineRateClass(p)" v-text="getPipelineSuccessRateFormatted(p)"></span></td>
+                        <td style="text-align: right;">
+                            <a :href="routes.pipeline(p.id)" style="color: var(--nasa-orange); text-decoration: none;">→</a>
+                        </td>
+                    </tr>
+                    <tr v-if="!loading && pipelines.length === 0">
+                        <td colspan="6" style="text-align: center; color: var(--text-dim); padding: 24px;">No pipelines registered</td>
+                    </tr>
+                </tbody>
             </table>
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-    window.addEventListener('load', () => {
-        fetchPipelines();
-        setInterval(fetchPipelines, 5000);
-    });
-</script>
 {% endblock %}

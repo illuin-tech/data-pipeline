@@ -1,36 +1,94 @@
+function parseMeterId(idStr) {
+    const tags = {};
+    const tagRegex = /Tag\(key=([^,]+),\s*value=([^)]*)\)/g;
+    let match;
+    let found = false;
+    while ((match = tagRegex.exec(idStr)) !== null) {
+        tags[match[1].trim()] = match[2].trim();
+        found = true;
+    }
+    if (!found) {
+        const simpleRegex = /([a-zA-Z0-9_.-]+)=([^, \[\](){}]+)/g;
+        while ((match = simpleRegex.exec(idStr)) !== null) {
+            tags[match[1].trim()] = match[2].trim();
+        }
+    }
+    return tags;
+}
+
 function renderBarChart(metric, tagKey, isError = false) {
     if (!metric || !metric.values || Object.keys(metric.values).length === 0) return '<div style="font-size: 0.7rem; color: var(--text-dim);">No data</div>';
     
-    const entries = Object.entries(metric.values).map(([idStr, value]) => {
-        let label = 'unknown';
-        const tagPattern = new RegExp(`Tag\\(key=${tagKey}, value=([^\\)]+)\\)`);
-        const match = idStr.match(tagPattern);
-        if (match) {
-            label = match[1];
-        } else {
-            const simplePattern = new RegExp(`${tagKey}=([^, \\]\\)]+)`);
-            const simpleMatch = idStr.match(simplePattern);
-            if (simpleMatch) label = simpleMatch[1];
-        }
+    const groups = new Map();
+    const ignoredTags = new Set(['pipeline', 'step', 'sink', 'initializer', 'component.family', tagKey]);
 
-        return { label, value };
+    Object.entries(metric.values).forEach(([idStr, rawValue]) => {
+        const val = Number(rawValue) || 0;
+        const allTags = parseMeterId(idStr);
+        let label = allTags[tagKey];
+        if (!label) {
+            const tagPattern = new RegExp(`Tag\\(key=${tagKey}, value=([^\\)]+)\\)`);
+            const match = idStr.match(tagPattern);
+            if (match) {
+                label = match[1];
+            } else {
+                const simplePattern = new RegExp(`${tagKey}=([^, \\]\\)]+)`);
+                const simpleMatch = idStr.match(simplePattern);
+                if (simpleMatch) label = simpleMatch[1];
+            }
+        }
+        if (!label) label = 'unknown';
+
+        const secondaryTags = {};
+        Object.entries(allTags).forEach(([k, v]) => {
+            if (!ignoredTags.has(k)) {
+                secondaryTags[k] = v;
+            }
+        });
+
+        if (!groups.has(label)) {
+            groups.set(label, { label: label, total: 0, breakdowns: [] });
+        }
+        const grp = groups.get(label);
+        grp.total += val;
+        grp.breakdowns.push({ tags: secondaryTags, value: val });
     });
 
-    const sortedEntries = entries.sort((a, b) => b.value - a.value);
-    const max = Math.max(...entries.map(e => e.value));
+    const sortedGroups = Array.from(groups.values()).sort((a, b) => b.total - a.total);
+    const max = Math.max(...sortedGroups.map(g => g.total));
     
     let html = '<div class="bar-chart">';
-    sortedEntries.forEach(e => {
-        const percentage = max > 0 ? (e.value / max) * 100 : 0;
+    sortedGroups.forEach(g => {
+        const percentage = max > 0 ? (g.total / max) * 100 : 0;
+        const hasSecondaryTags = g.breakdowns.some(b => Object.keys(b.tags).length > 0);
+        g.breakdowns.sort((a, b) => b.value - a.value);
+
         html += `
             <div class="bar-row">
                 <div class="bar-label-container">
-                    <span class="bar-label">${e.label}</span>
-                    <span class="bar-count">${e.value.toLocaleString()}</span>
+                    <span class="bar-label" title="${g.label}">${g.label}</span>
+                    <span class="bar-count">${g.total.toLocaleString()}</span>
                 </div>
                 <div class="bar-container">
                     <div class="bar-fill ${isError ? 'error-bar' : ''}" style="width: ${percentage}%"></div>
                 </div>
+                ${hasSecondaryTags ? `
+                    <details class="statement-breakdown">
+                        <summary class="breakdown-summary">
+                            <span class="breakdown-toggle-text">Breakdown (${g.breakdowns.length})</span>
+                        </summary>
+                        <div class="breakdown-content">
+                            ${g.breakdowns.map(b => `
+                                <div class="breakdown-item">
+                                    <div class="breakdown-tags">
+                                        ${Object.keys(b.tags).length > 0 ? Object.entries(b.tags).map(([k, v]) => `<span class="breakdown-tag"><span class="tag-k">${k}:</span> <span class="tag-v">${v}</span></span>`).join('') : '<span class="breakdown-tag"><span class="tag-v">default</span></span>'}
+                                    </div>
+                                    <span class="breakdown-count">${b.value.toLocaleString()}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </details>
+                ` : ''}
             </div>
         `;
     });

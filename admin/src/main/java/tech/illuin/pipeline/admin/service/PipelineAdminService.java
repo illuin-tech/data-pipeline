@@ -50,13 +50,11 @@ public class PipelineAdminService
         }
 
         double successRate = totalRuns > 0 ? (double) totalSuccess / totalRuns : 0;
-
-        Map<String, Object> kpis = new HashMap<>();
-        kpis.put("pipelineCount", count);
-        kpis.put("totalRuns", totalRuns);
-        kpis.put("successRate", successRate);
-
-        return kpis;
+        return Map.of(
+            "pipelineCount", count,
+            "totalRuns", totalRuns,
+            "successRate", successRate
+        );
     }
 
     public Optional<Map<String, Object>> getPipelineKpis(String id)
@@ -66,20 +64,23 @@ public class PipelineAdminService
             long totalSuccess = this.getMetricValue(desc, "pipeline.run.success");
             double successRate = totalRuns > 0 ? (double) totalSuccess / totalRuns : 0;
 
-            Map<String, Object> kpis = new HashMap<>();
-            kpis.put("totalRuns", totalRuns);
-            kpis.put("successRate", successRate);
-            return kpis;
+            return Map.of(
+                "totalRuns", totalRuns,
+                "successRate", successRate
+            );
         });
     }
 
     private long getMetricValue(PipelineDescription desc, String key)
     {
-        if (desc.metrics() == null)
+        if (desc == null || desc.metrics() == null)
             return 0;
         Metric metric = desc.metrics().get(key);
         if (metric == null || metric.values() == null)
             return 0;
-        return metric.values().values().stream().mapToLong(Number::longValue).sum();
+        long sum = 0;
+        for (Number val : metric.values().values())
+            sum += val.longValue();
+        return sum;
     }
 }

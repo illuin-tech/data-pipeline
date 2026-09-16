@@ -5,6 +5,7 @@
     <base href="{{ adminPath }}/">
     <title>{% block title %}Data Pipeline Admin{% endblock %}</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://unpkg.com/petite-vue" defer init></script>
     {% include 'templates/blocks/_styles.html.peb' %}
     {% block head %}{% endblock %}
 </head>

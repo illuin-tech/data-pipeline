@@ -1,43 +1,70 @@
 package tech.illuin.pipeline.observer.descriptor;
 
-import io.micrometer.core.instrument.*;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.Meter.Id;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import tech.illuin.pipeline.close.OnCloseHandler;
 import tech.illuin.pipeline.execution.error.PipelineErrorHandler;
 import tech.illuin.pipeline.input.indexer.Indexable;
 import tech.illuin.pipeline.input.initializer.builder.InitializerDescriptor;
-import tech.illuin.pipeline.input.initializer.metering.InitializationMarkerManager;
-import tech.illuin.pipeline.metering.MarkerManager;
 import tech.illuin.pipeline.metering.MeterRegistryKey;
-import tech.illuin.pipeline.metering.PipelineMarkerManager;
-import tech.illuin.pipeline.metering.tag.MetricTags;
 import tech.illuin.pipeline.observer.Observer;
 import tech.illuin.pipeline.observer.descriptor.describable.DefaultDescribable;
 import tech.illuin.pipeline.observer.descriptor.describable.Describable;
 import tech.illuin.pipeline.observer.descriptor.describable.Description;
 import tech.illuin.pipeline.observer.descriptor.model.*;
-import tech.illuin.pipeline.output.ComponentFamily;
-import tech.illuin.pipeline.output.ComponentTag;
-import tech.illuin.pipeline.output.PipelineTag;
 import tech.illuin.pipeline.sink.builder.SinkDescriptor;
-import tech.illuin.pipeline.sink.metering.SinkMarkerManager;
 import tech.illuin.pipeline.step.builder.StepDescriptor;
-import tech.illuin.pipeline.step.metering.StepMarkerManager;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Supplier;
+import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static tech.illuin.pipeline.metering.MeterRegistryKey.*;
-import static tech.illuin.pipeline.output.ComponentFamily.*;
 
 public class DescriptorObserver implements Observer
 {
-    private Supplier<PipelineDescription> supplier;
+    private static final List<MeterRegistryKey> PIPELINE_KEYS = List.of(
+        PIPELINE_RUN_KEY,
+        PIPELINE_RUN_TOTAL_KEY,
+        PIPELINE_RUN_SUCCESS_KEY,
+        PIPELINE_RUN_FAILURE_KEY,
+        PIPELINE_RUN_ERROR_TOTAL_KEY
+    );
+
+    private static final List<MeterRegistryKey> INITIALIZATION_KEYS = List.of(
+        PIPELINE_INITIALIZATION_RUN_KEY,
+        PIPELINE_INITIALIZATION_RUN_TOTAL_KEY,
+        PIPELINE_INITIALIZATION_RUN_SUCCESS_KEY,
+        PIPELINE_INITIALIZATION_RUN_FAILURE_KEY,
+        PIPELINE_INITIALIZATION_ERROR_TOTAL_KEY
+    );
+
+    private static final List<MeterRegistryKey> STEP_KEYS = List.of(
+        PIPELINE_STEP_RUN_KEY,
+        PIPELINE_STEP_RUN_TOTAL_KEY,
+        PIPELINE_STEP_RUN_SUCCESS_KEY,
+        PIPELINE_STEP_RUN_FAILURE_KEY,
+        PIPELINE_STEP_RESULT_TOTAL_KEY,
+        PIPELINE_STEP_ERROR_TOTAL_KEY
+    );
+
+    private static final List<MeterRegistryKey> SINK_KEYS = List.of(
+        PIPELINE_SINK_RUN_KEY,
+        PIPELINE_SINK_RUN_TOTAL_KEY,
+        PIPELINE_SINK_RUN_SUCCESS_KEY,
+        PIPELINE_SINK_RUN_FAILURE_KEY,
+        PIPELINE_SINK_ERROR_TOTAL_KEY
+    );
+
+    private String id;
+    private MeterRegistry meterRegistry;
+    private InitializerTemplate initTemplate;
+    private List<StepTemplate> stepTemplates;
+    private List<SinkTemplate> sinkTemplates;
+    private boolean initialized = false;
 
     @Override
     public <I> void init(
@@ -49,98 +76,37 @@ public class DescriptorObserver implements Observer
         List<OnCloseHandler> onCloseHandlers,
         MeterRegistry meterRegistry
     ) {
-        this.supplier = () -> {
-            PipelineTag simulated = new PipelineTag(null, id, null);
-            return new PipelineDescription(
-                id,
-                createInitializer(simulated, initializer, meterRegistry),
-                createSteps(simulated, steps, meterRegistry),
-                createSinks(simulated, sinks, meterRegistry),
-                compileMetrics(
-                    meterRegistry,
-                    new PipelineMarkerManager(simulated, new MetricTags()).discriminants(),
-                    PIPELINE_RUN_KEY,
-                    PIPELINE_RUN_TOTAL_KEY,
-                    PIPELINE_RUN_SUCCESS_KEY,
-                    PIPELINE_RUN_FAILURE_KEY,
-                    PIPELINE_RUN_ERROR_TOTAL_KEY
-                )
-            );
-        };
-    }
-
-    private static InitializerDescription createInitializer(PipelineTag tag, InitializerDescriptor<?> descriptor, MeterRegistry meterRegistry)
-    {
-        return new InitializerDescription(
-            descriptor.id(),
-            compileDescription(descriptor.initializer()),
-            compileDescription(descriptor.errorHandler()),
-            compileMetrics(
-                meterRegistry,
-                createMarkerManager(tag, descriptor.id(), INITIALIZER).discriminants(),
-                PIPELINE_INITIALIZATION_RUN_KEY,
-                PIPELINE_INITIALIZATION_RUN_TOTAL_KEY,
-                PIPELINE_INITIALIZATION_RUN_SUCCESS_KEY,
-                PIPELINE_INITIALIZATION_RUN_FAILURE_KEY,
-                PIPELINE_INITIALIZATION_ERROR_TOTAL_KEY
-            )
+        this.id = id;
+        this.meterRegistry = meterRegistry;
+        this.initTemplate = new InitializerTemplate(
+            initializer.id(),
+            compileDescription(initializer.initializer()),
+            compileDescription(initializer.errorHandler())
         );
-    }
 
-    private static <I> List<StepDescription> createSteps(PipelineTag tag, List<StepDescriptor<Indexable, I>> descriptors, MeterRegistry meterRegistry)
-    {
-        return descriptors.stream()
-            .map(sd -> new StepDescription(
+        this.stepTemplates = steps.stream()
+            .map(sd -> new StepTemplate(
                 sd.id(),
                 compileDescription(sd.step()),
                 sd.isPinned(),
                 compileDescription(sd.executionWrapper()),
                 compileDescription(sd.activationPredicate()),
                 compileDescription(sd.resultEvaluator()),
-                compileDescription(sd.errorHandler()),
-                compileMetrics(
-                    meterRegistry,
-                    createMarkerManager(tag, sd.id(), STEP).discriminants(),
-                    PIPELINE_STEP_RUN_KEY,
-                    PIPELINE_STEP_RUN_TOTAL_KEY,
-                    PIPELINE_STEP_RUN_SUCCESS_KEY,
-                    PIPELINE_STEP_RUN_FAILURE_KEY,
-                    PIPELINE_STEP_RESULT_TOTAL_KEY,
-                    PIPELINE_STEP_ERROR_TOTAL_KEY
-                )
+                compileDescription(sd.errorHandler())
             ))
             .toList();
-    }
 
-    private static List<SinkDescription> createSinks(PipelineTag tag, List<SinkDescriptor> descriptors, MeterRegistry meterRegistry)
-    {
-        return descriptors.stream()
-            .map(sd -> new SinkDescription(
+        this.sinkTemplates = sinks.stream()
+            .map(sd -> new SinkTemplate(
                 sd.id(),
                 compileDescription(sd.sink()),
                 sd.isAsync(),
                 compileDescription(sd.executionWrapper()),
-                compileDescription(sd.errorHandler()),
-                compileMetrics(
-                    meterRegistry,
-                    createMarkerManager(tag, sd.id(), SINK).discriminants(),
-                    PIPELINE_SINK_RUN_KEY,
-                    PIPELINE_SINK_RUN_TOTAL_KEY,
-                    PIPELINE_SINK_RUN_SUCCESS_KEY,
-                    PIPELINE_SINK_RUN_FAILURE_KEY,
-                    PIPELINE_SINK_ERROR_TOTAL_KEY
-                )
+                compileDescription(sd.errorHandler())
             ))
             .toList();
-    }
 
-    private static MarkerManager createMarkerManager(PipelineTag tag, String componentId, ComponentFamily family)
-    {
-        return switch (family) {
-            case INITIALIZER -> new InitializationMarkerManager(new ComponentTag(null, tag, componentId, family), new MetricTags());
-            case STEP -> new StepMarkerManager(new ComponentTag(null, tag, componentId, family), new MetricTags());
-            case SINK -> new SinkMarkerManager(new ComponentTag(null, tag, componentId, family), new MetricTags());
-        };
+        this.initialized = true;
     }
 
     private static Object compileDescription(Object property)
@@ -150,25 +116,6 @@ public class DescriptorObserver implements Observer
         if (property instanceof Description description)
             return description;
         return new DefaultDescribable(property).describe();
-    }
-
-    private static Map<String, Metric> compileMetrics(MeterRegistry meterRegistry, Collection<Tag> discriminants, MeterRegistryKey... keys)
-    {
-        return Stream.of(keys).collect(Collectors.toMap(
-            MeterRegistryKey::id,
-            k -> {
-                Collection<Meter> meters = meterRegistry.find(k.id()).tags(discriminants).meters();
-
-                Map<Id, Number> values = meters.isEmpty()
-                    ? Collections.emptyMap()
-                    : meters.stream().collect(Collectors.toMap(
-                        Meter::getId,
-                        DescriptorObserver::getValue
-                    ))
-                ;
-                return new Metric(k.id(), values);
-            }
-        ));
     }
 
     private static Number getValue(Meter meter)
@@ -181,13 +128,158 @@ public class DescriptorObserver implements Observer
         };
     }
 
+    private static Map<String, Map<Id, Number>> initMetricMap(List<MeterRegistryKey> keys)
+    {
+        Map<String, Map<Id, Number>> map = new HashMap<>();
+        for (MeterRegistryKey key : keys)
+            map.put(key.id(), new HashMap<>());
+        return map;
+    }
+
+    private static Map<String, Metric> toMetrics(Map<String, Map<Id, Number>> metricMap)
+    {
+        return metricMap.entrySet().stream().collect(Collectors.toMap(
+            Map.Entry::getKey,
+            e -> new Metric(
+                e.getKey(),
+                e.getValue().isEmpty()
+                    ? Collections.emptyMap()
+                    : Collections.unmodifiableMap(e.getValue())
+            )
+        ));
+    }
+
     public PipelineDescription describe()
     {
-        if (this.supplier == null)
+        if (!this.initialized)
             throw new IllegalStateException("The observer has not been initialized");
-        return this.supplier.get();
+
+        Map<String, Map<Id, Number>> pipelineMetricValues = initMetricMap(PIPELINE_KEYS);
+        Map<String, Map<Id, Number>> initMetricValues = initMetricMap(INITIALIZATION_KEYS);
+
+        Map<String, Map<String, Map<Id, Number>>> stepMetricValues = new HashMap<>();
+        for (StepTemplate st : this.stepTemplates)
+            stepMetricValues.put(st.id(), initMetricMap(STEP_KEYS));
+
+        Map<String, Map<String, Map<Id, Number>>> sinkMetricValues = new HashMap<>();
+        for (SinkTemplate st : this.sinkTemplates)
+            sinkMetricValues.put(st.id(), initMetricMap(SINK_KEYS));
+
+        for (Meter meter : this.meterRegistry.getMeters())
+        {
+            Id meterId = meter.getId();
+            String pipelineTag = meterId.getTag("pipeline");
+            if (!this.id.equals(pipelineTag))
+                continue;
+
+            String metricName = meterId.getName();
+            String stepTag = meterId.getTag("step");
+            if (stepTag != null)
+            {
+                Map<String, Map<Id, Number>> stepMap = stepMetricValues.get(stepTag);
+                if (stepMap != null)
+                {
+                    Map<Id, Number> values = stepMap.get(metricName);
+                    if (values != null)
+                        values.put(meterId, getValue(meter));
+                }
+                continue;
+            }
+
+            String sinkTag = meterId.getTag("sink");
+            if (sinkTag != null)
+            {
+                Map<String, Map<Id, Number>> sinkMap = sinkMetricValues.get(sinkTag);
+                if (sinkMap != null)
+                {
+                    Map<Id, Number> values = sinkMap.get(metricName);
+                    if (values != null)
+                        values.put(meterId, getValue(meter));
+                }
+                continue;
+            }
+
+            String initTag = meterId.getTag("initializer");
+            if (initTag != null)
+            {
+                if (this.initTemplate.id().equals(initTag))
+                {
+                    Map<Id, Number> values = initMetricValues.get(metricName);
+                    if (values != null)
+                        values.put(meterId, getValue(meter));
+                }
+                continue;
+            }
+
+            Map<Id, Number> values = pipelineMetricValues.get(metricName);
+            if (values != null)
+                values.put(meterId, getValue(meter));
+        }
+
+        InitializerDescription initDesc = new InitializerDescription(
+            this.initTemplate.id(),
+            this.initTemplate.initializerDesc(),
+            this.initTemplate.errorHandlerDesc(),
+            toMetrics(initMetricValues)
+        );
+
+        List<StepDescription> stepDescs = this.stepTemplates.stream()
+            .map(st -> new StepDescription(
+                st.id(),
+                st.stepDesc(),
+                st.isPinned(),
+                st.executionWrapperDesc(),
+                st.activationPredicateDesc(),
+                st.resultEvaluatorDesc(),
+                st.errorHandlerDesc(),
+                toMetrics(stepMetricValues.get(st.id()))
+            ))
+            .toList();
+
+        List<SinkDescription> sinkDescs = this.sinkTemplates.stream()
+            .map(st -> new SinkDescription(
+                st.id(),
+                st.sinkDesc(),
+                st.isAsync(),
+                st.executionWrapperDesc(),
+                st.errorHandlerDesc(),
+                toMetrics(sinkMetricValues.get(st.id()))
+            ))
+            .toList();
+
+        return new PipelineDescription(
+            this.id,
+            initDesc,
+            stepDescs,
+            sinkDescs,
+            toMetrics(pipelineMetricValues)
+        );
     }
 
     @Override
     public void close() {}
+
+    private record InitializerTemplate(
+        String id,
+        Object initializerDesc,
+        Object errorHandlerDesc
+    ) {}
+
+    private record StepTemplate(
+        String id,
+        Object stepDesc,
+        boolean isPinned,
+        Object executionWrapperDesc,
+        Object activationPredicateDesc,
+        Object resultEvaluatorDesc,
+        Object errorHandlerDesc
+    ) {}
+
+    private record SinkTemplate(
+        String id,
+        Object sinkDesc,
+        boolean isAsync,
+        Object executionWrapperDesc,
+        Object errorHandlerDesc
+    ) {}
 }

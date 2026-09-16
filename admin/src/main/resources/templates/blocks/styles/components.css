@@ -50,6 +50,67 @@ pre {
 .bar-fill { height: 100%; background: var(--nasa-blue); border-radius: 3px; }
 .bar-fill.error-bar { background: var(--danger-color); }
 
+.statement-breakdown {
+    margin-top: 0.35rem;
+    border-top: none;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 4px;
+    padding: 0 0.5rem;
+}
+.statement-breakdown summary.breakdown-summary {
+    cursor: pointer;
+    color: var(--text-dim);
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.3rem 0;
+    outline: none;
+    transition: color 0.2s;
+    user-select: none;
+}
+.statement-breakdown summary.breakdown-summary:hover {
+    color: var(--nasa-orange);
+}
+.statement-breakdown[open] summary.breakdown-summary {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    margin-bottom: 0.4rem;
+}
+.breakdown-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding-bottom: 0.4rem;
+}
+.breakdown-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.65rem;
+    padding: 0.15rem 0.25rem;
+}
+.breakdown-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+.breakdown-tag {
+    font-family: monospace;
+    background: rgba(255, 255, 255, 0.06);
+    padding: 0.1rem 0.3rem;
+    border-radius: 2px;
+}
+.tag-k {
+    color: var(--text-dim);
+}
+.tag-v {
+    color: var(--text-color);
+}
+.breakdown-count {
+    color: var(--text-dim);
+    font-family: monospace;
+    font-size: 0.65rem;
+}
+
 .id-card-metrics { margin: 1rem 0; padding: 1rem 0; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); }
 
 /* ID Card */

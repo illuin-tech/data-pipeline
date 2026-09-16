@@ -19,7 +19,9 @@ import tech.illuin.pipeline.observer.descriptor.describable.Description;
 import tech.illuin.pipeline.observer.descriptor.model.PipelineDescription;
 import tech.illuin.pipeline.output.Output;
 import tech.illuin.pipeline.output.PipelineTag;
+import tech.illuin.pipeline.sink.Sink;
 import tech.illuin.pipeline.sink.builder.SinkDescriptor;
+import tech.illuin.pipeline.step.Step;
 import tech.illuin.pipeline.step.annotation.StepConfig;
 import tech.illuin.pipeline.step.builder.StepDescriptor;
 import tech.illuin.pipeline.step.result.Result;
@@ -137,6 +139,89 @@ public class PipelineTest
         Assertions.assertEquals("tech.illuin.pipeline.step.annotation.step.StepWithInputAndLatestOptional", description.steps().get(2).step());
         Assertions.assertEquals("tech.illuin.pipeline.step.annotation.step.StepWithInputAndLatestStream", description.steps().get(3).step());
         Assertions.assertEquals(new MyStepDescription("StepWithDescription", 12), description.steps().get(4).step());
+    }
+
+    @Test
+    public void test__shouldDescribePipelineWithDynamicTags()
+    {
+        var meterRegistry = new SimpleMeterRegistry();
+        var pipeline = Pipeline.<String>of("multi-tag-pipeline")
+            .setTagResolver((metricTags, input, context) -> {
+                if (input != null) {
+                    metricTags.put("bu", input);
+                }
+            })
+            .registerStep((Step<Indexable, String>) (obj, input, payload, results, context) -> new TestResult("tag-res", "done"))
+            .registerSink((results, context) -> {})
+            .addObservabilityComponent(meterRegistry)
+            .build();
+
+        Assertions.assertDoesNotThrow(() -> pipeline.run("finance"));
+        Assertions.assertDoesNotThrow(() -> pipeline.run("marketing"));
+        Assertions.assertDoesNotThrow(() -> pipeline.run("marketing"));
+
+        PipelineDescription description = Assertions.assertDoesNotThrow(pipeline::describe);
+        Assertions.assertEquals("multi-tag-pipeline", description.id());
+        Assertions.assertNotNull(description.metrics());
+
+        var totalMetric = description.metrics().get("pipeline.run.total");
+        Assertions.assertNotNull(totalMetric);
+        Assertions.assertEquals(2, totalMetric.values().size());
+
+        double financeCount = totalMetric.values().entrySet().stream()
+            .filter(e -> "finance".equals(e.getKey().getTag("bu")))
+            .mapToDouble(e -> e.getValue().doubleValue())
+            .sum();
+        double marketingCount = totalMetric.values().entrySet().stream()
+            .filter(e -> "marketing".equals(e.getKey().getTag("bu")))
+            .mapToDouble(e -> e.getValue().doubleValue())
+            .sum();
+
+        Assertions.assertEquals(1.0, financeCount);
+        Assertions.assertEquals(2.0, marketingCount);
+
+        Assertions.assertEquals(1, description.steps().size());
+        var stepResultMetric = description.steps().get(0).metrics().get("pipeline.step.result.total");
+        Assertions.assertNotNull(stepResultMetric);
+        Assertions.assertEquals(2, stepResultMetric.values().size());
+
+        Assertions.assertDoesNotThrow(pipeline::close);
+    }
+
+    @Test
+    public void test__shouldScaleDescriptorObserverPerformance() throws Exception
+    {
+        var meterRegistry = new SimpleMeterRegistry();
+        var pipeline = Pipeline.<Integer>of("scale-test-pipeline")
+            .setTagResolver((metricTags, input, context) -> {
+                metricTags.put("bu", String.valueOf(input));
+            })
+            .registerStep((Step<Indexable, Integer>) (obj, input, payload, results, context) -> new TestResult("res", "ok"))
+            .addObservabilityComponent(meterRegistry)
+            .build();
+
+        for (int i = 0; i < 50; i++)
+        {
+            pipeline.run(i % 10);
+        }
+
+        // Register thousands of noise meters simulating large multi-tenant metrics
+        for (int i = 0; i < 5000; i++)
+        {
+            meterRegistry.counter("unrelated.metric", "bu", "bu-" + i, "pipeline", "other-" + (i % 20)).increment();
+        }
+
+        long start = System.currentTimeMillis();
+        for (int i = 0; i < 100; i++)
+        {
+            PipelineDescription desc = pipeline.describe();
+            Assertions.assertEquals("scale-test-pipeline", desc.id());
+        }
+        long duration = System.currentTimeMillis() - start;
+        // Verify fast execution of 100 describe() calls over 5,000+ meters
+        Assertions.assertTrue(duration < 2000, "describe() took too long: " + duration + "ms");
+
+        Assertions.assertDoesNotThrow(pipeline::close);
     }
 
     private static class OpenClosedObserver implements Observer

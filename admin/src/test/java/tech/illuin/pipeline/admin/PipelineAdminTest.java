@@ -73,4 +73,34 @@ public class PipelineAdminTest
         Assertions.assertEquals(1, admin.getPipelines().size());
         Assertions.assertEquals("p1", admin.getPipelines().iterator().next().id());
     }
+
+    @Test
+    public void testAdminWithMultiTagPipeline() throws Exception
+    {
+        Pipeline<String> pipeline = Pipeline.<String>of("multi-tag-pipe")
+            .setTagResolver((metricTags, input, context) -> metricTags.put("bu", input))
+            .build();
+
+        pipeline.run("finance");
+        pipeline.run("marketing");
+
+        try (PipelineAdmin admin = new PipelineAdminBuilder()
+                .addPipeline(pipeline)
+                .setPort(0)
+                .build()
+                .start()
+        ) {
+            int port = admin.getPort();
+
+            URL kpiUrl = URI.create("http://localhost:" + port + "/pipeline-admin/api/kpi").toURL();
+            HttpURLConnection conn = (HttpURLConnection) kpiUrl.openConnection();
+            conn.setRequestMethod("GET");
+            Assertions.assertEquals(200, conn.getResponseCode());
+
+            URL pipeUrl = URI.create("http://localhost:" + port + "/pipeline-admin/api/pipeline/multi-tag-pipe").toURL();
+            HttpURLConnection pipeConn = (HttpURLConnection) pipeUrl.openConnection();
+            pipeConn.setRequestMethod("GET");
+            Assertions.assertEquals(200, pipeConn.getResponseCode());
+        }
+    }
 }

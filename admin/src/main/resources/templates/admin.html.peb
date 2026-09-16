@@ -32,7 +32,7 @@
                     </tr>
                 </thead>
                 <tbody id="pipeline-list">
-                    <tr v-for="p in pipelines" :key="p.id" class="clickable-row" @click="navigateToPipeline(p.id)">
+                    <tr v-for="p in pipelines" :key="p.id" class="clickable-row" @click="navigateTo(routes.pipeline(p.id))">
                         <td style="font-weight: 600" class="mono">
                             <a :href="routes.pipeline(p.id)" style="color: inherit; text-decoration: none;" v-text="p.id"></a>
                         </td>

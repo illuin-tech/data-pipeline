@@ -162,6 +162,7 @@ function renderPipelineGraph(containerId, data, onNodeSelect) {
 function pipelineDetails(pipelineId) {
     return {
         routes,
+        navigateTo,
         pipelineId,
         kpis: {
             totalRuns: 0,

@@ -1,6 +1,7 @@
 function adminDashboard() {
     return {
         routes,
+        navigateTo,
         kpis: {
             pipelineCount: 0,
             totalRuns: 0,
@@ -38,15 +39,15 @@ function adminDashboard() {
         },
 
         getPipelineTotal(p) {
-            return getMetricValue(p.metrics, 'pipeline.run.total');
+            return getMetricTotal(p.metrics, 'pipeline.run.total');
         },
 
         getPipelineSuccess(p) {
-            return getMetricValue(p.metrics, 'pipeline.run.success');
+            return getMetricTotal(p.metrics, 'pipeline.run.success');
         },
 
         getPipelineError(p) {
-            return getMetricValue(p.metrics, 'pipeline.run.error.total');
+            return getMetricTotal(p.metrics, 'pipeline.run.error.total');
         },
 
         getPipelineRate(p) {
@@ -65,10 +66,6 @@ function adminDashboard() {
 
         getPipelineSuccessRateFormatted(p) {
             return (this.getPipelineRate(p) * 100).toFixed(1) + '%';
-        },
-
-        navigateToPipeline(id) {
-            navigateToPipeline(id);
         }
     };
 }

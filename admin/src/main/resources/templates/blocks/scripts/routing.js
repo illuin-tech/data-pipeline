@@ -10,10 +10,9 @@ const routes = {
     }
 };
 
-function navigateToList() {
-    window.location.href = routes.list();
-}
-
-function navigateToPipeline(id) {
-    window.location.href = routes.pipeline(id);
+function navigateTo(url) {
+    if (typeof url !== 'string') {
+        throw new Error('navigateTo expects a string URL');
+    }
+    window.location.href = url;
 }

@@ -19,6 +19,7 @@
     <properties>
         <jackson.version>2.22.2</jackson.version>
         <pebble.version>4.1.2</pebble.version>
+        <caffeine.version>3.1.8</caffeine.version>
     </properties>
 
     <dependencies>
@@ -27,6 +28,12 @@
             <artifactId>data-pipeline</artifactId>
             <version>${project.version}</version>
             <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+            <version>${caffeine.version}</version>
         </dependency>
 
         <dependency>

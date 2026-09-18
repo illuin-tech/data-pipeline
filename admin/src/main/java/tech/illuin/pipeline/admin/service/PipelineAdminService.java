@@ -1,10 +1,13 @@
 package tech.illuin.pipeline.admin.service;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import tech.illuin.pipeline.Pipeline;
 import tech.illuin.pipeline.admin.service.provider.PipelineProvider;
 import tech.illuin.pipeline.observer.descriptor.model.Metric;
 import tech.illuin.pipeline.observer.descriptor.model.PipelineDescription;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -14,16 +17,27 @@ import java.util.stream.Collectors;
 public class PipelineAdminService
 {
     private final PipelineProvider provider;
+    private final Cache<String, PipelineDescription> descriptionCache;
+
+    private static final Duration DEFAULT_TTL = Duration.ofSeconds(10);
 
     public PipelineAdminService(PipelineProvider provider)
     {
+        this(provider, DEFAULT_TTL);
+    }
+
+    public PipelineAdminService(PipelineProvider provider, Duration ttl)
+    {
         this.provider = provider;
+        this.descriptionCache = Caffeine.newBuilder()
+            .expireAfterWrite(ttl)
+            .build();
     }
 
     public List<PipelineDescription> listPipelines()
     {
         return this.provider.getPipelines().stream()
-            .map(Pipeline::describe)
+            .map(this::describe)
             .collect(Collectors.toList());
     }
 
@@ -32,7 +46,7 @@ public class PipelineAdminService
         return this.provider.getPipelines().stream()
             .filter(p -> p.id().equals(id))
             .findFirst()
-            .map(Pipeline::describe);
+            .map(this::describe);
     }
 
     public Map<String, Object> getGlobalKpis()
@@ -44,7 +58,7 @@ public class PipelineAdminService
 
         for (Pipeline<?> pipeline : pipelines)
         {
-            PipelineDescription desc = pipeline.describe();
+            PipelineDescription desc = this.describe(pipeline);
             totalRuns += this.getMetricValue(desc, "pipeline.run.total");
             totalSuccess += this.getMetricValue(desc, "pipeline.run.success");
         }
@@ -69,6 +83,11 @@ public class PipelineAdminService
                 "successRate", successRate
             );
         });
+    }
+
+    private PipelineDescription describe(Pipeline<?> pipeline)
+    {
+        return this.descriptionCache.get(pipeline.id(), k -> pipeline.describe());
     }
 
     private long getMetricValue(PipelineDescription desc, String key)

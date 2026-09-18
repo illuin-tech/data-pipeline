@@ -3,10 +3,13 @@ package tech.illuin.pipeline.admin;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import tech.illuin.pipeline.Pipeline;
+import tech.illuin.pipeline.admin.service.PipelineAdminService;
+import tech.illuin.pipeline.admin.service.provider.PipelineProvider;
 
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
+import java.time.Duration;
 import java.util.List;
 
 /**
@@ -102,5 +105,26 @@ public class PipelineAdminTest
             pipeConn.setRequestMethod("GET");
             Assertions.assertEquals(200, pipeConn.getResponseCode());
         }
+    }
+
+    @Test
+    public void testPipelineAdminServiceCaching() throws Exception
+    {
+        Pipeline<Object> pipeline = Pipeline.of("cached-pipe").build();
+
+        PipelineProvider provider = () -> List.of(pipeline);
+        PipelineAdminService service = new PipelineAdminService(provider, Duration.ofMillis(100));
+
+        var desc1 = service.getPipeline("cached-pipe").orElseThrow();
+        var desc2 = service.getPipeline("cached-pipe").orElseThrow();
+        Assertions.assertSame(desc1, desc2);
+
+        var list = service.listPipelines();
+        Assertions.assertEquals(1, list.size());
+        Assertions.assertSame(desc1, list.get(0));
+
+        Thread.sleep(150);
+        var desc3 = service.getPipeline("cached-pipe").orElseThrow();
+        Assertions.assertNotSame(desc1, desc3);
     }
 }

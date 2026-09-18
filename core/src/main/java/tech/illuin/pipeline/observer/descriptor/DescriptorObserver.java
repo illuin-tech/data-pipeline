@@ -59,6 +59,13 @@ public class DescriptorObserver implements Observer
         PIPELINE_SINK_ERROR_TOTAL_KEY
     );
 
+    private static final Set<String> ALL_KEYS = java.util.stream.Stream.of(
+        PIPELINE_KEYS,
+        INITIALIZATION_KEYS,
+        STEP_KEYS,
+        SINK_KEYS
+    ).flatMap(Collection::stream).map(MeterRegistryKey::id).collect(Collectors.toUnmodifiableSet());
+
     private String id;
     private MeterRegistry meterRegistry;
     private InitializerTemplate initTemplate;
@@ -168,11 +175,13 @@ public class DescriptorObserver implements Observer
         for (Meter meter : this.meterRegistry.getMeters())
         {
             Id meterId = meter.getId();
+            String metricName = meterId.getName();
+            if (!ALL_KEYS.contains(metricName))
+                continue;
+
             String pipelineTag = meterId.getTag("pipeline");
             if (!this.id.equals(pipelineTag))
                 continue;
-
-            String metricName = meterId.getName();
             String stepTag = meterId.getTag("step");
             if (stepTag != null)
             {

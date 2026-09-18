@@ -15,7 +15,7 @@ function adminDashboard() {
             await this.refresh();
             this.loading = false;
             if (this._pollTimer) clearInterval(this._pollTimer);
-            this._pollTimer = setInterval(() => this.refresh(), 5000);
+            this._pollTimer = setInterval(() => this.refresh(), 15000);
         },
 
         async refresh() {

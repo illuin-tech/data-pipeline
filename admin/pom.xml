@@ -19,7 +19,7 @@
     <properties>
         <jackson.version>2.22.2</jackson.version>
         <pebble.version>4.1.2</pebble.version>
-        <caffeine.version>3.1.8</caffeine.version>
+        <caffeine.version>3.3.1</caffeine.version>
     </properties>
 
     <dependencies>
